@@ -1,39 +1,37 @@
 #!/usr/bin/env nextflow
 
 pairs_ch = Channel.from([['NQ-20-10-BC702503-143_S28','ataxia']])
+no_pairs_ch = Channel.from(pairs_ch).count()
 
 params.panels_dir = "s3://hakmonkey-genetics-lab/Pipeline/Reference/panels"
 
+params.sample_dirs = "s3://hakmonkey-genetics-lab/Pipeline_Output/_processed"
 
 
-
-
-params.vcf_dirs = "s3://hakmonkey-genetics-lab/Pipeline_Output/_processed/**/variants"
-
-// !{vcf_dir}/!{sample_id}/variants/
 
 process applyPanel {
 
     tag "${sample_id}"
+	label 'small_process'
     echo true
     
     input:
     tuple sample_id, panel from pairs_ch
     path panel_dir from params.panels_dir
-    path vcf_paths from params.vcf_dirs
-
-    // !{vcf_paths}/!{sample_id}_concat_snpsift.vcf.gz
+    path sample_path from params.sample_dirs
 
     output:
     tuple sample_id, file("${sample_id}_${panel}.vcf")
 
     shell:
     '''
+	echo !{sample_path}
+
     GENES=$(tr -d '\r' <!{panel_dir}/!{panel} | tr '\n' '|')
 
-    zgrep '#' !{vcf_paths}/!{sample_id}_concat_snpsift.vcf.gz > !{sample_id}_!{panel}.vcf
+    zgrep '#' !{sample_path}/!{sample_id}/variants/!{sample_id}_concat_snpsift.vcf.gz > !{sample_id}_!{panel}.vcf
 
-    zcat !{vcf_paths}/!{sample_id}_concat_snpsift.vcf.gz | awk -v g="${GENES}" '$0 ~ g' - >> !{sample_id}_!{panel}.vcf
+    zcat !{sample_path}/!{sample_id}/variants/!{sample_id}_concat_snpsift.vcf.gz | awk -v g="${GENES}" '$0 ~ g' - >> !{sample_id}_!{panel}.vcf
     '''
 }
 
