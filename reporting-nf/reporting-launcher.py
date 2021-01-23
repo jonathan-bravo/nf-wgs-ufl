@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import csv
 import boto3
 
 def usage():
@@ -26,23 +25,32 @@ def get_data(bucket, prefix):
 
     data = []
 
-    for obj in result.get('CommonPrefixes'):
-        data.append(obj.get('Prefix')
-                       .replace(str(prefix), ""))
+    if 'panels' in prefix:
+        for obj in result.get('Contents'):
+            data.append(obj.get('Key')
+                           .replace(str(prefix), ""))
+    else:
+        for obj in result.get('CommonPrefixes'):
+            data.append(obj.get('Prefix')
+                           .replace(str(prefix), ""))
 
     return data
 
 
-def list_data(data):
+def enumerate_data(data):
     """
     """
 
     selections = (list(enumerate(data)))
 
-    for datum in selections:
-        print(datum)
-
     return selections
+
+
+def list_data(data):
+    """
+    """
+    for datum in data:
+        print(datum)
 
 
 def get_choice(choices):
@@ -58,12 +66,50 @@ def get_choice(choices):
         get_choice(choices)
 
 
-def select_panels(sample_ids):
+def select_run(runs):
     """
     """
 
-    for sample in sample_ids:
-        print(sample[1])
+    print("\n" + "#" * 18)
+    print("# Available Runs #")
+    print("#" * 18 + "\n")
+    print("(Index, Run ID)")
+
+    avail_runs = enumerate_data(data = runs)
+    list_data(data = avail_runs)
+    run_id = get_choice(choices = avail_runs)
+
+    return run_id
+
+
+def select_panels(sample_list, panel_list):
+    """
+    """
+
+    test_pairs = []
+
+    avail_samples = enumerate_data(data = sample_list)
+    avail_panels = enumerate_data(data = panel_list)
+
+    for sample in avail_samples:
+        print("\n" + "#" * 20)
+        print("# Available Panels #")
+        print("#" * 20 + "\n")
+        print("(Index, Panel)")
+        list_data(data = avail_panels)
+
+        print("\n Sample:")
+        print(sample[1] + "\n")
+
+        test_num = int(input("How many panels would you like to run?: "))
+
+        for i in range(test_num):
+            print("panel number " + str(i+1))
+
+            test = get_choice(choices = avail_panels)
+            test_pairs.append([sample[1].strip('/'), test])
+
+    return test_pairs
 
 
 def main():
@@ -74,45 +120,32 @@ def main():
     runs_dir = 'Pipeline_Output/'
     panels_dir = 'Pipeline/Reference/panels/'
 
+    ################################
+    # Listing & Getting Run Choice #
+    ################################
+
     runs = get_data(bucket = bucket, prefix = runs_dir)
 
-    print("\n" + "#" * 18)
-    print("# Available Runs #")
-    print("#" * 18 + "\n")
-    print("(Index, Run ID)")
+    run_id = select_run(runs = runs)
 
-    avail_runs = list_data(data = runs)
-
-    run_id = get_choice(choices = avail_runs)
+    ################################
+    # Creating Sample/ Panel Pairs #
+    ################################
 
     samples = get_data(bucket = bucket, prefix = runs_dir + run_id)
+    
+    panels = get_data(bucket = bucket, prefix = panels_dir)
+    while('' in panels):
+        panels.remove('')
 
-    avail_samples = list_data(data = samples)
+    pairs = select_panels(sample_list = samples, panel_list = panels)
 
-    select_panels(sample_ids = avail_samples)
+    print(pairs)
 
 
 if __name__ == '__main__':
-    """
-    """
-
     main()
 
-
-
-
-
-
-## temp comment block
-
-# pairs = []
-
-# with open('barg.csv') as csv_file:
-#     csv_reader = csv.reader(csv_file, delimiter='\t')
-#     for row in csv_reader:
-#         panels = row[1].split(",")
-#         for panel in panels:
-#             pairs.append([row[0], panel])
 
 # # Will need to reverse this after running the nextflow pipeline
 
