@@ -1,47 +1,39 @@
 #!/usr/bin/env nextflow
 
-pairs_ch = Channel.from([['NQ-20-10-BC702503-143_S28','ataxia']])
-no_pairs_ch = Channel.from(pairs_ch).count()
+params.run_dir
+params.panels_dir
 
-params.panels_dir = "s3://hakmonkey-genetics-lab/Pipeline/Reference/panels"
-
-params.sample_dirs = "s3://hakmonkey-genetics-lab/Pipeline_Output/_processed"
-
-
+pairs_ch = Channel.from()
 
 process applyPanel {
 
     tag "${sample_id}"
+	publishDir "${params.run_dir}/${sample_id}/variants", mode: 'copy'
 	label 'small_process'
-    echo true
     
     input:
     tuple sample_id, panel from pairs_ch
     path panel_dir from params.panels_dir
-    path sample_path from params.sample_dirs
+    path sample_path from params.run_dir
 
     output:
     tuple sample_id, file("${sample_id}_${panel}.vcf")
 
     shell:
     '''
-	echo !{sample_path}
-
     GENES=$(tr -d '\r' <!{panel_dir}/!{panel} | tr '\n' '|')
 
     zgrep '#' !{sample_path}/!{sample_id}/variants/!{sample_id}_concat_snpsift.vcf.gz > !{sample_id}_!{panel}.vcf
 
+	zgrep '#' !{sample_path}/!{sample_id}/variants/!{sample_id}_eh_snpsift.vcf.gz > !{sample_id}_eh_!{panel}.vcf
+
     zcat !{sample_path}/!{sample_id}/variants/!{sample_id}_concat_snpsift.vcf.gz | awk -v g="${GENES}" '$0 ~ g' - >> !{sample_id}_!{panel}.vcf
+
+	zcat !{sample_path}/!{sample_id}/variants/!{sample_id}_eh_snpsift.vcf.gz | awk -v g="${GENES}" '$0 ~ g' - >> !{sample_id}_eh_!{panel}.vcf
     '''
 }
 
-
 /* 
-	1. Parse sample sheet
-	   - This is done in the python script, which will automatically populate
-	   the pairs_ch in this nextflow file and will then reset it back to
-	   `pairs_ch = Channel.from()`
-	2. Apply correct filters
 	3. Visualize filtered output
 	4. Generate report template based on panel(s) selected and data found
 	   - This will require that I parse the hits provided depending on how much of the report
@@ -53,50 +45,8 @@ process applyPanel {
 	Word docs or PDFs
 */
 
-/*
-// This is the s3 bucket that contains the wgs pipeline output
-params.vcf_dirs = "s3://hakmonkey-genetics-lab/Pipeline_Output"
-// This is the s3 bucket that holds all the panels
-params.panels_dir = "s3://hakmonkey-genetics-lab/Pipeline/Reference/panels"
-*/
-/*
-	These are the panels we currently have:
-	- ataxia
-	- dementia
-	- dystonia
-	- epilepsy
-	- hsp
-	- neuromuscular
-	- neuropathy
-	- parkinsons
-	- sma
-*/
 
-// This is a list of lists that containes the sample_id and the panel name
-// This will be used to determine which folder to look into and which panel to
-// apply
 /*
-pairs_ch = Channel.from()
-
-process filterVCF {
-	
-	tag "${sample_id}"
-	publishDir "${params.outdir}/${sample_id}/filteredVariants", mode: 'copy'
-	
-	input:
-	// output from parse sample sheet
-	tuple sample_id, test from pairs_ch
-	path panel_dir from params.panels_dir
-	path vcf from 
-	
-	output:
-	// filtered sample into *2* channels
-	
-	script:
-	"""
-	"""
-}
-
 process visualizeVCF {
 	
 	tag "${sample_id}"
