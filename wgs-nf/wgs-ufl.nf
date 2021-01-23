@@ -1,8 +1,9 @@
 #!/usr/bin/env nextflow
 
-params.bucket            = "s3://hakmonkey-genetics-lab/Pipeline"
+params.bucket            = "s3://hakmonkey-genetics-lab"
+params.ref_dir           = "${params.bucket}/Pipeline/Reference"
 
-params.reference         = "${params.bucket}/Reference/hg19/hg19.fa"
+params.reference         = "${params.ref_dir}/hg19/hg19.fa"
 params.bwa_amb           = "${params.reference}.amb"
 params.bwa_ann           = "${params.reference}.ann"
 params.bwa_bwt           = "${params.reference}.bwt"
@@ -10,17 +11,17 @@ params.bwa_pac           = "${params.reference}.pac"
 params.bwa_sa            = "${params.reference}.sa"
 params.ref_fai           = "${params.reference}.fai"
 
-params.cnv_control       = "${params.bucket}/Reference/cnv/1000_genomes_control.RData"
-params.cnv_bed           = "${params.bucket}/Reference/cnv/genes.bed"
+params.cnv_control       = "${params.ref_dir}/cnv/1000_genomes_control.RData"
+params.cnv_bed           = "${params.ref_dir}/cnv/genes.bed"
 
-params.dbnsfp            = "${params.bucket}/Reference/dbnsfp/dbNSFP4.1a.txt.gz"
+params.dbnsfp            = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
 params.dbnsfp_tbi        = "${params.dbnsfp}.tbi"
 params.dbnsfp_data_types = "${params.dbnsfp}.data_types"
 
-params.outdir            = "s3://hakmonkey-genetics-lab/Pipeline_Output"
+params.outdir            = "${params.bucket}/Pipeline_Output"
 
-params.reads1            = "s3://hakmonkey-genetics-lab/Fastqs/*_{L001,L002}_R1_001.fastq.gz"
-params.reads2            = "s3://hakmonkey-genetics-lab/Fastqs/*_{L001,L002}_R2_001.fastq.gz"
+params.reads1            = "${params.bucket}/Fastqs/*_{L001,L002}_R1_001.fastq.gz"
+params.reads2            = "${params.bucket}/Fastqs/*_{L001,L002}_R2_001.fastq.gz"
 
 reads1_ch                = Channel.fromFilePairs(params.reads1)
 reads2_ch                = Channel.fromFilePairs(params.reads2)
@@ -440,7 +441,7 @@ process annotateVCF {
 
     bgzip -@ ${task.cpus} ${sample_id}_concat_snpsift.vcf
 
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_eh_snpeff_stats.csv hg19 ${sample_id}_concat.vcf.gz > ${sample_id}_eh_snpeff.vcf
+    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_eh_snpeff_stats.csv hg19 ${sample_id}_eh.vcf.gz > ${sample_id}_eh_snpeff.vcf
 
     bgzip -@ ${task.cpus} ${sample_id}_eh_snpeff.vcf
 
