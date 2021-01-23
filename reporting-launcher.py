@@ -126,9 +126,9 @@ def launch_nextflow(test_pairs, bucket, runs_dir, run_id, panels_dir):
 
     launch = "sudo nextflow run reporting-ufl.nf -c ~/Documents/nextflow.config.bk -work-dir s3://{bucket}/{runs_dir}/work/ --run_dir 's3://{bucket}/{runs_dir}/{run_id}' --panels_dir 's3://{bucket}/{panels_dir}'".format(
         bucket = bucket,
-        runs_dir = runs_dir.strip('/'),
-        run_id = run_id.strip('/'),
-        panels_dir = panels_dir.strip('/'))
+        runs_dir = runs_dir,
+        run_id = run_id,
+        panels_dir = panels_dir)
 
     os.system(launch)
 
@@ -176,9 +176,9 @@ def main():
     launch_nextflow(
         test_pairs = test_pairs,
         bucket = bucket,
-        runs_dir = runs_dir,
-        run_id = run_id,
-        panels_dir = panels_dir)
+        runs_dir = runs_dir.strip('/'),
+        run_id = run_id.strip('/'),
+        panels_dir = panels_dir.strip('/'))
 
 
 if __name__ == '__main__':
