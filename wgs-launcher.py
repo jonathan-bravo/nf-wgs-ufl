@@ -2,6 +2,7 @@
 
 import os
 import boto3
+from tqdm import tqdm
 
 def usage():
     """
@@ -108,9 +109,8 @@ def archive_fastqs(bucket, processed_dir, samples_dir, run):
     dest_bucket = s3.Bucket(bucket)
 
     all_samples = get_data(bucket = bucket, prefix = samples_dir)
-    for sample in all_samples:
+    for sample in tqdm(all_samples):
         if run in sample:
-            print(sample)
             copy_source = {
                 'Bucket': bucket,
                 'Key': samples_dir + sample
@@ -119,6 +119,7 @@ def archive_fastqs(bucket, processed_dir, samples_dir, run):
             obj.copy(copy_source)
             src = dest_bucket.Object(samples_dir + sample)
             src.delete()
+            print(sample + " archived")
 
 
 
