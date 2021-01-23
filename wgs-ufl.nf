@@ -1,30 +1,31 @@
 #!/usr/bin/env nextflow
 
-params.bucket            = "s3://hakmonkey-genetics-lab"
-params.ref_dir           = "${params.bucket}/Pipeline/Reference"
+params.bucket      = ""
+params.run_id      = ""
+params.ref_dir     = "${params.bucket}/Pipeline/Reference"
 
-params.reference         = "${params.ref_dir}/hg19/hg19.fa"
-params.bwa_amb           = "${params.reference}.amb"
-params.bwa_ann           = "${params.reference}.ann"
-params.bwa_bwt           = "${params.reference}.bwt"
-params.bwa_pac           = "${params.reference}.pac"
-params.bwa_sa            = "${params.reference}.sa"
-params.ref_fai           = "${params.reference}.fai"
+params.reference   = "${params.ref_dir}/hg19/hg19.fa"
+params.bwa_amb     = "${params.reference}.amb"
+params.bwa_ann     = "${params.reference}.ann"
+params.bwa_bwt     = "${params.reference}.bwt"
+params.bwa_pac     = "${params.reference}.pac"
+params.bwa_sa      = "${params.reference}.sa"
+params.ref_fai     = "${params.reference}.fai"
 
-params.cnv_control       = "${params.ref_dir}/cnv/1000_genomes_control.RData"
-params.cnv_bed           = "${params.ref_dir}/cnv/genes.bed"
+params.cnv_control = "${params.ref_dir}/cnv/1000_genomes_control.RData"
+params.cnv_bed     = "${params.ref_dir}/cnv/genes.bed"
 
-params.dbnsfp            = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
-params.dbnsfp_tbi        = "${params.dbnsfp}.tbi"
-params.dbnsfp_data_types = "${params.dbnsfp}.data_types"
+params.dbnsfp      = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
+params.dbnsfp_tbi  = "${params.dbnsfp}.tbi"
+params.dbnsfp_dt   = "${params.dbnsfp}.data_types"
 
-params.outdir            = "${params.bucket}/Pipeline_Output"
+params.outdir      = "${params.bucket}/Pipeline_Output"
 
-params.reads1            = "${params.bucket}/Fastqs/*_{L001,L002}_R1_001.fastq.gz"
-params.reads2            = "${params.bucket}/Fastqs/*_{L001,L002}_R2_001.fastq.gz"
+params.reads1      = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
+params.reads2      = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
 
-reads1_ch                = Channel.fromFilePairs(params.reads1)
-reads2_ch                = Channel.fromFilePairs(params.reads2)
+reads1_ch          = Channel.fromFilePairs(params.reads1)
+reads2_ch          = Channel.fromFilePairs(params.reads2)
 
 log.info """\
 
@@ -66,7 +67,7 @@ process catLanes {
 process fastqc {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
     label 'small_process'
 
     input:
@@ -90,6 +91,7 @@ process fastqc {
 process trimReads {
 
     tag "${sample_id}"
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
     label 'small_process'
 
     input:
@@ -143,7 +145,7 @@ process alignTrimmedReads {
 process samToBam {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/alignment", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/alignment", mode: 'copy'
     label 'high_mem'
 
     input:
@@ -163,7 +165,7 @@ process samToBam {
 process collectWgsMetrics {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/wgs_metrics", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/wgs_metrics", mode: 'copy'
     label 'high_mem'
 
     input:
@@ -185,7 +187,7 @@ process collectWgsMetrics {
 process callSNV {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
     label 'medium_process'
 
     input:
@@ -273,7 +275,7 @@ process callCNV {
 process csvToVCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
     label 'small_process'
 
     input:
@@ -359,7 +361,7 @@ process csvToVCF {
 process expansionHunter {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/ExpansionHunter", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/ExpansionHunter", mode: 'copy'
     label 'small_process'
 
     input:
@@ -387,7 +389,7 @@ process expansionHunter {
 process mergeVCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
     label 'small_process'
 
     input:
@@ -418,13 +420,13 @@ process mergeVCF {
 process annotateVCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
     label 'high_mem'
 
     input:
     path dbNSFP from params.dbnsfp
     path dbNSFP_tbi from params.dbnsfp_tbi
-    path dbNSFP_data_types from params.dbnsfp_data_types
+    path dbNSFP_data_types from params.dbnsfp_dt
     tuple sample_id, file("${sample_id}_concat.vcf.gz"), file("${sample_id}_concat.vcf.gz.csi") from merged_ch
     tuple sample_id, file("${sample_id}_eh.vcf.gz") from exp_hunt_ch
 
@@ -457,7 +459,7 @@ process annotateVCF {
 process multiqc {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${sample_id}/MultiQC", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/MultiQC", mode: 'copy'
     label 'small_process'
 
     input:
