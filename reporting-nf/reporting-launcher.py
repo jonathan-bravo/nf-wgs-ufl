@@ -112,6 +112,35 @@ def select_panels(sample_list, panel_list):
     return test_pairs
 
 
+def launch_nextflow(test_pairs, bucket, runs_dir, run_id, panels_dir):
+    """
+    """
+
+    pairs = "sed -i 's/pairs_ch = Channel.from()/pairs_ch = Channel.from({test_lists})/' reporting-ufl.nf".format(test_lists = test_pairs)
+
+    os.system(pairs)
+
+    quotes = "sed -ri \"s/\\[([a-zA-Z0-9_.-]+),\\s([a-zA-Z0-9_.-]+)\\]/\\['\\1','\\2'\\]/g\" reporting-ufl.nf"
+
+    os.system(quotes)
+
+    launch = "sudo nextflow run reporting-ufl.nf -c ~/Documents/nextflow.config.bk -work-dir s3://{bucket}/{runs_dir}/work/ --run_dir 's3://{bucket}/{runs_dir}/{run_id}' --panels_dir 's3://{bucket}/{panels_dir}'".format(
+        bucket = bucket,
+        runs_dir = runs_dir.strip('/'),
+        run_id = run_id.strip('/'),
+        panels_dir = panels_dir.strip('/'))
+
+    os.system(launch)
+
+    trash = "sudo nextflow clean -f"
+
+    os.system(trash)
+
+    reset = "sed -i 's/^pairs_ch = Channel.from(.*$/pairs_ch = Channel.from()/' reporting-ufl.nf"
+
+    os.system(reset)
+
+
 def main():
     """
     """
@@ -138,20 +167,19 @@ def main():
     while('' in panels):
         panels.remove('')
 
-    pairs = select_panels(sample_list = samples, panel_list = panels)
+    test_pairs = select_panels(sample_list = samples, panel_list = panels)
 
-    print(pairs)
+    #################################
+    # Running The Nextflow Pipeline #
+    #################################
+
+    launch_nextflow(
+        test_pairs = test_pairs,
+        bucket = bucket,
+        runs_dir = runs_dir,
+        run_id = run_id,
+        panels_dir = panels_dir)
 
 
 if __name__ == '__main__':
     main()
-
-
-# # Will need to reverse this after running the nextflow pipeline
-
-# os.system("sed -i 's/pairs_ch = Channel.from()/pairs_ch = Channel.from(%s)/' test-tuple.nf"%pairs)
-
-# cmd = "sed -ri \"s/\\[([a-zA-Z0-9_.-]+),\\s([a-zA-Z0-9_.-]+)\\]/\\['\\1','\\2'\\]/g\" test-tuple.nf"
-
-# os.system(cmd)
-
