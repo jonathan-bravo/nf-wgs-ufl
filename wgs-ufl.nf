@@ -116,6 +116,7 @@ process trimReads {
 process alignTrimmedReads {
     
     tag "${sample_id}"
+    label 'alignment'
 
     input:
     path reference from params.reference
