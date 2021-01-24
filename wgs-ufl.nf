@@ -42,7 +42,6 @@ log.info """\
          """
          .stripIndent()
 
-// May eventually want to include MultiQC
 // Will be using dudeML and DeepVariant in the future
 
 process catLanes {
@@ -451,39 +450,5 @@ process annotateVCF {
     java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/SnpSift.jar dbnsfp -v -db ${dbNSFP} ${sample_id}_eh_snpeff.vcf.gz > ${sample_id}_eh_snpsift.vcf
 
     bgzip -@ ${task.cpus} ${sample_id}_eh_snpsift.vcf
-    """
-}
-
-// Do not see the trimmomatic log in the multiQC report...
-
-process multiqc {
-
-    tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/MultiQC", mode: 'copy'
-    label 'small_process'
-
-    input:
-    file "${sample_id}_trim_out.log" from trim_log_ch
-    path "fastqc_${sample_id}_logs" from fastqc_ch
-    file "${sample_id}_gatk_collect_wgs_metrics.txt" from wgs_metrics_ch
-    tuple sample_id, file("${sample_id}_snpeff_stats.csv"), file("${sample_id}_eh_snpeff_stats.csv") from snpeff_stats_ch
-
-    output:
-    file "${sample_id}.html" into multiqc_report_ch
-    path "${sample_id}_data"
-
-    script:
-    """
-    touch ${sample_id}_file_list.txt
-    echo "${sample_id}_gatk_collect_wgs_metrics.txt" >> ${sample_id}_file_list.txt
-    echo "${sample_id}_trim_out.log" >> ${sample_id}_file_list.txt
-    echo "${sample_id}_snpeff_stats.csv" >> ${sample_id}_file_list.txt
-    echo "${sample_id}_eh_snpeff_stats.csv" >> ${sample_id}_file_list.txt
-    echo "./fastqc_${sample_id}_logs/${sample_id}_R1_fastqc.html" >> ${sample_id}_file_list.txt
-    echo "./fastqc_${sample_id}_logs/${sample_id}_R1_fastqc.zip" >> ${sample_id}_file_list.txt
-    echo "./fastqc_${sample_id}_logs/${sample_id}_R2_fastqc.html" >> ${sample_id}_file_list.txt
-    echo "./fastqc_${sample_id}_logs/${sample_id}_R2_fastqc.zip" >> ${sample_id}_file_list.txt
-
-    multiqc -n ${sample_id} --file-list ${sample_id}_file_list.txt
     """
 }
