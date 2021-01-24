@@ -3,58 +3,16 @@
 import os
 import boto3
 from tqdm import tqdm
+from data_ops import enumerate_data
+from data_ops import list_data
+from data_ops import get_choice
+from data_ops import get_data
+
 
 def usage():
     """
     """
 
-
-def get_data(bucket, prefix):
-    """
-    """
-
-    client = boto3.client('s3')
-    result = client.list_objects_v2(
-        Bucket = bucket,
-        Prefix = prefix,
-        Delimiter = '/'
-    )
-
-    data = []
-
-    for obj in result.get('Contents'):
-        data.append(obj.get('Key').replace(str(prefix), ""))
-
-    return data
-
-
-def enumerate_data(data):
-    """
-    """
-
-    selections = (list(enumerate(data)))
-
-    return selections
-
-
-def list_data(data):
-    """
-    """
-    for datum in data:
-        print(datum)
-
-
-def get_choice(choices):
-    """
-    """
-
-    selection = int(input("\n Select the index of the run you want to process: "))
-    try:
-        print("\n Selected run: " + choices[selection][1] + "\n")
-        return choices[selection][1]
-    except IndexError:
-        print("\n Please select an option from the list.")
-        get_choice(choices)
 
 def get_runs(data):
     """
