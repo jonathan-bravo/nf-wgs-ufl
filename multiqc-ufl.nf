@@ -9,10 +9,12 @@ log.info """\
          ========================================
          run directory path : ${params.run_dir}
          run id             : ${params.run_id}
+         
          """
          .stripIndent()
 
-process multiQCRun {
+process multiqcRun {
+    
     tag "${params.run_id}"
     publishDir "${params.run_dir}/MultiQC"
     label 'small_process'
@@ -28,5 +30,4 @@ process multiQCRun {
     """
     multiqc .
     """
-
 }
