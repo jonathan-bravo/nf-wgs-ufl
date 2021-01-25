@@ -435,7 +435,7 @@ process annotateVCF {
 
     script:
     """
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_snpeff_stats.csv hg19 ${sample_id}_concat.vcf.gz > ${sample_id}_concat_snpeff.vcf
+    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_snpeff_stats.csv -v -canon hg19 ${sample_id}_concat.vcf.gz > ${sample_id}_concat_snpeff.vcf
 
     bgzip -@ ${task.cpus} ${sample_id}_concat_snpeff.vcf
 
@@ -443,7 +443,7 @@ process annotateVCF {
 
     bgzip -@ ${task.cpus} ${sample_id}_concat_snpsift.vcf
 
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_eh_snpeff_stats.csv hg19 ${sample_id}_eh.vcf.gz > ${sample_id}_eh_snpeff.vcf
+    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_eh_snpeff_stats.csv -v -canon hg19 ${sample_id}_eh.vcf.gz > ${sample_id}_eh_snpeff.vcf
 
     bgzip -@ ${task.cpus} ${sample_id}_eh_snpeff.vcf
 
