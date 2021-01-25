@@ -56,7 +56,7 @@ def launch_nextflow(test_pairs, bucket, runs_dir, run_id, panels_dir):
 
     os.system(quotes)
 
-    launch = "sudo nextflow run reporting-ufl.nf -work-dir s3://{bucket}/{runs_dir}/work/ --run_dir 's3://{bucket}/{runs_dir}/{run_id}' --panels_dir 's3://{bucket}/{panels_dir}'".format(
+    launch = "sudo nextflow run reporting-ufl.nf -work-dir s3://{bucket}/{runs_dir}/work/ --run_dir 's3://{bucket}/{runs_dir}/{run_id}' --panels_dir 's3://{bucket}/{panels_dir}' --bucket '{bucket}'".format(
         bucket = bucket,
         runs_dir = runs_dir,
         run_id = run_id,
