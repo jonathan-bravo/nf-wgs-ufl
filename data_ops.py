@@ -24,7 +24,7 @@ def get_data(bucket, prefix):
 
     data = []
 
-    if 'panels' in prefix:
+    if 'panels' in prefix or 'Fastqs' in prefix:
         for obj in result.get('Contents'):
             data.append(obj.get('Key')
                            .replace(str(prefix), ""))
