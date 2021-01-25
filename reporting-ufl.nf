@@ -2,13 +2,28 @@
 
 params.run_dir
 params.panels_dir
+params.bucket      = ""
+params.ref_dir     = "${params.bucket}/Pipeline/Reference"
+params.reference   = "${params.ref_dir}/hg19/hg19.fa"
+params.ref_fai     = "${params.reference}.fai"
+
 
 pairs_ch = Channel.from()
+
+log.info """\
+
+         R E P O R T I N G - U F L    P I P E L I N E
+         ============================================
+         run directory    : ${params.run_dir}
+         panels directory : ${params.panels_dir}
+		 
+         """
+         .stripIndent()
 
 process applyPanel {
 
     tag "${sample_id}"
-	publishDir "${params.run_dir}/${sample_id}/variants", mode: 'copy'
+	publishDir "${params.run_dir}/${sample_id}/${sample_id}-${panel}", mode: 'copy'
 	label 'small_process'
     
     input:
@@ -17,7 +32,7 @@ process applyPanel {
     path sample_path from params.run_dir
 
     output:
-    tuple sample_id, file("${sample_id}_${panel}.vcf")
+    tuple sample_id, panel, file("${sample_id}_${panel}.vcf"), file("${sample_id}_eh_${panel}.vcf") into paneled_ch
 
     shell:
     '''
@@ -33,6 +48,73 @@ process applyPanel {
     '''
 }
 
+process onePerLine {
+
+	tag "${sample_id}-${panel}"
+	publishDir "${params.run_dir}/${sample_id}/${sample_id}-${panel}", mode: 'copy'
+	label 'small_process'
+
+	input:
+	tuple sample_id, panel, file("${sample_id}_${panel}.vcf"), file("${sample_id}_eh_${panel}.vcf") from paneled_ch
+
+	output:
+	tuple sample_id, panel, file("${sample_id}_${panel}_OPL.vcf"), file("${sample_id}_eh_${panel}_OPL.vcf") into (opl_ch1, opl_ch2)
+
+	script:
+	"""
+	cat ${sample_id}_${panel}.vcf | /snpEff/scripts/vcfEffOnePerLine.pl > ${sample_id}_${panel}_OPL.vcf
+
+	cat ${sample_id}_eh_${panel}.vcf | /snpEff/scripts/vcfEffOnePerLine.pl > ${sample_id}_eh_${panel}_OPL.vcf
+	"""
+}
+
+// Going to do a qc filtered version and a non qc filtered version
+
+process qualityFilter {
+
+	tag "${sample_id}-${panel}"
+	publishDir "${params.run_dir}/${sample_id}/${sample_id}-${panel}", mode: 'copy'
+	label 'small_process'
+
+	input:
+	tuple sample_id, panel, file("${sample_id}_${panel}_OPL.vcf"), file("${sample_id}_eh_${panel}_OPL.vcf") from opl_ch1
+	path reference from params.reference
+	path ref_fai from params.ref_fai
+
+	output:
+	tuple sample_id, panel, file("${sample_id}_${panel}_hq.vcf"), file("${sample_id}_eh_${panel}_hq.vcf") into hq_ch
+
+	script:
+	"""
+	bcftools view -R ${reference} -i'FILTER="PASS"' --threads ${task.cpus} ${sample_id}_${panel}_OPL.vcf -o ${sample_id}_${panel}_hq.vcf
+
+	bcftools view -R ${reference} -i'FILTER="PASS"' --threads ${task.cpus} ${sample_id}_eh_${panel}_OPL.vcf -o ${sample_id}_eh_${panel}_hq.vcf
+	"""
+}
+
+
+process visualizePanel {
+
+	tag "${sample_id}-${panel}"
+	publishDir "${params.run_dir}/${sample_id}/${sample_id}-${panel}", mode: 'copy'
+	label 'small_process'
+
+	input:
+	tuple sample_id, panel, file("${sample_id}_${panel}_OPL.vcf"), file("${sample_id}_eh_${panel}_OPL.vcf") from opl_ch2
+	tuple sample_id, panel, file("${sample_id}_${panel}_hq.vcf"), file("${sample_id}_eh_${panel}_hq.vcf") into hq_ch
+
+	output:
+
+	script:
+	"""
+	#!/usr/bin/env python3
+
+	import pandas as pd
+	"""
+}
+
+// Also want a component for visualizing `.bam` file using IGV
+
 /* 
 	3. Visualize filtered output
 	4. Generate report template based on panel(s) selected and data found
@@ -45,25 +127,11 @@ process applyPanel {
 	Word docs or PDFs
 */
 
+// Want to add a component that stores all variants from "panel filtered" data
+// into a database that can be searched by gene or by sample
+
 
 /*
-process visualizeVCF {
-	
-	tag "${sample_id}"
-	
-	input:
-	// filtered vcf file from applyPanel process
-	
-	output:
-	// page that is the visualization of the filtered data
-	
-	script:
-	"""
-	vcftools --gvcf ${sample_id}.vcf.gz --out ${sample_id} --plink
-	gemini -v ${sample_id}.vcf.gz -p ${sample_id}.ped -t snpEff --cores ${task.cpus} ${sample_id}.db
-	
-	"""
-}
 
 process generateReportTemplate {
 	
