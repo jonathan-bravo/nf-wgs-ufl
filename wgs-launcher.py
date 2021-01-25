@@ -20,7 +20,8 @@ def get_runs(data):
 
     data = [sample[:8] for sample in data]
     data = list(set(data))
-    data.remove('')
+    if '' in data:
+        data.remove('')
     data.sort()
 
     return data
