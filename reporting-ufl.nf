@@ -22,8 +22,8 @@ log.info """\
 
 process applyPanel {
 
-    tag "${sample_id}"
-	publishDir "${params.run_dir}/${sample_id}/${sample_id}-${panel}", mode: 'copy'
+    tag "${sample_id}-${panel}"
+	publishDir "${params.run_dir}/${sample_id}/${panel}", mode: 'copy'
 	label 'small_process'
     
     input:
