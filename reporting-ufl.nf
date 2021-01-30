@@ -67,31 +67,6 @@ process onePerLine {
 	"""
 }
 
-// Going to do a qc filtered version and a non qc filtered version
-/*
-process qualityFilter {
-
-	tag "${sample_id}_${panel}"
-	publishDir "${params.run_dir}/${sample_id}/${sample_id}-${panel}", mode: 'copy'
-	label 'small_process'
-
-	input:
-	tuple sample_id, panel, file("${sample_id}_${panel}_OPL.vcf"), file("${sample_id}_eh_${panel}_OPL.vcf") from opl_ch1
-	path reference from params.reference
-	path ref_fai from params.ref_fai
-
-	output:
-	tuple sample_id, panel, file("${sample_id}_${panel}_hq.vcf"), file("${sample_id}_eh_${panel}_hq.vcf") into hq_ch
-
-	script:
-	"""
-	bcftools view -R ${reference} -i'FILTER="PASS"' --threads ${task.cpus} ${sample_id}_${panel}_OPL.vcf -o ${sample_id}_${panel}_hq.vcf
-
-	bcftools view -R ${reference} -i'FILTER="PASS"' --threads ${task.cpus} ${sample_id}_eh_${panel}_OPL.vcf -o ${sample_id}_eh_${panel}_hq.vcf
-	"""
-}
-*/
-
 process generateTmpFiles {
 
 	tag "${sample_id}_${panel}"
