@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 
+params.single_lane = ""
+
 params.bucket      = ""
 params.run_id      = ""
 params.ref_dir     = "${params.bucket}/Pipeline/Reference"
@@ -21,97 +23,172 @@ params.dbnsfp_dt   = "${params.dbnsfp}.data_types"
 
 params.outdir      = "${params.bucket}/Pipeline_Output"
 
-params.reads1      = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
-params.reads2      = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
 
-reads1_ch          = Channel.fromFilePairs(params.reads1)
-reads2_ch          = Channel.fromFilePairs(params.reads2)
+// Will be using dudeML and DeepVariant in the future
 
-log.info """\
+if (params.single_lane == "YES"){
+
+    params.reads_path = "${params.bucket}/Fastqs/${params.run_id}*_{1,2}.fq.gz"
+
+    log.info """\
 
          W G S - U F L    P I P E L I N E
          ================================
-         reference          : ${params.reference}
-         reads R1           : ${params.reads1}
-         reads R2           : ${params.reads2}
-         cnv control        : ${params.cnv_control}
-         count windows      : ${params.cnv_bed}
-         dbnsfp             : ${params.dbnsfp}
-         outdir             : ${params.outdir}
+         reference     : ${params.reference}
+         reads         : ${params.reads_path}
+         cnv control   : ${params.cnv_control}
+         count windows : ${params.cnv_bed}
+         dbnsfp        : ${params.dbnsfp}
+         outdir        : ${params.outdir}
+
+         """
+         .stripIndent()
+    
+    reads_ch = Channel.fromFilePairs(params.reads_path)
+
+    process fastqc_single {
+
+        tag "${sample_id}"
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+        label 'small_process'
+
+        input:
+        tuple sample_id, path(reads) from reads_ch
+
+        output:
+        path "fastqc_${sample_id}_logs" into fastqc_ch
+
+        script:
+        """
+        mkdir fastqc_${sample_id}_logs
+        fastqc \
+        -t ${task.cpus} \
+        -o fastqc_${sample_id}_logs \
+        -f fastq \
+        ${sample_id}_R1.fastq.gz \
+        ${sample_id}_R2.fastq.gz
+        """
+    }
+
+    process trimReads_single {
+
+        tag "${sample_id}"
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+        label 'small_process'
+
+        input:
+        tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") from read_pairs_ch2
+
+        output:
+        tuple sample_id, file("${sample_id}_forward-paired.fastq.gz"), file("${sample_id}_reverse-paired.fastq.gz"), file("${sample_id}_forward-unpaired.fastq.gz"), file("${sample_id}_reverse-unpaired.fastq.gz") into trimmed_ch
+        tuple sample_id, file("${sample_id}_trim_out.log") into trim_log_ch
+
+        script:
+        """
+        TrimmomaticPE -threads ${task.cpus} \
+        ${sample_id}_R1.fastq.gz \
+        ${sample_id}_R2.fastq.gz \
+        ${sample_id}_forward-paired.fastq.gz \
+        ${sample_id}_forward-unpaired.fastq.gz \
+        ${sample_id}_reverse-paired.fastq.gz \
+        ${sample_id}_reverse-unpaired.fastq.gz \
+        ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:keepBothReads \
+        LEADING:3 TRAILING:3 MINLEN:36 2> ${sample_id}_trim_out.log
+        """
+    }
+}
+else {
+
+    params.reads1 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
+    params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
+
+    log.info """\
+
+         W G S - U F L    P I P E L I N E
+         ================================
+         reference     : ${params.reference}
+         reads R1      : ${params.reads1}
+         reads R2      : ${params.reads2}
+         cnv control   : ${params.cnv_control}
+         count windows : ${params.cnv_bed}
+         dbnsfp        : ${params.dbnsfp}
+         outdir        : ${params.outdir}
 
          """
          .stripIndent()
 
-// Will be using dudeML and DeepVariant in the future
+    reads1_ch = Channel.fromFilePairs(params.reads1)
+    reads2_ch = Channel.fromFilePairs(params.reads2)
 
-process catLanes {
+    process catLanes {
 
-    tag "${sample_id}"
-    label 'small_process'
+        tag "${sample_id}"
+        label 'small_process'
 
-    input:
-    tuple sample_id, path(reads1) from reads1_ch
-    tuple sample_id, path(reads2) from reads2_ch 
+        input:
+        tuple sample_id, path(reads1) from reads1_ch
+        tuple sample_id, path(reads2) from reads2_ch 
 
-    output:
-    tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") into (read_pairs_ch1, read_pairs_ch2)
+        output:
+        tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") into (read_pairs_ch1, read_pairs_ch2)
 
-    script:
-    """
-    cat ${reads1[0]} ${reads1[1]} > ${sample_id}_R1.fastq.gz
-    cat ${reads2[0]} ${reads2[1]} > ${sample_id}_R2.fastq.gz
-    """
-}
+        script:
+        """
+        cat ${reads1[0]} ${reads1[1]} > ${sample_id}_R1.fastq.gz
+        cat ${reads2[0]} ${reads2[1]} > ${sample_id}_R2.fastq.gz
+        """
+    }
 
-process fastqc {
+    process fastqc {
 
-    tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
-    label 'small_process'
+        tag "${sample_id}"
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+        label 'small_process'
 
-    input:
-    tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") from read_pairs_ch1
+        input:
+        tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") from read_pairs_ch1
 
-    output:
-    path "fastqc_${sample_id}_logs" into fastqc_ch
+        output:
+        path "fastqc_${sample_id}_logs" into fastqc_ch
 
-    script:
-    """
-    mkdir fastqc_${sample_id}_logs
-    fastqc \
-    -t ${task.cpus} \
-    -o fastqc_${sample_id}_logs \
-    -f fastq \
-    ${sample_id}_R1.fastq.gz \
-    ${sample_id}_R2.fastq.gz
-    """
-}
+        script:
+        """
+        mkdir fastqc_${sample_id}_logs
+        fastqc \
+        -t ${task.cpus} \
+        -o fastqc_${sample_id}_logs \
+        -f fastq \
+        ${sample_id}_R1.fastq.gz \
+        ${sample_id}_R2.fastq.gz
+        """
+    }
 
-process trimReads {
+    process trimReads {
 
-    tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
-    label 'small_process'
+        tag "${sample_id}"
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+        label 'small_process'
 
-    input:
-    tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") from read_pairs_ch2
+        input:
+        tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") from read_pairs_ch2
 
-    output:
-    tuple sample_id, file("${sample_id}_forward-paired.fastq.gz"), file("${sample_id}_reverse-paired.fastq.gz"), file("${sample_id}_forward-unpaired.fastq.gz"), file("${sample_id}_reverse-unpaired.fastq.gz") into trimmed_ch
-    tuple sample_id, file("${sample_id}_trim_out.log") into trim_log_ch
+        output:
+        tuple sample_id, file("${sample_id}_forward-paired.fastq.gz"), file("${sample_id}_reverse-paired.fastq.gz"), file("${sample_id}_forward-unpaired.fastq.gz"), file("${sample_id}_reverse-unpaired.fastq.gz") into trimmed_ch
+        tuple sample_id, file("${sample_id}_trim_out.log") into trim_log_ch
 
-    script:
-    """
-    TrimmomaticPE -threads ${task.cpus} \
-    ${sample_id}_R1.fastq.gz \
-    ${sample_id}_R2.fastq.gz \
-    ${sample_id}_forward-paired.fastq.gz \
-    ${sample_id}_forward-unpaired.fastq.gz \
-    ${sample_id}_reverse-paired.fastq.gz \
-    ${sample_id}_reverse-unpaired.fastq.gz \
-    ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:keepBothReads \
-    LEADING:3 TRAILING:3 MINLEN:36 2> ${sample_id}_trim_out.log
-    """
+        script:
+        """
+        TrimmomaticPE -threads ${task.cpus} \
+        ${sample_id}_R1.fastq.gz \
+        ${sample_id}_R2.fastq.gz \
+        ${sample_id}_forward-paired.fastq.gz \
+        ${sample_id}_forward-unpaired.fastq.gz \
+        ${sample_id}_reverse-paired.fastq.gz \
+        ${sample_id}_reverse-unpaired.fastq.gz \
+        ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:keepBothReads \
+        LEADING:3 TRAILING:3 MINLEN:36 2> ${sample_id}_trim_out.log
+        """
+    }
 }
 
 process alignTrimmedReads {

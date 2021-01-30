@@ -47,11 +47,23 @@ def get_run_id(run_ids):
 def launch_nextflow(bucket, out_dir, run):
     """
     """
+    while True:
+        single_lane = input("Is this a single lane run? [Y/n]: ")
+        if not single_lane.upper() in ["N","Y","YES","NO"]:
+            print("\nPlease select either (Y)es or (N)o.\n")
+            continue
+        else:
+            break
+    if single_lane.upper() == "N":
+        single_lane = "NO"
+    elif single_lane.upper() == "Y":
+        single_lane = "YES"      
 
-    launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/work/ --bucket 's3://{bucket}' --run_id '{run}'".format(
+    launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}'".format(
         bucket = bucket,
         out_dir = out_dir,
-        run = run)
+        run = run,
+        laneage = single_lane.upper())
 
     os.system(launch)
     
