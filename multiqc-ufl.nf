@@ -28,6 +28,6 @@ process multiqcRun {
 
     script:
     """
-    multiqc .
+    multiqc -n ${params.run_id} .
     """
 }
