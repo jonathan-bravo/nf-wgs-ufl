@@ -114,7 +114,7 @@ def main():
     bucket = "hakmonkey-genetics-lab"
     out_dir = 'Pipeline_Output/'
     samples_dir = "Fastqs/"
-    processed_dir = "Processed/"
+    processed_dir = "_Processed/"
 
     all_samples = get_data(bucket = bucket, prefix = samples_dir)
 
