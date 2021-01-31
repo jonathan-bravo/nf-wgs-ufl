@@ -57,7 +57,7 @@ def launch_nextflow(bucket, out_dir, run):
     if single_lane.upper() == "N":
         single_lane = "NO"
 
-        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' -resume".format(
+        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' -resume".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
