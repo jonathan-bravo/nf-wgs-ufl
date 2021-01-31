@@ -56,14 +56,27 @@ def launch_nextflow(bucket, out_dir, run):
             break
     if single_lane.upper() == "N":
         single_lane = "NO"
-    elif single_lane.upper() == "Y":
-        single_lane = "YES"      
 
-    launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}'".format(
+        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' -resume".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
         laneage = single_lane.upper())
+    elif single_lane.upper() == "Y":
+        single_lane = "YES"
+
+        match_index = int(input("[0]_{R1,R2}_001.fastq.gz or [1]_{1,2}.fq.gz: "))
+
+        match_choices = ["_{R1,R2}_001.fastq.gz", "_{1,2}.fq.gz"]
+
+        match = match_choices[match_index]
+
+        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' -resume".format(
+        bucket = bucket,
+        out_dir = out_dir,
+        run = run,
+        laneage = single_lane.upper(),
+        match_lane = match)
 
     os.system(launch)
     
