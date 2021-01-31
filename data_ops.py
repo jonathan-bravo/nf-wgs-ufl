@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import boto3
+import re
 
 def usage():
     """
@@ -30,8 +31,10 @@ def get_data(bucket, prefix):
                            .replace(str(prefix), ""))
     else:
         for obj in result.get('CommonPrefixes'):
-            data.append(obj.get('Prefix')
-                           .replace(str(prefix), ""))
+            x = re.search('^Pipeline_Output/_', obj.get('Prefix'))
+            if (x == None):
+                data.append(obj.get('Prefix')
+                               .replace(str(prefix), ""))
 
     return data
 
