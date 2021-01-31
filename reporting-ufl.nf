@@ -1,11 +1,12 @@
 #!/usr/bin/env nextflow
 
-params.run_dir
-params.panels_dir
-params.bucket      = ""
-params.ref_dir     = "${params.bucket}/Pipeline/Reference"
-params.reference   = "${params.ref_dir}/hg19/hg19.fa"
-params.ref_fai     = "${params.reference}.fai"
+params.run_dir    = ""
+params.panels_dir = ""
+params.bucket     = ""
+params.ref_dir    = "${params.bucket}/Pipeline/Reference"
+params.reference  = "${params.ref_dir}/hg19/hg19.fa"
+params.ref_fai    = "${params.reference}.fai"
+params.glue_dir   = "${params.bucket}/Pipeline_Output/_SampleTSV"
 
 
 pairs_ch = Channel.from()
@@ -150,7 +151,7 @@ f.close()
 process createFinalTSV {
 
 	tag "${sample_id}_${panel}"
-	publishDir "${params.run_dir}/${sample_id}/${panel}", mode: 'copy'
+	publishDir "${params.glue_dir}/${sample_id}/${panel}", mode: 'copy'
 	label 'small_process'
 
 	input:
