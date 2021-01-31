@@ -28,7 +28,9 @@ params.outdir      = "${params.bucket}/Pipeline_Output"
 
 if (params.single_lane == "YES"){
 
-    params.reads_path = "${params.bucket}/Fastqs/${params.run_id}*_{1,2}.fq.gz"
+    params.match = ""
+
+    params.reads_path = "${params.bucket}/Fastqs/${params.run_id}*${params.match}"
 
     log.info """\
 
@@ -377,36 +379,36 @@ process csvToVCF {
     sed -i '/^##FORMAT/d' !{sample_id}_cnv.vcf
     sed -i '/^##FILTER/d' !{sample_id}_cnv.vcf
 
-    sed -i '\\$i ##ALT=<ID=DEL,Description=\\"Deletion relative to the reference\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##ALT=<ID=DUP,Description=\\"Region of elevated copy number relative to the reference\\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##ALT=<ID=DEL,Description=\"Deletion relative to the reference\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##ALT=<ID=DUP,Description=\"Region of elevated copy number relative to the reference\">' !{sample_id}_cnv.vcf
 
-    sed -i '\\$i ##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\\"Type of structural variant\\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##INFO=<ID=END,Number=1,Type=Integer,Description=\\"End position of the variant described in this record\\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##INFO=<ID=CNCLASS,Number=1,Type=String,Description=\\"Class given to the I vector value\\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##INFO=<ID=GENE,Number=1,Type=String,Description=\\"The target gene\\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of structural variant\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##INFO=<ID=END,Number=1,Type=Integer,Description=\"End position of the variant described in this record\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##INFO=<ID=CNCLASS,Number=1,Type=String,Description=\"Class given to the I vector value\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##INFO=<ID=GENE,Number=1,Type=String,Description=\"The target gene\">' !{sample_id}_cnv.vcf
 
-    sed -i '\\$i ##FILTER=<ID=lowQual,Description=\\"ROIs labeled as low quality\\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##FILTER=<ID=lowQual,Description=\"ROIs labeled as low quality\">' !{sample_id}_cnv.vcf
 
-    sed -i '\\$i ##FORMAT=<ID=RC,Number=1,Type=Integer,Description=\\"RC: read count of the countWindow\\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##FORMAT=<ID=MRC,Number=1,Type=Integer,Description=\\"medRC: median read count across all samples\\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##FORMAT=<ID=RCN,Number=1,Type=Integer,Description=\\"RC.norm: normalized sample read count\\">' !{sample_id}_cnv.vcf
-    sed -i '\\$i ##FORMAT=<ID=MRCN,Number=1,Type=Integer,Description=\\"medRC.norm: normalized median read count\\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##FORMAT=<ID=RC,Number=1,Type=Integer,Description=\"RC: read count of the countWindow\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##FORMAT=<ID=MRC,Number=1,Type=Integer,Description=\"medRC: median read count across all samples\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##FORMAT=<ID=RCN,Number=1,Type=Integer,Description=\"RC.norm: normalized sample read count\">' !{sample_id}_cnv.vcf
+    sed -i '\$i ##FORMAT=<ID=MRCN,Number=1,Type=Integer,Description=\"medRC.norm: normalized median read count\">' !{sample_id}_cnv.vcf
 
     awk 'FNR > 1 {print}' cnv_table.csv \
     | cut -d " " -f 3- \
     | awk '{
-        gsub(/\\"/,"",$1);
-        gsub(/\\"/,"",$2);
-        gsub(/\\"/,"",$3);
-        gsub(/\\"/,"",$4);
-        gsub(/\\"/,"",$5);
-        gsub(/\\"/,"",$6);
-        gsub(/\\"/,"",$7);
-        gsub(/\\"/,"",$8);
-        gsub(/\\"/,"",$9);
-        if ($10 =="\\"\\"");
-        else gsub(/\\"/,"",$10);
-        gsub(/\\"/,"",$11);
+        gsub(/\"/,"",$1);
+        gsub(/\"/,"",$2);
+        gsub(/\"/,"",$3);
+        gsub(/\"/,"",$4);
+        gsub(/\"/,"",$5);
+        gsub(/\"/,"",$6);
+        gsub(/\"/,"",$7);
+        gsub(/\"/,"",$8);
+        gsub(/\"/,"",$9);
+        if ($10 =="\"\"");
+        else gsub(/\"/,"",$10);
+        gsub(/\"/,"",$11);
     };1' \
     | awk '{
         printf "chr"$1"\t";
