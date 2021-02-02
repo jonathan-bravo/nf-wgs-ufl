@@ -37,6 +37,7 @@ process applyPanel {
     shell:
     '''
     GENES=$(awk -F'\t' 'NR>1 {print $1}' !{panel_dir}/!{panel} | tr -d '\\r' | tr '\n' '|')
+	GENES=${GENES%?}
 
     zgrep '#' !{sample_path}/!{sample_id}/variants/!{sample_id}_concat_snpsift.vcf.gz > !{sample_id}_!{panel}.vcf
 
