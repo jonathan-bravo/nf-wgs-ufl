@@ -153,7 +153,7 @@ process createFinalTSV {
 
 	tag "${sample_id}_${panel}"
 	publishDir "${params.glue_dir}/${sample_id}/${panel}", mode: 'copy'
-	label 'small_process'
+	label 'medium_process'
 
 	input:
 	tuple sample_id, panel, file("${sample_id}_${panel}_OPL.vcf"), file("${sample_id}_eh_${panel}_OPL.vcf") from opl_ch2
