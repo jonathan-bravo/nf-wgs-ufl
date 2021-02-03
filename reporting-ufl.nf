@@ -161,11 +161,11 @@ process createFinalTSV {
 	tuple sample_id, panel, file("${sample_id}_${panel}.info.tsv") from info_tsv_ch
 
 	output:
-	tuple sample_id, panel, file("${sample_id}_${panel}.tsv")
+	tuple sample_id, panel, file("${sample_id}_${panel}.tsv") into final_tsv_ch
 
 	shell:
 	'''
-	ann=$(zgrep '^##INFO=<ID=ANN' !{sample_id}_!{panel}_OPL.vcf | cut -c75-316 | sed -e 's/\\s//g' | sed -e 's/|/\t/g')
+	ann=$(zgrep '^##INFO=<ID=ANN' !{sample_id}_!{panel}_OPL.vcf | cut -c75-316 | sed -e 's|\\s||g' | sed -e 's/|/\t/g')
 
 	sed -r -i 's/([0-9a-zA-Z.-_]+=)//g' !{sample_id}_!{panel}.info.tsv
 
