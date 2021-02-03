@@ -120,32 +120,30 @@ process parseInfo {
 	"""
 	#!/usr/bin/env python3
 header = []
-f = open('${sample_id}_${panel}.info.tsv', 'w')
-with open('${sample_id}_${panel}.info.txt', 'r') as fp:
-    for cnt, line in enumerate(fp):
-        if cnt == 0:
-            header.append(line.split('\\t'))
-            header[0].pop()
-            header[0] = header[0]
-            header = sorted(header[0])
-            for i in header:
-                f.write('{}\\t'.format(i))
-            f.write('\\n')
-        else:
-            sorted_line = sorted(line.split('\\t'))
-            sorted_line.pop()
-            for i, element in enumerate(sorted_line):
-                if "\\n" in element:
-                    sorted_line[i] = element[:-2]
-            for i in range(len(header) - len(sorted_line)):
-                sorted_line.append('.')
-            for col_num, val in enumerate(header):
-                if not val in sorted_line[col_num] and sorted_line[col_num] not in ".":
-                    sorted_line[col_num], sorted_line[col_num + 1] = sorted_line[col_num + 1], sorted_line[col_num]
-            for i in sorted_line:
-                f.write('{}\\t'.format(i))
-            f.write('\\n')
-f.close()
+with open('${sample_id}_${panel}.info.tsv', 'w') as f:
+	with open('${sample_id}_${panel}.info.txt', 'r') as fp:
+		for cnt, line in enumerate(fp):
+			if cnt == 0:
+				header.append(line.split('\\t'))
+				header[0].pop()
+				header[0] = header[0]
+				header = sorted(header[0])
+				for i in header:
+					f.write('{}\\t'.format(i))
+				f.write('\\n')
+			else:
+				sorted_line = sorted(line.split('\\t'))
+				for i, element in enumerate(sorted_line):
+					if "\\n" in element:
+						sorted_line[i] = element[:-2]
+				for i in range(len(header) - len(sorted_line)):
+					sorted_line.append('.')
+				for col_num, val in enumerate(header):
+					if not val in sorted_line[col_num] and sorted_line[col_num] not in ".":
+						sorted_line[col_num], sorted_line[col_num + 1] = sorted_line[col_num + 1], sorted_line[col_num]
+				for i in sorted_line:
+					f.write('{}\\t'.format(i))
+				f.write('\\n')
 	"""
 }
 
