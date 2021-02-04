@@ -151,7 +151,8 @@ process createFinalTSV {
 
 	tag "${sample_id}_${panel}"
 	publishDir "${params.glue_dir}/${sample_id}/${panel}", mode: 'copy'
-	label 'medium_process'
+	label 'small_process'
+	echo true
 
 	input:
 	tuple sample_id, panel, file("${sample_id}_${panel}_OPL.vcf"), file("${sample_id}_eh_${panel}_OPL.vcf") from opl_ch2
@@ -163,16 +164,23 @@ process createFinalTSV {
 
 	shell:
 	'''
+	echo "!{sample_id}_!{panel}"
+	echo "making ann var"
 	ann=$(zgrep '^##INFO=<ID=ANN' !{sample_id}_!{panel}_OPL.vcf | cut -c75-316 | sed -e 's|\\s||g' | sed -e 's/|/\t/g')
 
+	echo "sed 1"
 	sed -r -i 's/([0-9a-zA-Z.-_]+=)//g' !{sample_id}_!{panel}.info.tsv
 
+	echo "sed 2"
 	sed -i "s|ANN\t|$ann|" !{sample_id}_!{panel}.info.tsv
 
+	echo "sed 3"
 	sed -i 's/|/\t/g' !{sample_id}_!{panel}.info.tsv
 
+	echo "final awk"
 	awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "." }; 1' !{sample_id}_!{panel}.info.tsv > !{sample_id}_!{panel}.info.final.tsv
 
+	echo "paste command"
 	paste !{sample_id}_!{panel}.data !{sample_id}_!{panel}.info.final.tsv > !{sample_id}_!{panel}.tsv
 	'''
 } 

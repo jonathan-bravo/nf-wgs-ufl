@@ -46,7 +46,9 @@ if (params.single_lane == "YES"){
          """
          .stripIndent()
     
-    reads_ch = Channel.fromFilePairs(params.reads_path)
+    reads_ch1 = Channel.fromFilePairs(params.reads_path)
+    reads_ch2 = Channel.fromFilePairs(params.reads_path)
+
 
     process fastqc_single {
 
@@ -55,7 +57,7 @@ if (params.single_lane == "YES"){
         label 'small_process'
 
         input:
-        tuple sample_id, path(reads) from reads_ch
+        tuple sample_id, path(reads) from reads_ch1
 
         output:
         path "fastqc_${sample_id}_logs" into fastqc_ch
@@ -79,7 +81,7 @@ if (params.single_lane == "YES"){
         label 'small_process'
 
         input:
-        tuple sample_id, file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz") from read_pairs_ch2
+        tuple sample_id, path(reads) from reads_ch2
 
         output:
         tuple sample_id, file("${sample_id}_forward-paired.fastq.gz"), file("${sample_id}_reverse-paired.fastq.gz"), file("${sample_id}_forward-unpaired.fastq.gz"), file("${sample_id}_reverse-unpaired.fastq.gz") into trimmed_ch
@@ -88,8 +90,8 @@ if (params.single_lane == "YES"){
         script:
         """
         TrimmomaticPE -threads ${task.cpus} \
-        ${sample_id}_R1.fastq.gz \
-        ${sample_id}_R2.fastq.gz \
+        ${reads[0]}.fastq.gz \
+        ${reads[1]}.fastq.gz \
         ${sample_id}_forward-paired.fastq.gz \
         ${sample_id}_forward-unpaired.fastq.gz \
         ${sample_id}_reverse-paired.fastq.gz \
