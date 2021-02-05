@@ -69,8 +69,8 @@ if (params.single_lane == "YES"){
         -t ${task.cpus} \
         -o fastqc_${sample_id}_logs \
         -f fastq \
-        ${sample_id}_R1.fastq.gz \
-        ${sample_id}_R2.fastq.gz
+        ${reads[0]} \
+        ${reads[1]}
         """
     }
 
@@ -90,8 +90,8 @@ if (params.single_lane == "YES"){
         script:
         """
         TrimmomaticPE -threads ${task.cpus} \
-        ${reads[0]}.fastq.gz \
-        ${reads[1]}.fastq.gz \
+        ${reads[0]} \
+        ${reads[1]} \
         ${sample_id}_forward-paired.fastq.gz \
         ${sample_id}_forward-unpaired.fastq.gz \
         ${sample_id}_reverse-paired.fastq.gz \
