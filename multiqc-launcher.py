@@ -35,7 +35,7 @@ def main():
 
     launch_nextflow(
         bucket = bucket,
-        run_id = run_id,
+        run_id = run_id.strip('/'),
         output_dir = output_dir.strip('/'))
 
 
