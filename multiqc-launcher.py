@@ -15,10 +15,10 @@ def launch_nextflow(bucket, run_id, output_dir):
     """
     """
 
-    cmd = "sudo nextflow run multiqc-ufl.nf -work-dir s3://{bucket}/Pipeline_Output/_work/ --run_id '{run_id}' --run_dir 's3://{bucket}/Pipeline_Output/{run_id}'".format(
+    cmd = "sudo nextflow run multiqc-ufl.nf -work-dir s3://{bucket}/{output_dir}/_work/ --run_id '{run_id}' --run_dir 's3://{bucket}/{output_dir}/{run_id}'".format(
         run_id = run_id,
         bucket = bucket,
-        runs_dir = output_dir)
+        output_dir = output_dir)
 
     os.system(cmd)
 
