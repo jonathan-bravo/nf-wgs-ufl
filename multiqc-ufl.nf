@@ -23,8 +23,8 @@ process multiqcRun {
     path run_dir from params.run_dir
 
     output:
-    file "multiqc_report.html" into multiqc_report
-    file "multiqc_data"
+    file "${params.run_id}.html"
+    path "${params.run_id}_data"
 
     script:
     """
