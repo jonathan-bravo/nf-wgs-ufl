@@ -15,7 +15,7 @@ def launch_nextflow(bucket, run_id, output_dir):
     """
     """
 
-    cmd = "sudo nextflow run multiqc-ufl.nf -work-dir s3://hakmonkey-genetics-lab/Pipeline_Output/work/ --run_id '{run_id}' --run_dir 's3://{bucket}/{runs_dir}/{run_id}'".format(
+    cmd = "sudo nextflow run multiqc-ufl.nf -work-dir s3://hakmonkey-genetics-lab/Pipeline_Output/_work/ --run_id '{run_id}' --run_dir 's3://{bucket}/{runs_dir}/{run_id}'".format(
         run_id = run_id,
         bucket = bucket,
         runs_dir = output_dir)
