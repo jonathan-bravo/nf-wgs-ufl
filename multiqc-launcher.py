@@ -36,7 +36,7 @@ def main():
     launch_nextflow(
         bucket = bucket,
         run_id = run_id,
-        output_dir = output_dir)
+        output_dir = output_dir.strip('/'))
 
 
 if __name__ == '__main__':

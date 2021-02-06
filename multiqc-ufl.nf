@@ -16,7 +16,7 @@ log.info """\
 process multiqcRun {
     
     tag "${params.run_id}"
-    publishDir "${params.run_dir}MultiQC"
+    publishDir "${params.run_dir}/MultiQC"
     label 'small_process'
 
     input:
