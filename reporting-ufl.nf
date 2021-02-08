@@ -159,11 +159,11 @@ process createFinalTSV {
 
     shell:
     '''
-    ann=$(zgrep '^##INFO=<ID=ANN' !{sample_id}_!{panel}_OPL.vcf | cut -c75-316 | sed -e 's|\\s||g' | sed -e 's/|/\t/g')
+    ann=$(zgrep '^##INFO=<ID=ANN' !{sample_id}_!{panel}_OPL.vcf | cut -c75-316 | sed -e 's|\\s||g' | sed -e 's/|/\\t/g')
 
-    awk -F'\t' '{ print $1 }' !{sample_id}_!{panel}.tsv  | sed 's/|/\t/g' > !{sample_id}_!{panel}.ann.tsv
+    awk -F'\\t' '{ print $1 }' !{sample_id}_!{panel}.tsv  | sed 's/|/\\t/g' > !{sample_id}_!{panel}.ann.tsv
     sed -i "s|ANN$|$ann|" !{sample_id}_!{panel}.ann.tsv
-    awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "." }; 1' !{sample_id}_!{panel}.ann.tsv | awk  'BEGIN { FS = OFS = "\t" } {if(NF==15){$16="."}; print $0}' > !{sample_id}_!{panel}.ann.final.tsv
+    awk 'BEGIN { FS = OFS = "\\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "." }; 1' !{sample_id}_!{panel}.ann.tsv | awk  'BEGIN { FS = OFS = "\\t" } {if(NF==15){$16="."}; print $0}' > !{sample_id}_!{panel}.ann.final.tsv
 
     cut -f2- !{sample_id}_!{panel}.info.tsv > !{sample_id}_!{panel}.info.final.tsv
 
