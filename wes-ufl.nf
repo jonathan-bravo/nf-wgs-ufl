@@ -248,7 +248,7 @@ process samToBam {
 process collectHsMetrics {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/wgs_metrics", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/hs_metrics", mode: 'copy'
     label 'high_mem'
 
     input:
@@ -259,7 +259,7 @@ process collectHsMetrics {
     tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch1
 
     output:
-    file "${sample_id}_gatk_collect_wgs_metrics.txt" into hs_metrics_ch
+    file "${sample_id}_gatk_collect_hs_metrics.txt" into hs_metrics_ch
 
     script:
     """
