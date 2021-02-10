@@ -44,7 +44,7 @@ def get_run_id(run_ids):
     return run
 
 
-def launch_nextflow(bucket, out_dir, run, exome_data):
+def launch_nextflow(bucket, out_dir, run, pipeline):
     """
     """
 
@@ -59,12 +59,12 @@ def launch_nextflow(bucket, out_dir, run, exome_data):
     if single_lane.upper() == "N":
         single_lane = "NO"
 
-        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --exome '{exome}'".format(
+        launch = "sudo nextflow run {pipeline} -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}'".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
         laneage = single_lane.upper(),
-        exome = exome_data.upper())
+        pipeline = pipeline)
     elif single_lane.upper() == "Y":
         single_lane = "YES"
 
@@ -74,13 +74,13 @@ def launch_nextflow(bucket, out_dir, run, exome_data):
 
         match = match_choices[match_index]
 
-        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}'".format(
+        launch = "sudo nextflow run {pipeline} -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}'".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
         laneage = single_lane.upper(),
         match_lane = match,
-        exome = exome_data.upper())
+        pipeline = pipeline)
 
     os.system(launch)
     
@@ -134,8 +134,10 @@ def main():
 
     if exome_data.upper() == "YES":
         samples_dir = "Exome_Fastqs/"
+        pipeline = "wes-ufl.nf"
     elif exome_data.upper() == "NO":
         samples_dir = "Fastqs/"
+        pipeline = "wgs-ufl.nf"
 
     all_samples = get_data(bucket = bucket, prefix = samples_dir)
 
@@ -147,7 +149,7 @@ def main():
         bucket = bucket,
         out_dir = out_dir.strip('/'),
         run = run,
-        exome_data = exome_data
+        pipeline = pipeline
     )
 
     archive_fastqs(
