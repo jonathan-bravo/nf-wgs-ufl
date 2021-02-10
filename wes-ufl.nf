@@ -253,6 +253,7 @@ process collectHsMetrics {
 
     input:
     path reference from params.reference
+    path ref_fai from params.ref_fai
     path target from params.target
     path bait from params.bait
     tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch1
