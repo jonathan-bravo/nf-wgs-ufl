@@ -44,9 +44,10 @@ def get_run_id(run_ids):
     return run
 
 
-def launch_nextflow(bucket, out_dir, run):
+def launch_nextflow(bucket, out_dir, run, exome_data):
     """
     """
+
     while True:
         single_lane = input("Is this a single lane run? [Y/n]: ")
         if not single_lane.upper() in ["N","Y","YES","NO"]:
@@ -54,14 +55,16 @@ def launch_nextflow(bucket, out_dir, run):
             continue
         else:
             break
+
     if single_lane.upper() == "N":
         single_lane = "NO"
 
-        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}'".format(
+        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --exome '{exome}'".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
-        laneage = single_lane.upper())
+        laneage = single_lane.upper(),
+        exome = exome_data.upper())
     elif single_lane.upper() == "Y":
         single_lane = "YES"
 
@@ -71,12 +74,13 @@ def launch_nextflow(bucket, out_dir, run):
 
         match = match_choices[match_index]
 
-        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}'".format(
+        launch = "sudo nextflow run wgs-ufl.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}'".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
         laneage = single_lane.upper(),
-        match_lane = match)
+        match_lane = match,
+        exome = exome_data.upper())
 
     os.system(launch)
     
@@ -113,8 +117,25 @@ def main():
 
     bucket = "hakmonkey-genetics-lab"
     out_dir = 'Pipeline_Output/'
-    samples_dir = "Fastqs/"
     processed_dir = "_Processed/"
+
+    while True:
+        exome_data = input("Is this a WES run? [Y/n]: ")
+        if not exome_data.upper() in ["N","Y","YES","NO"]:
+            print("\nPlease select either (Y)es or (N)o.\n")
+            continue
+        else:
+            break
+
+    if exome_data.upper() == "N":
+        exome_data = "NO"
+    elif exome_data.upper() =="Y":
+        exome_data = "YES"
+
+    if exome_data.upper() == "YES":
+        samples_dir = "Exome_Fastqs/"
+    elif exome_data.upper() == "NO":
+        samples_dir = "Fastqs/"
 
     all_samples = get_data(bucket = bucket, prefix = samples_dir)
 
@@ -125,7 +146,8 @@ def main():
     launch_nextflow(
         bucket = bucket,
         out_dir = out_dir.strip('/'),
-        run = run
+        run = run,
+        exome_data = exome_data
     )
 
     archive_fastqs(

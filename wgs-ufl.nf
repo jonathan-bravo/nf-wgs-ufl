@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.single_lane = ""
+params.exome = ""
 
 params.bucket      = ""
 params.run_id      = ""
@@ -13,6 +14,9 @@ params.bwa_bwt     = "${params.reference}.bwt"
 params.bwa_pac     = "${params.reference}.pac"
 params.bwa_sa      = "${params.reference}.sa"
 params.ref_fai     = "${params.reference}.fai"
+
+params.bait        = "${params.ref_dir}/exome_targets/bait.interval_list"
+params.target      = "${params.ref_dir}/exome_targets/target.interval_list"
 
 params.cnv_control = "${params.ref_dir}/cnv/1000_genomes_control.RData"
 params.cnv_bed     = "${params.ref_dir}/cnv/genes.bed"
@@ -30,7 +34,12 @@ if (params.single_lane == "YES"){
 
     params.match = ""
 
-    params.reads_path = "${params.bucket}/Fastqs/${params.run_id}*${params.match}"
+    if (params.exome == "YES"){
+        params.reads_path = "${params.bucket}/Exome_Fastqs/${params.run_id}*${params.match}"
+    }
+    else {
+        params.reads_path = "${params.bucket}/Fastqs/${params.run_id}*${params.match}"
+    }
 
     log.info """\
 
@@ -53,7 +62,12 @@ if (params.single_lane == "YES"){
     process fastqc_single {
 
         tag "${sample_id}"
-        publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+        if (params.exome == "YES"){
+            publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/", mode: 'copy'
+        }
+        else {
+            publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+        }
         label 'small_process'
 
         input:
@@ -77,7 +91,12 @@ if (params.single_lane == "YES"){
     process trimReads_single {
 
         tag "${sample_id}"
-        publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+        if (params.exome == "YES"){
+            publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/Trimmomatic", mode: 'copy'
+        }
+        else {
+            publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+        }
         label 'small_process'
 
         input:
@@ -103,8 +122,14 @@ if (params.single_lane == "YES"){
 }
 else {
 
-    params.reads1 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
-    params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
+    if (params.exome == "YES"){
+        params.reads1 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
+        params.reads2 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
+    }
+    else {
+        params.reads1 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
+        params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
+    }
 
     log.info """\
 
@@ -146,7 +171,12 @@ else {
     process fastqc {
 
         tag "${sample_id}"
-        publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+        if (params.exome == "YES"){
+            publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/", mode: 'copy'
+        }
+        else {
+            publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+        }
         label 'small_process'
 
         input:
@@ -170,7 +200,12 @@ else {
     process trimReads {
 
         tag "${sample_id}"
-        publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+        if (params.exome == "YES"){
+            publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/Trimmomatic", mode: 'copy'
+        }
+        else {
+            publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+        }
         label 'small_process'
 
         input:
@@ -225,14 +260,19 @@ process alignTrimmedReads {
 process samToBam {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/alignment", mode: 'copy'
+    if (params.exome == "YES"){
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/alignment", mode: 'copy'
+    }
+    else {
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/alignment", mode: 'copy'
+    }
     label 'high_mem'
 
     input:
     tuple sample_id, file("${sample_id}.sam") from aligned_ch
 
     output:
-    tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") into (bam_ch1, bam_ch2, bam_ch3, bam_ch4)
+    tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") into (bam_ch1, bam_ch2, bam_ch3, bam_ch4, bam_ch5)
 
     script:
     """
@@ -242,32 +282,66 @@ process samToBam {
     """
 }
 
-process collectWgsMetrics {
+if (params.exome == "YES"){
+    process collectHsMetrics {
 
-    tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/wgs_metrics", mode: 'copy'
-    label 'high_mem'
+        tag "${sample_id}"
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/wgs_metrics", mode: 'copy'
+        label 'high_mem'
 
-    input:
-    path reference from params.reference
-    tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch1
+        input:
+        path reference from params.reference
+        path target from params.target
+        path bait from params.bait
+        tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch5
 
-    output:
-    file "${sample_id}_gatk_collect_wgs_metrics.txt" into wgs_metrics_ch
+        output:
+        file "${sample_id}_gatk_collect_wgs_metrics.txt" into hs_metrics_ch
 
-    script:
-    """
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /picard.jar CollectWgsMetrics \
-    -I ${sample_id}-sort.bam \
-    -O ${sample_id}_gatk_collect_wgs_metrics.txt \
-    -R ${reference}
-    """
+        script:
+        """
+        java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /picard.jar CollectHsMetrics \
+        -I ${sample_id}-sort.bam \
+        -O ${sample_id}_gatk_collect_hs_metrics.txt \
+        -R ${reference} \
+        --BAIT_INTERVALS ${bait} \
+        --TARGET_INTERVALS ${target}
+        """
+    }
+}
+else {
+    process collectWgsMetrics {
+
+        tag "${sample_id}"
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/wgs_metrics", mode: 'copy'
+        label 'high_mem'
+
+        input:
+        path reference from params.reference
+        tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch1
+
+        output:
+        file "${sample_id}_gatk_collect_wgs_metrics.txt" into wgs_metrics_ch
+
+        script:
+        """
+        java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /picard.jar CollectWgsMetrics \
+        -I ${sample_id}-sort.bam \
+        -O ${sample_id}_gatk_collect_wgs_metrics.txt \
+        -R ${reference}
+        """
+    }
 }
 
 process callSNV {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    if (params.exome == "YES"){
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/variants", mode: 'copy'
+    }
+    else {
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    }
     label 'medium_process'
 
     input:
@@ -355,7 +429,12 @@ process callCNV {
 process csvToVCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    if (params.exome == "YES"){
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/variants", mode: 'copy'
+    }
+    else {
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    }
     label 'small_process'
 
     input:
@@ -441,7 +520,12 @@ process csvToVCF {
 process expansionHunter {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/ExpansionHunter", mode: 'copy'
+    if (params.exome == "YES"){
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/ExpansionHunter", mode: 'copy'
+    }
+    else {
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/ExpansionHunter", mode: 'copy'
+    }
     label 'small_process'
 
     input:
@@ -469,7 +553,12 @@ process expansionHunter {
 process mergeVCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    if (params.exome == "YES"){
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/variants", mode: 'copy'
+    }
+    else {
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    }
     label 'small_process'
 
     input:
@@ -500,7 +589,12 @@ process mergeVCF {
 process annotateVCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    if (params.exome == "YES"){
+        publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/variants", mode: 'copy'
+    }
+    else {
+        publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    }
     label 'high_mem'
 
     input:
