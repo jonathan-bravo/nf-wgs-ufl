@@ -24,23 +24,24 @@ def select_panels(sample_list, panel_list):
     avail_panels = enumerate_data(data = panel_list)
 
     for sample in avail_samples:
-        print("\n Sample:")
-        print(sample[1] + "\n")
+        if not "MultiQC/" in sample:
+            print("\n Sample:")
+            print(sample[1] + "\n")
 
-        test_num = int(input("How many panels would you like to run?: "))
+            test_num = int(input("How many panels would you like to run?: "))
 
-        if test_num != 0:
-            print("\n" + "#" * 20)
-            print("# Available Panels #")
-            print("#" * 20 + "\n")
-            print("(Index, Panel)")
-            list_data(data = avail_panels)
+            if test_num != 0:
+                print("\n" + "#" * 20)
+                print("# Available Panels #")
+                print("#" * 20 + "\n")
+                print("(Index, Panel)")
+                list_data(data = avail_panels)
 
-        for i in range(test_num):
-            print("panel number " + str(i+1))
+            for i in range(test_num):
+                print("panel number " + str(i+1))
 
-            test = get_choice(choices = avail_panels)
-            test_pairs.append([sample[1].strip('/'), test])
+                test = get_choice(choices = avail_panels)
+                test_pairs.append([sample[1].strip('/'), test])
 
     return test_pairs
 
