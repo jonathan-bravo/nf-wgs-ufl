@@ -14,8 +14,8 @@ params.bwa_pac     = "${params.reference}.pac"
 params.bwa_sa      = "${params.reference}.sa"
 params.ref_fai     = "${params.reference}.fai"
 
-params.cnv_control = "${params.ref_dir}/cnv/1000_genomes_control.RData"
-params.cnv_bed     = "${params.ref_dir}/cnv/genes.bed"
+params.cnv_control = "${params.ref_dir}/cnv/sliding_windows_sim_control.RData"
+params.cnv_vcf_header = "${params.ref_dir}/cnv/cnv_vcf_header.tsv"
 
 params.dbnsfp      = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
 params.dbnsfp_tbi  = "${params.dbnsfp}.tbi"
@@ -39,7 +39,6 @@ if (params.single_lane == "YES"){
          reference     : ${params.reference}
          reads         : ${params.reads_path}
          cnv control   : ${params.cnv_control}
-         count windows : ${params.cnv_bed}
          dbnsfp        : ${params.dbnsfp}
          outdir        : ${params.outdir}
 
@@ -120,7 +119,6 @@ else {
          reads R1      : ${params.reads1}
          reads R2      : ${params.reads2}
          cnv control   : ${params.cnv_control}
-         count windows : ${params.cnv_bed}
          dbnsfp        : ${params.dbnsfp}
          outdir        : ${params.outdir}
 
@@ -302,146 +300,25 @@ process callSNV {
 process callCNV {
 
     tag "${sample_id}"
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
     label 'medium_process'
 
     input:
     path control from params.cnv_control
-    path bed from params.cnv_bed
+    path header from params.cnv_vcf_header
     tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch3
 
     output:
-    tuple sample_id, file("cnv_table.csv") into cnv_ch
+    tuple sample_id, file("${sample_id}_filtered_cnv.vcf") into cnv_ch
+    file("${sample_id}_cnv.pdf")
 
     script:
     """
-    #!/usr/bin/Rscript --vanilla
-
-    if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-    BiocManager::install("panelcn.mops")
-
-    library(panelcn.mops)
-    load(file="${control}")
-
-    testBam <- "${sample_id}-sort.bam"
-
-    bed <- "${bed}"
-    countWindows <- getWindows(bed)
-
-    test <- countBamListInGRanges(
-    countWindows = countWindows,
-    bam.files    = testBam,
-    read.width   = 150)
-
-    XandCB <- test
-    elementMetadata(XandCB) <- cbind(
-        elementMetadata(XandCB),
-        elementMetadata(control))
-
-    resultsList <- runPanelcnMops(
-        XandCB,
-        testiv        = 1:ncol(elementMetadata(test)),
-        countWindows  = countWindows,
-        selectedGenes = NULL,
-        maxControls   = 0)
-
-    sampleNames <- colnames(elementMetadata(test))
-    resulttable <- createResultTable(
-        resultlist    = resultsList,
-        XandCB        = XandCB,
-        countWindows  = countWindows,
-        selectedGenes = NULL,
-        sampleNames   = sampleNames)
-
-    write.table(resulttable[[1]], 'cnv_table.csv', append = TRUE)
+    callCNV.R ${sample_id} ${control}
+    csvToVCF.sh ${sample_id} ${header}
+    toGRanges.sh ${sample_id}
+    CNVPlot.R ${sample_id}
     """
-}
-
-process csvToVCF {
-
-    tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
-    label 'small_process'
-
-    input:
-    path "${sample_id}_strelka2/results/variants/variants.vcf.gz" from snv_ch
-    tuple sample_id, file("cnv_table.csv") from cnv_ch
-
-    output:
-    tuple sample_id, file("${sample_id}_filtered_cnv.vcf.gz"), path("${sample_id}_strelka2/results/variants/variants.vcf.gz") into vcf_ch
-
-    shell:
-    '''
-    gunzip -f !{sample_id}_strelka2/results/variants/variants.vcf.gz
-
-    grep '#' !{sample_id}_strelka2/results/variants/variants.vcf > !{sample_id}_cnv.vcf
-
-    sed -i 's/##source=strelka/##source=panelcn.MOPS/' !{sample_id}_cnv.vcf
-    sed -i 's/##source_version=2.9.10/##source_version=1.8.0/' !{sample_id}_cnv.vcf
-    sed -i 's/##content=strelka germline small-variant calls/##content=panelcn.MOPS cnv calls/' !{sample_id}_cnv.vcf
-
-    sed -i '/^##startTime/d' !{sample_id}_cnv.vcf
-    sed -i '/^##cmdline/d' !{sample_id}_cnv.vcf
-    sed -i '/^##INFO/d' !{sample_id}_cnv.vcf
-    sed -i '/^##FORMAT/d' !{sample_id}_cnv.vcf
-    sed -i '/^##FILTER/d' !{sample_id}_cnv.vcf
-
-    sed -i '\$i ##ALT=<ID=DEL,Description=\"Deletion relative to the reference\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##ALT=<ID=DUP,Description=\"Region of elevated copy number relative to the reference\">' !{sample_id}_cnv.vcf
-
-    sed -i '\$i ##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of structural variant\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##INFO=<ID=END,Number=1,Type=Integer,Description=\"End position of the variant described in this record\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##INFO=<ID=CNCLASS,Number=1,Type=String,Description=\"Class given to the I vector value\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##INFO=<ID=GENE,Number=1,Type=String,Description=\"The target gene\">' !{sample_id}_cnv.vcf
-
-    sed -i '\$i ##FILTER=<ID=lowQual,Description=\"ROIs labeled as low quality\">' !{sample_id}_cnv.vcf
-
-    sed -i '\$i ##FORMAT=<ID=RC,Number=1,Type=Integer,Description=\"RC: read count of the countWindow\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##FORMAT=<ID=MRC,Number=1,Type=Integer,Description=\"medRC: median read count across all samples\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##FORMAT=<ID=RCN,Number=1,Type=Integer,Description=\"RC.norm: normalized sample read count\">' !{sample_id}_cnv.vcf
-    sed -i '\$i ##FORMAT=<ID=MRCN,Number=1,Type=Integer,Description=\"medRC.norm: normalized median read count\">' !{sample_id}_cnv.vcf
-
-    awk 'FNR > 1 {print}' cnv_table.csv \
-    | cut -d " " -f 3- \
-    | awk '{
-        gsub(/\"/,"",$1);
-        gsub(/\"/,"",$2);
-        gsub(/\"/,"",$3);
-        gsub(/\"/,"",$4);
-        gsub(/\"/,"",$5);
-        gsub(/\"/,"",$6);
-        gsub(/\"/,"",$7);
-        gsub(/\"/,"",$8);
-        gsub(/\"/,"",$9);
-        if ($10 =="\"\"");
-        else gsub(/\"/,"",$10);
-        gsub(/\"/,"",$11);
-    };1' \
-    | awk '{
-        printf "chr"$1"\t";
-        printf $4"\t";
-        printf "panelcn.MOPS:chr"$1":"$4"-"$5"\t";
-        printf "N\t";
-        if ($11 =="CN0" || $11 =="CN1") printf "<DEL>\t";
-        else if ($11 =="CN3" || $11 =="CN4") printf "<DUP>\t";
-        else printf ".\t";
-        printf ".\t";
-        if ($10 =="lowQual") printf "lowQual\t";
-        else printf "PASS\t";
-        printf "SVTYPE=CNV,END="$5",CNCLASS="$11",GENE="$2"\t";
-        printf "RC:MRC:RCN:MRCN\t";
-        print $6":"$7":"$8":"$9
-    }' >> !{sample_id}_cnv.vcf
-
-    grep '#' !{sample_id}_cnv.vcf > !{sample_id}_filtered_cnv.vcf
-
-    awk 'FNR >68 {if ($5 !=".")print}' !{sample_id}_cnv.vcf >> !{sample_id}_filtered_cnv.vcf
-
-    bgzip -@ !{task.cpus} !{sample_id}_cnv.vcf
-    bgzip -@ !{task.cpus} !{sample_id}_filtered_cnv.vcf
-    bgzip -@ !{task.cpus} !{sample_id}_strelka2/results/variants/variants.vcf
-    '''
 }
 
 process expansionHunter {
@@ -456,7 +333,7 @@ process expansionHunter {
     tuple sample_id, file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai") from bam_ch4
 
     output:
-    tuple sample_id, file("${sample_id}_eh.vcf.gz") into exp_hunt_ch
+    tuple sample_id, file("${sample_id}_eh.vcf") into exp_hunt_ch
     file "${sample_id}_eh_realigned.bam" into exp_hunt_json_ch
     file "${sample_id}_eh.json"
 
@@ -467,8 +344,6 @@ process expansionHunter {
     --reference ${reference} \
     --variant-catalog /ExpansionHunter-v4.0.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json \
     --output-prefix ${sample_id}_eh
-
-    bgzip -@ ${task.cpus} ${sample_id}_eh.vcf
     """
 }
 
@@ -486,6 +361,8 @@ process mergeVCF {
 
     script:
     """
+    # change SAMPLE1 to ${sample_id}-sort in Strelka2 VCF file
+
     bcftools index --threads ${task.cpus} \
     ${sample_id}_strelka2/results/variants/variants.vcf.gz
 
