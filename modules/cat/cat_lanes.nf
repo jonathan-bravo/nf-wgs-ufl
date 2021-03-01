@@ -5,6 +5,7 @@ nextflow.enable.dsl=2
 process CAT_LANES {
 
     tag "${sample_id}"
+    label 'ubuntu_python3'
     label 'small_process'
 
     input:

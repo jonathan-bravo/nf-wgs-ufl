@@ -6,6 +6,7 @@ process CALL_CNV {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    label 'panelcn.mops'
     label 'medium_process'
 
     input:

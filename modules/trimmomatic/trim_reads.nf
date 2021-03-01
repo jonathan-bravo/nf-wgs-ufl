@@ -6,6 +6,7 @@ process TRIM_READS {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
+    label 'trimmomatic'
     label 'small_process'
 
     input:

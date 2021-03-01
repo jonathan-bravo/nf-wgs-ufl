@@ -6,6 +6,7 @@ process ANNOTATE_VCF {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    label 'snpeff_tabix'
     label 'high_mem'
 
     input:

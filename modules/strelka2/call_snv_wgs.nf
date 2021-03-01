@@ -6,6 +6,7 @@ process CALL_SNV_WGS {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    label 'strelka2'
     label 'medium_process'
 
     input:

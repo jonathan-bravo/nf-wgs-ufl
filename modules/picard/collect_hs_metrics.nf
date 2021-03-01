@@ -6,6 +6,7 @@ process PICARD_COLLECT_HS_METRICS {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}_Exome/${sample_id}/hs_metrics", mode: 'copy'
+    label 'picard'
     label 'high_mem'
 
     input:

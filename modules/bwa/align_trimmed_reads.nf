@@ -5,6 +5,7 @@ nextflow.enable.dsl=2
 process ALIGN_TRIMMED_READS {
     
     tag "${sample_id}"
+    label 'bwa'
     label 'alignment'
 
     input:

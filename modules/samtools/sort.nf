@@ -6,6 +6,7 @@ process SAMTOOLS_SORT {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/alignment", mode: 'copy'
+    label 'samtools'
     label 'high_mem'
 
     input:

@@ -6,6 +6,7 @@ process FASTQC {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+    label 'fastqc'
     label 'small_process'
 
     input:

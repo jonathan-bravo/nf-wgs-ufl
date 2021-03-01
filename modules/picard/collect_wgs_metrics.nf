@@ -6,6 +6,7 @@ process PICARD_COLLECT_WGS_METRICS {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/wgs_metrics", mode: 'copy'
+    label 'picard'
     label 'high_mem'
 
     input:

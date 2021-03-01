@@ -6,6 +6,7 @@ process CALL_EH {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/ExpansionHunter", mode: 'copy'
+    label 'expansion_hunter'
     label 'small_process'
 
     input:
