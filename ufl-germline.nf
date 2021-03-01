@@ -31,23 +31,23 @@ params.outdir         = "${params.bucket}/Pipeline_Output"
 
 
 
-include { CAT_LANES                  } from './modules/cat/cat_lanes.nf'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { FASTQC                     } from './modules/fastqc/fastqc.nf'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { FASTQC_SINGLE              } from './modules/fastqc/fastqc_single.nf'          addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { TRIM_READS                 } from './modules/trimmomatic/trim_reads.nf'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { TRIM_READS_SINGLE          } from './modules/trimmomatic/trim_reads_single.nf' addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads.nf'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { SAMTOOLS_VIEW              } from './modules/samtools/view.nf'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { SAMTOOLS_SORT              } from './modules/samtools/sort.nf'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { SAMTOOLS_INDEX             } from './modules/samtools/index.nf'                addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { PICARD_COLLECT_WGS_METRICS } from './modules/picard/collect_wgs_metrics.nf'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics.nf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs.nf'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes.nf'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CALL_CNV                   } from './modules/panelcn.mops/call_cnv.nf'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CALL_EH                    } from './modules/expansion_hunter/call_eh.nf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf.nf'            addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf.nf'           addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CAT_LANES                  } from './modules/cat/cat_lanes'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { FASTQC                     } from './modules/fastqc/fastqc'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { FASTQC_SINGLE              } from './modules/fastqc/fastqc_single'          addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { TRIM_READS                 } from './modules/trimmomatic/trim_reads'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { TRIM_READS_SINGLE          } from './modules/trimmomatic/trim_reads_single' addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { SAMTOOLS_VIEW              } from './modules/samtools/view'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { SAMTOOLS_SORT              } from './modules/samtools/sort'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { SAMTOOLS_INDEX             } from './modules/samtools/index'                addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { PICARD_COLLECT_WGS_METRICS } from './modules/picard/collect_wgs_metrics'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CALL_CNV                   } from './modules/panelcn.mops/call_cnv'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 
 
 
@@ -77,7 +77,7 @@ else {
 
 
 
-workflow {
+workflow GERMLINE {
 
     if (params.single_lane == "NO"){
         CAT_LANES(

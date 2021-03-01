@@ -1,33 +1,14 @@
 #!/usr/bin/env nextflow
 
-params.run_id
-params.run_dir
+nextflow.enable.dsl   = 2
 
-log.info """\
+//params.run_id
+//params.run_dir
 
-         M U L T I Q C - U F L    P I P E L I N E
-         ========================================
-         run directory path : ${params.run_dir}
-         run id             : ${params.run_id}
-         
-         """
-         .stripIndent()
+include { MULTIQC_RUN } from './modules/multiqc/multiqc' addParams([*:params, "run_id" : params.run_id])
 
-process multiqcRun {
-    
-    tag "${params.run_id}"
-    publishDir "${params.run_dir}/MultiQC"
-    label 'small_process'
-
-    input:
-    path run_dir from params.run_dir
-
-    output:
-    file "${params.run_id}.html"
-    path "${params.run_id}_data"
-
-    script:
-    """
-    multiqc -n ${params.run_id} .
-    """
+workflow MULTIQC {
+    MULTIQC_RUN(
+        params.run_dir
+    )
 }
