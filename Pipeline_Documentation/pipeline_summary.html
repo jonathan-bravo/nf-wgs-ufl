@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <title>Pipeline Documentation</title>
+    <meta name="author" content="Johnny Bravo">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="css/stylesheet.css">
+    <link rel="stylesheet" href="javascript/highlight/styles/dracula.css">
+    <script src="javascript/highlight/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+<div id='content'>
+<h1 id="pipeline-summary">Pipeline Summary</h1>
+
+<a href="index.html">Return to Table of Contents</a>
+
+<h2 id="summary">Summary</h2>
+<p>
+The genome analysis pipeline is based on GATK standards and is composed from open source software: bwa 0.7.14-r1188, Picard 2.23.8, snpEff 5.0c, Strelka2 2.9.10, bcftools 1.10.2, samtools 1.10, Expansion Hunter 4.0.2, FastQC 0.11.9, panelcn.mops 1.8.0, TrimmomaticPE 0.39, and MultiQC 1.9. FASTQ files containing all reads that pass instrument quality control are generated from the BCL files produced by the Illumina NovaSeq 6000 using bcl2fastq.  This process de-multiplexes all samples run and ensures they are uploaded to the correct project folders in Illumia BaseSpace, based on a provided sample sheet. The FASTQ files are then imported from BaseSapce and into an AWS (Amazon Web Services) S3 bucket. The pipeline is executed by running python3 launchers that corespond to the correct Nextflow file. Nextflow is a domain-specific language (DSL) that allows for the creation of scalable and reproducable, data driven, scientific pipelines. Uing Nextflow allows us to process all samples from NovaSeq 6000 runs in parallel, reducing both the amount of manual imput time required to handle data, and the runtime of the pipeline. Short reads are trimmed using Trimmomatic and then aligned using bwa mem to the human reference genome hg19. Single nucleotide variants (SNVs) and indels are called jointly with Strelka2, copy number variants (CNVs) are called with panelcn.mops, and estimated repeats are called with Expansion Hunter. Called variants are then annotated with snpEff using the hg19 database and dbNSFP data is appended using SnpSift. Annotated variant call files (VCFs) can then be filtered using signed off panels. This filtered data is then transformed and databased so it can be delivered in a quick and concise manner to ordering individuals.
+</p>
+<p>
+During the pipeline run, FastQC, Picard, and snpEff are generating quality metrics to help help determine health of the data.
+</p>
+<table>
+<thead>
+<tr>
+<th>Program</th>
+<th>QC Metrics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FastQC</td>
+<td>Metrics on fastq files</td>
+</tr>
+<tr>
+<td>Picard CollectWgsMetrics</td>
+<td>Metrics on WGS alignment</td>
+</tr>
+<tr>
+<td>Picard CollectHsMetrics</td>
+<td>Metrics on WES alignment</td>
+</tr>
+<tr>
+<td>snpEff</td>
+<td>Metrics on variant calls</td>
+</tr>
+</tbody>
+</table>
+<p>
+After the pipeline has finished processing the data and all QC metrics are generated, MultiQC is run for the entire run. MultiQC coalesces all the QC output into a simgle HTML file. This allows us to directly compare the quality of all samples in the run and optionally focus on individuals.
+</p>
+<p><img src="images/pipeline_flowchart.png" alt="Pipeline Flowchart" /></p>
+
+<h2 id="grouping">How Programs Are Grouped in Nextflow</h2>
+<blockquote>
+<p>Software grouped together runs in parallel for each sample.</p>
+</blockquote>
+<ol>
+<li><details><p><summary>Processing fastq</summary></p>
+<ul>
+<li>Cat : Concatinating forward and reverse reads</li>
+<li>FastQC : Generating QC metrics for reads off of NovaSeq 6000</li>
+<li>TrimmomaticPE : Read trimming and metrics on number of paired and unpaired reads</li>
+</ul>
+<br />
+</details></li>
+<li><details><p><summary>Alignment</summary></p>
+<ul>
+<li>BWA MEM : Aligning forward and reverse reads to reference</li>
+<li>Samtools : Converting SAM file to BAM file (sequence to binary alignment map)</li>
+</ul>
+<br />
+</details></li>
+<li><details><p><summary>Variant Calling</summary></p>
+<ul>
+<li>Collecting Metrics</li>
+<li>Picard : Generating metrics on alignment</li>
+<ul>
+<li>Java</li>
+</ul>
+<li>Calling SNV</li>
+<ul>
+<li>Strelka2 : Calling SNP, SV, and INDELS</li>
+<ul>
+<li>Python</li>
+<li>Sed</li>
+</ul>
+</ul>
+<li>Calling CNV</li>
+<ul>
+<li>Panelcn.MOPS : Uses countWindows/ read counts to detect copy number variants</li>
+<ul>
+<li>R</li>
+</ul>
+</ul>
+<li>Scripting : Scripts are written to transform data into more usable format</li>
+<ul>
+<li>Sed</li>
+<li>Awk</li>
+<li>Bgzip</li>
+<li>Grep</li>
+<li>Gunzip</li>
+</ul>
+<li>Calling Repeats</li>
+<ul>
+<li>Expansion Hunter: Calls repeats detected in specified regions in the genome</li>
+<li>Bgzip</li>
+</ul>
+</ul>
+<br />
+</details></li>
+<li><details><p><summary>Merge VCF</summary></p>
+<ul>
+<li>Bcftools : Used for indexing, comparing, and filtering VCF files</li>
+<li>Bgzip</li>
+</ul>
+<br />
+</details></li>
+<li><details><p><summary>Annotate Variants</summary></p>
+<ul>
+<li>SnpEff : Annotating VCF from a database</li>
+<ul>
+<li>Java</li>
+</ul>
+<li>SnpSift : Adding data from dbNSFP to the annotated VCF</li>
+<ul>
+<li>Java</li>
+</ul>
+<li>Bgzip</li>
+</ul>
+<br />
+</details></li>
+</ol>
+
+<h2 id="output">Output</h2>
+<blockquote>
+<p>Samples batched and processed by run id.</p>
+</blockquote>
+<h3 id="wgs-wes">WGS/WES</h3>
+<p>
+This part of the pipeline returns two annotated VCFs. One contains the SNV, SNP, INDEL, and CNV information. One contains expansions.
+</p>
+<h3 id="reporting">Reporting</h3>
+<p>
+This part of the pipeline returns a VCF file filtered by a signed out panel. You get all data returned as long as it overlaps with the panel. Origional VCFs generated by the WGS/WES pipline persist.
+</p>
+<h3 id="multiqc">MultiQC</h3>
+<p>
+This part of the pipeline generates a coalescence of all qc metrics generated during the WGS/WES run. The return is a HTML file that can be opened in the browser.
+</p>
+<h3 id="what-happens-to-data">What Happens to Data</h3>
+<p>
+The origional sample files, after being processed through the pipeline completely, are then "archived" into a <code>_Processed/</code>directory, where a life cycle policy is placed on them. This policy will dictate when the files will be put into "S3 Glacier" storage. This storage is a more long term solution. The price goes down, but the ability to retrieve the data become much slower (12-24 hours).
+</p>
+<p>
+Output from the pipeline, however, will be maintained in speedier storage for much more rapid access and possible reprocessing.
+</p>
+<a href="#">To Top</a>
+</div>
+</body>
+</html>

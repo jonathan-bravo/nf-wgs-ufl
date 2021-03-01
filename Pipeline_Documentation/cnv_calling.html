@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Pipeline Documentation</title>
+<meta name="author" content="Johnny Bravo">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="javascript/highlight/styles/dracula.css">
+<script src="javascript/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+<div id='content'>
+
+<h1 id="cnv-calling">CNV Calling</h1>
+
+<a href="index.html">Return to Table of Contents</a> / <a href="steps.html">Return to Steps</a>
+
+<h2 id="generating-cnv-controls">Generating Control Data for CNV Detection</h2>
+<p>
+This is how to generate <i>in-silico</i> samples at 5x depth for use in CNV detection.
+</p>
+<pre><code class="bash">
+for i in $(seq 1 25)
+do 
+    wgsim -N 80000000 -1 150 -2 150 hg19/hg19.fa ${i}_R1.fq ${i}_R2.fq
+    bgzip -@ 24 ${i}_R1.fq
+    bgzip -@ 24 ${i}_R2.fq
+    bwa mem -t 24 hg19/hg19.fa ${i}_R1.fq.gz ${i}_R2.fq.gz > ${i}.sam
+    samtools view -@ 24 -Sbu -o ${i}.bam ${i}.sam
+    rm ${i}.sam
+    samtools sort -@ 24 -o ${i}-sort.bam ${i}.bam
+    rm ${i}.bam
+    samtools index -@ 24 ${i}-sort.bam
+done
+
+</code></pre>
+<br />
+<p>
+This is how to grab random low coverage (5x) samples from the 1000 genomes public data set hosted in AWS.
+</p>
+<pre><code class="bash">
+# Filtering 1000G 
+
+# Filtering the 1000g sample sheet by samples that are low-coverage WGS
+grep -Fwf \
+1000_genomes_phase3_samples.txt \
+1000G_SampleSheetFull.csv > \
+1000_genomes_filtered_phase3.csv
+
+# Population Files
+
+# Split into separate files for each population
+awk -F ',' '{print > ("1000g_"$3".csv")}' \
+1000_genomes_filtered_phase3.csv
+
+mkdir 1000_genomes_phase3_populations
+
+mv 1000g* 1000_genomes_phase3_populations/
+
+mkdir 1000_genomes_phase3_populations_subsamples
+
+# Subsample
+
+# Get a subsample from each population
+subsample -n 10 \
+./1000_genomes_phase3_populations/1000g_AFR.csv > \
+1000g_AFR_SubSample.csv
+
+subsample -n 10 \
+./1000_genomes_phase3_populations/1000g_AMR.csv > \
+1000g_AMR_SubSample.csv
+
+subsample -n 10 \
+./1000_genomes_phase3_populations/1000g_EAS.csv > \
+1000g_EAS_SubSample.csv
+
+subsample -n 10 \
+./1000_genomes_phase3_populations/1000g_EUR.csv > \
+1000g_EUR_SubSample.csv
+
+subsample -n 10 \
+./1000_genomes_phase3_populations/1000g_SAS.csv > \
+1000g_SAS_SubSample.csv
+
+mv 1000g* 1000_genomes_phase3_populations_subsamples/
+
+# Grabbing the sample names
+awk -F ',' '{print $1}' \
+1000_genomes_phase3_populations_subsamples/1000g_AFR_SubSample.csv > \
+AFR_samples.txt
+
+awk -F ',' '{print $1}' \
+1000_genomes_phase3_populations_subsamples/1000g_AMR_SubSample.csv > \
+AMR_samples.txt
+
+awk -F ',' '{print $1}' \
+1000_genomes_phase3_populations_subsamples/1000g_EAS_SubSample.csv > \
+EAS_samples.txt
+
+awk -F ',' '{print $1}' \
+1000_genomes_phase3_populations_subsamples/1000g_EUR_SubSample.csv > \
+EUR_samples.txt
+
+awk -F ',' '{print $1}' \
+1000_genomes_phase3_populations_subsamples/1000g_SAS_SubSample.csv > \
+SAS_samples.txt
+
+mkdir sample_lists
+
+mv *_samples.txt sample_lists/
+
+# Get Data
+
+for file in ${PWD}/1000_genomes/sample_lists/*; do
+    while read sample_id; do
+        sudo aws s3 cp \
+        s3://1000genomes/phase3/data/${sample_id}/alignment/ \
+        ./ \
+        --no-sign-request \
+        --recursive
+    done < ${file}
+done
+
+</code></pre>
+<br />
+
+<h2 id="count-windows">Generating Count Windows For CNV Detection</h2>
+<p>
+This is the python script for appending the gene information onto the hg19_cytoband.bed file. This code matches the genes with the correct cytoband they belong in. The output file is formated so that bedtools can be used to generate windows for CNV detection. After the windows are generated the file is parsed apart for use in control/ sample processing.
+</p>
+<pre><code class="python">
+#!/usr/bin/env python3
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Append genes onto cytoband bed file')
+parser.add_argument(
+    '-b',
+    metavar  = '--BAND',
+    type     = str,
+    help     = 'bed file of the cytobands from ucsc table browser',
+    required = True
+)
+parser.add_argument(
+    '-g',
+    metavar  = '--GENE',
+    type     = str,
+    help     = 'bed file of the genes from ucsc table browser',
+    required = True
+)
+parser.add_argument(
+    '-o',
+    metavar  = '--OUT',
+    type     = str,
+    help     = 'name of the outputfile'
+)
+
+def get_list(item_file):
+    item_list = []
+    with open(item_file) as f:
+        for item in f:
+            item = item.strip()
+            item = tuple(item.split('\t'))
+            item_list.append(item)
+    return item_list
+
+
+def check_gene(band_chr, band_range, gene_chr, gene_start, gene_end):
+    if gene_chr == band_chr:
+        if gene_start in band_range and gene_end in band_range:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def make_output(out_file, band_list, gene_matches):
+    f = open(out_file, "w")
+    for i in range(len(band_list)):
+        f.write(band_list[i][0])
+        f.write('\t')
+        f.write(band_list[i][1])
+        f.write('\t')
+        f.write(band_list[i][2])
+        f.write('\t')
+        f.write('\"')
+        f.write(band_list[i][3])
+        f.write(';')
+        for gene in gene_matches[i]:
+            if gene == gene_matches[i][-1]:
+                f.write(gene)
+            else:
+                f.write(gene)
+                f.write(',')
+        f.write('\"')
+        f.write('\n')
+    f.close()
+
+
+def main():
+    args = parser.parse_args()
+    band_list = get_list(args.b)
+    gene_list = get_list(args.g)
+    if args.o == None:
+        out_file = "cyto_genes.bed"
+    else:
+        out_file = args.o
+    gene_matches = [None] * len(band_list)
+
+    for i, band in enumerate(band_list):
+        band_range = range(int(band[1]), int(band[2])+1)
+        band_chr = band[0]
+        genes = []
+        for j, gene in enumerate(gene_list):
+            gene_chr = gene[0]
+            gene_start = gene[1]
+            gene_end = gene[2]
+            if check_gene(band_chr, band_range, gene_chr, int(gene_start), int(gene_end)):
+                genes.append(gene[3])
+        if not genes:
+            gene_matches[i] = '.'
+        else: 
+            gene_matches[i] = genes[:]
+                
+    make_output(out_file, band_list, gene_matches)
+
+if __name__ == '__main__':
+    main()
+
+</code></pre>
+<br />
+
+<p>
+These are the bash commands that are run to generate the appropriate count windows for CNV detection.
+</p>
+<pre><code class="bash">
+awk -F'\t' '{print $1";"$4"\t"$2"\t"$3}' hg19_cytoband.bed > hg19_cytoband_rearanged.bed
+
+bedtools makewindows \
+-b hg19_cytoband_rearanged.bed \
+-w 25000 \
+-s 20000 > hg19_cytoband_sliding_windows.bed
+
+rm hg19_cytoband_rearanged.bed
+
+awk -F'[;\t]' '{print $1"\t"$3"\t"$4"\t"$2}' hg19_cytoband_sliding_windows.bed > hg19.windows.bed
+
+rm hg19_cytoband_sliding_windows.bed
+
+./cyto_genes.py \
+-b hg19.windows.bed \
+-g hg19_genes.bed \
+-o hg19_sliding_windows_cyto.bed
+
+rm hg19.windows.bed
+
+</code></pre>
+<br />
+
+<h2 id="generating-rdata">Generating RData for Panelcn.MOPS</h2>
+<pre><code class="R">
+library(panelcn.mops)
+
+# These are all the simulated genomes
+controlBams <- list.files(pattern="*.bam$")
+
+bed <- "hg19_sliding_windows_cyto.bed"
+countWindows <- getWindows(bed, chr=TRUE)
+
+control <- countBamListInGRanges(
+    countWindows = countWindows,
+    bam.files    = controlBams,
+    read.width   = 150)
+
+save(control, countWindows, file = "sliding_windows_sim_control.RData")
+
+</code></pre>
+<br />
+
+<h2 id="generating-sample-cnv"><code>P</code> Generating Sample CNV Table Using Panelcn.MOPS</h2>
+<pre><code class="R">
+#!/usr/bin/Rscript --vanilla
+
+library(panelcn.mops)
+load(file="sliding_windows_sim_control.RData")
+
+testBam <- "sample-file.bam"
+
+test <- countBamListInGRanges(
+    countWindows = countWindows,
+    bam.files    = testBam,
+    read.width   = 150)
+
+XandCB <- test
+elementMetadata(XandCB) <- cbind(
+    elementMetadata(XandCB),
+    elementMetadata(control))
+
+resultsList <- runPanelcnMops(
+    XandCB,
+    testiv        = 1:ncol(elementMetadata(test)),
+    countWindows  = countWindows,
+    selectedGenes = NULL,
+    maxControls   = 25)
+
+sampleNames <- colnames(elementMetadata(test))
+resulttable <- createResultTable(
+    resultlist    = resultsList,
+    XandCB        = XandCB,
+    countWindows  = countWindows,
+    selectedGenes = NULL,
+    sampleNames   = sampleNames)
+
+write.table(resulttable[[1]], 'cnv_table.csv', append = TRUE)
+
+</code></pre>
+<br />
+
+<h2 id="csv-to-vcf"><code>P</code> Coverting CNV Table Into VCF</h2>
+<pre><code class="bash">
+#!/usr/bin/env sh
+
+touch sample_id_cnv.vcf
+
+while read meta; do
+    echo $meta >> sample_id_cnv.vcf
+done &lt; cnv_vcf_header.tsv
+
+TODAY=$(date '+%D')
+
+sed -i "s|##fileDate=|##fileDate=$TODAY|" sample_id_cnv.vcf
+
+cut -d " " -f 3,5,6,7,8,9,10,11,12,13 cnv_table.csv | \
+awk 'NR>1 {
+    printf $1"\t"$3"\tpanelcn.MOPS:"$1":"$3"-"$4"\tN\t";
+    if ($10 ~ "CN0" || $10 ~ "CN1") printf "&lt;DEL&gt;\t";
+    else if ($10 ~ "CN3" || $10 ~ "CN4") printf "&lt;DUP&gt;\t";
+    else printf ".\t";
+    if ($9 == "lowQual") printf "lowQual\t";
+    else printf "PASS\t";
+    printf "SVTYPE=CNV,END="$4",CNCLASS="$10",CYTO="$2"\tRC:MRC:RCN:MRCN\t"$5":"$6":"$7":"$8"\n";
+}' >> sample_id_cnv.vcf
+
+sed -i 's/"//g' sample_id_cnv.vcf
+sed -i 's/;/,GENE=/g' sample_id_cnv.vcf
+
+# Generate a version of the VCF file that only containes DEL/DUP
+grep '^#' sample_id_cnv.vcf > sample_id_filtered_cnv.vcf
+grep '^chr' sample_id_cnv.vcf | \
+awk '{if ($5 !=".")print}' - >> sample_id_filtered_cnv.vcf
+
+
+bgzip -@ $(nproc) sample_id_cnv.vcf
+bgzip -@ $(nproc) sample_id_filtered_cnv.vcf
+
+
+</code></pre>
+<br />
+
+<h2 id="">Creating a graph of the CNV calls</h2>
+<pre><calls class="bash">
+grep '^chr' sample_id_filtered_cnv.vcf | \
+awk '{print $3}' - | \
+awk -F':' '{print $2":"$3}' - > sample_id_cnv_calls.csv
+
+grep '^chr' sample_id_filtered_cnv.vcf | \
+awk '{print $7}' - | \
+awk -F',' '{print $3}' | \
+awk -F'=' '{print $2}' | \
+cut -b 3 > sample_id_cnv_class.csv
+
+sed -i '$ d' sample_id_cnv_calls.csv
+sed -i '$ d' sample_id_cnv_class.csv
+
+</calls></pre>
+<br />
+<p>
+Only visualizing autosomal chromosomes because <code>panelcn.mops</code> automatically removes X and Y chromosome data when the sex of the sample is not specified. When developing version 2.0.0, we will have an ethnicity/ sex panel at the start of the pipeline that will give us this information as a 'flag'. This flag will then be used to set the sex in <code>panelcn.mops</code> and for selecting the correct simulated controls.
+</p>
+<pre><code class="R">
+library(CopyNumberPlots)
+
+calls &lt;- scan("sample_id_cnv_calls.csv", what="", sep="\n")
+cnclass &lt;- scan("sample_id_cnv_class.csv", what="", sep="\n")
+
+cn.data &lt;- toGRanges(calls)
+cn.data$CopyNumberInteger &lt;- cnclass
+cn.data$LossHetero &lt;- cn.data$CopyNumberInteger&lt;2
+cn.calls &lt;- loadCopyNumberCalls(cn.data)
+
+pdf("sample_id_cnv.pdf")
+plotCopyNumberCalls(plotKaryotype(
+    genome = "hg19",
+    chromosomes= c(
+        "chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8",
+        "chr9","chr10","chr11","chr12","chr13","chr14","chr15",
+        "chr16","chr17","chr18","chr19","chr20","chr21","chr22")),
+    cn.calls = cn.calls,
+    labels = "sample_id",
+    label.cex = 0.5)
+dev.off()
+
+</code></pre>
+
+<a href="#">To Top</a>
+</div>
+</body>
+</html>
