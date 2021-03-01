@@ -2,42 +2,39 @@
 
 nextflow.enable.dsl   = 2
 
-params.single_lane    = ""
-params.exome          = ""
-params.match          = ""
-params.bucket         = ""
-params.run_id         = ""
-params.ref_dir        = "${params.bucket}/Pipeline/Reference"
+//params.single_lane    = ""
+//params.exome          = ""
+//params.match          = ""
+//params.bucket         = ""
+//params.run_id         = ""
+//params.ref_dir        = "${params.bucket}/Pipeline/Reference"
 
-params.reference      = "${params.ref_dir}/hg19/hg19.fa"
-params.bwa_amb        = "${params.reference}.amb"
-params.bwa_ann        = "${params.reference}.ann"
-params.bwa_bwt        = "${params.reference}.bwt"
-params.bwa_pac        = "${params.reference}.pac"
-params.bwa_sa         = "${params.reference}.sa"
-params.ref_fai        = "${params.reference}.fai"
+//params.reference      = "${params.ref_dir}/hg19/hg19.fa"
+//params.bwa_amb        = "${params.reference}.amb"
+//params.bwa_ann        = "${params.reference}.ann"
+//params.bwa_bwt        = "${params.reference}.bwt"
+//params.bwa_pac        = "${params.reference}.pac"
+//params.bwa_sa         = "${params.reference}.sa"
+//params.ref_fai        = "${params.reference}.fai"
 
-params.cnv_control    = "${params.ref_dir}/cnv/sliding_windows_sim_control.RData"
-params.cnv_vcf_header = "${params.ref_dir}/cnv/cnv_vcf_header.tsv"
+//params.cnv_control    = "${params.ref_dir}/cnv/sliding_windows_sim_control.RData"
+//params.cnv_vcf_header = "${params.ref_dir}/cnv/cnv_vcf_header.tsv"
 
-params.bait           = "${params.ref_dir}/exome_targets/bait.interval_list"
-params.target         = "${params.ref_dir}/exome_targets/target.interval_list"
+//params.bait           = "${params.ref_dir}/exome_targets/bait.interval_list"
+//params.target         = "${params.ref_dir}/exome_targets/target.interval_list"
 
-params.dbnsfp         = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
-params.dbnsfp_tbi     = "${params.dbnsfp}.tbi"
-params.dbnsfp_dt      = "${params.dbnsfp}.data_types"
+//params.dbnsfp         = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
+//params.dbnsfp_tbi     = "${params.dbnsfp}.tbi"
+//params.dbnsfp_dt      = "${params.dbnsfp}.data_types"
 
-params.outdir         = "${params.bucket}/Pipeline_Output"
+//params.outdir         = "${params.bucket}/Pipeline_Output"
 
 
 
-include { CAT_LANES                  } from './modules/cat/cat_lanes'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { FASTQC                     } from './modules/fastqc/fastqc'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { FASTQC_SINGLE              } from './modules/fastqc/fastqc_single'          addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { TRIM_READS                 } from './modules/trimmomatic/trim_reads'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { TRIM_READS_SINGLE          } from './modules/trimmomatic/trim_reads_single' addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { SAMTOOLS_VIEW              } from './modules/samtools/view'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { SAMTOOLS_SORT              } from './modules/samtools/sort'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { SAMTOOLS_INDEX             } from './modules/samtools/index'                addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { PICARD_COLLECT_WGS_METRICS } from './modules/picard/collect_wgs_metrics'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
@@ -48,6 +45,10 @@ include { CALL_CNV                   } from './modules/panelcn.mops/call_cnv'   
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CAT_LANES                  } from './modules/ubuntu_python3/cat_lanes'
+include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'
+include { SAMTOOLS_VIEW              } from './modules/samtools/view'
+
 
 
 

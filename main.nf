@@ -69,9 +69,6 @@ apply_panel_params = [
     "run_dir"    : params.run_dir,
     "panels_dir" : params.panels_dir,
     "bucket"     : params.bucket,
-    "ref_dir"    : params.ref_dir,
-    "reference"  : params.reference,
-    "ref_fai"    : params.ref_fai,
     "glue_dir"   : params.glue_dir
 ]
 
@@ -84,6 +81,6 @@ workflow {
         include { MULTIQC } from './ufl-multiqc' addParams( multiqc_params )
     }
     if (params.pipeline == "APPLY_PANEL") {
-        include { APPLY_PANEL } from './ufl-apply_panel' addParams( apply_panel_params )
+        include { APPLY_PANELS } from './ufl-apply_panels' addParams( apply_panel_params )
     }
 }
