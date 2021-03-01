@@ -81,9 +81,9 @@ workflow {
         include { GERMLINE } from './ufl-germline' addParams( germline_params )
     }
     if (params.pipeline == "MULTIQC") {
-        include { MULTIQC } from './multiqc' addParams( multiqc_params )
+        include { MULTIQC } from './ufl-multiqc' addParams( multiqc_params )
     }
     if (params.pipeline == "APPLY_PANEL") {
-        include { APPLY_PANEL } from './apply_panel' addParams( apply_panel_params )
+        include { APPLY_PANEL } from './ufl-apply_panel' addParams( apply_panel_params )
     }
 }
