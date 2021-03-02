@@ -80,7 +80,7 @@ workflow {
     if (params.pipeline == "MULTIQC") {
         include { MULTIQC } from './ufl-multiqc' addParams( multiqc_params )
     }
-    if (params.pipeline == "APPLY_PANEL") {
+    if (params.pipeline == "APPLY_PANELS") {
         include { APPLY_PANELS } from './ufl-apply_panels' addParams( apply_panel_params )
     }
 }

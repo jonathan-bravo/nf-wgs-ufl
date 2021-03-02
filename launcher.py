@@ -26,15 +26,22 @@ parser.add_argument(
 ARGS = parser.parse_args()
 BUCKET = ARGS.b # bucket = "hakmonkey-genetics-lab"
 WORKFLOW = ARGS.w
-
+WORKFLOW_LIST = ["GERMLINE", "MULTIQC", "APPLY_PANELS"]
 OUT_DIR = 'Pipeline_Output/'
 PROCESSED_DIR = "_Processed/"
 PANELS_DIR = 'Pipeline/Reference/panels/'
+TRASH = "sudo nextflow clean -f"
 
 # From data_ops
 def usage():
     """
     """
+
+
+def check_workflow(workflow):
+    if workflow.upper() not in WORKFLOW_LIST:
+        print("please select one of these options: ", WORKFLOW_LIST)
+        exit()
 
 
 def get_data(bucket, prefix):
@@ -167,7 +174,7 @@ def archive_fastqs(bucket, processed_dir, samples_dir, run):
             print(sample + " archived")
 
 
-def launch_germline_nextflow(bucket, out_dir, run, pipeline):
+def germline_nextflow(bucket, out_dir, run, exome):
     """
     """
 
@@ -181,38 +188,32 @@ def launch_germline_nextflow(bucket, out_dir, run, pipeline):
 
     if single_lane.upper() == "N":
         single_lane = "NO"
-
-        launch = "sudo nextflow run {pipeline} -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' -resume".format(
-        bucket = bucket,
-        out_dir = out_dir,
-        run = run,
-        laneage = single_lane.upper(),
-        pipeline = pipeline)
     elif single_lane.upper() == "Y":
         single_lane = "YES"
 
+    if single_lane.upper() == "NO":
+        match = ""
+    elif single_lane.upper() == "YES":
         match_index = int(input("[0]_{R1,R2}_001.fastq.gz or [1]_{1,2}.fq.gz: "))
-
         match_choices = ["_{R1,R2}_001.fastq.gz", "_{1,2}.fq.gz"]
-
         match = match_choices[match_index]
 
-        launch = "sudo nextflow run {pipeline} -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' -resume".format(
+
+    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}' -resume".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
         laneage = single_lane.upper(),
         match_lane = match,
-        pipeline = pipeline)
+        exome = exome
+    )
 
     os.system(launch)
-    
-    trash = "sudo nextflow clean -f"
 
-    os.system(trash)
+    os.system(TRASH)
 
 
-def germline_main():
+def germline():
     """
     """
 
@@ -231,10 +232,10 @@ def germline_main():
 
     if exome_data.upper() == "YES":
         samples_dir = "Exome_Fastqs/"
-        pipeline = "wes-ufl.nf"
+        exome = "YES"
     elif exome_data.upper() == "NO":
         samples_dir = "Fastqs/"
-        pipeline = "wgs-ufl.nf"
+        exome = "NO"
 
     all_samples = get_data(bucket = BUCKET, prefix = samples_dir)
 
@@ -242,40 +243,43 @@ def germline_main():
 
     run = get_run_id(run_ids = all_run_ids)
 
-    launch_germline_nextflow(
+    germline_nextflow(
         bucket = BUCKET,
         out_dir = OUT_DIR.strip('/'),
         run = run,
-        pipeline = pipeline
+        exome = exome
     )
 
     archive_fastqs(
         bucket = BUCKET,
         processed_dir = PROCESSED_DIR,
         samples_dir = samples_dir,
-        run = run)
+        run = run
+    )
 
 
-def launch_multiqc_nextflow(bucket, run_id, output_dir):
+def multiqc_nextflow(bucket, run_id, output_dir):
     """
     """
 
-    cmd = "sudo nextflow run multiqc-ufl.nf -work-dir s3://{bucket}/{output_dir}/_work/ --run_id '{run_id}' --run_dir 's3://{bucket}/{output_dir}/{run_id}'".format(
+    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{output_dir}/_work/ --pipeline 'MULTIQC' --run_id '{run_id}' --run_dir 's3://{bucket}/{output_dir}/{run_id}'".format(
         run_id = run_id,
         bucket = bucket,
         output_dir = output_dir)
 
-    os.system(cmd)
+    os.system(launch)
+
+    os.system(TRASH)
 
 
-def multiqc_main():
+def multiqc():
     """
     """
     
     run = get_data(bucket = BUCKET, prefix = OUT_DIR)
     run_id = select_run(runs = run)
 
-    launch_multiqc_nextflow(
+    multiqc_nextflow(
         bucket = BUCKET,
         run_id = run_id.strip('/'),
         output_dir = OUT_DIR.strip('/'))
@@ -314,19 +318,19 @@ def select_panels(sample_list, panel_list):
     return test_pairs
 
 
-def launch_apply_panels_nextflow(test_pairs, bucket, runs_dir, run_id, panels_dir):
+def apply_panels_nextflow(test_pairs, bucket, runs_dir, run_id, panels_dir):
     """
     """
 
-    pairs = "sed -i 's/pairs_ch = Channel.from()/pairs_ch = Channel.from({test_lists})/' reporting-ufl.nf".format(test_lists = test_pairs)
+    pairs = "sed -i 's/pairs_ch = Channel.from()/pairs_ch = Channel.from({test_lists})/' ufl-apply_panels.nf".format(test_lists = test_pairs)
 
     os.system(pairs)
 
-    quotes = "sed -ri \"s/\\[([a-zA-Z0-9_.-]+),\\s([a-zA-Z0-9_.-]+)\\]/\\['\\1','\\2'\\]/g\" reporting-ufl.nf"
+    quotes = "sed -ri \"s/\\[([a-zA-Z0-9_.-]+),\\s([a-zA-Z0-9_.-]+)\\]/\\['\\1','\\2'\\]/g\" ufl-apply_panels.nf"
 
     os.system(quotes)
 
-    launch = "sudo nextflow run reporting-ufl.nf -work-dir s3://{bucket}/{runs_dir}/_work/ --run_dir 's3://{bucket}/{runs_dir}/{run_id}' --panels_dir 's3://{bucket}/{panels_dir}' --bucket 's3://{bucket}' -resume".format(
+    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{runs_dir}/_work/ --pipeline 'APPLY_PANELS' --run_dir 's3://{bucket}/{runs_dir}/{run_id}' --panels_dir 's3://{bucket}/{panels_dir}' --bucket 's3://{bucket}' -resume".format(
         bucket = bucket,
         runs_dir = runs_dir,
         run_id = run_id,
@@ -334,16 +338,14 @@ def launch_apply_panels_nextflow(test_pairs, bucket, runs_dir, run_id, panels_di
 
     os.system(launch)
 
-    trash = "sudo nextflow clean -f"
-
-    os.system(trash)
+    os.system(TRASH)
 
     reset = "sed -i 's/^pairs_ch = Channel.from(.*$/pairs_ch = Channel.from()/' reporting-ufl.nf"
 
     os.system(reset)
 
 
-def apply_panels_main():
+def apply_panels():
     """
     """
 
@@ -371,7 +373,7 @@ def apply_panels_main():
     # Running The Nextflow Pipeline #
     #################################
 
-    launch_apply_panels_nextflow(
+    apply_panels_nextflow(
         test_pairs = test_pairs,
         bucket = BUCKET,
         runs_dir = OUT_DIR.strip('/'),
@@ -382,14 +384,16 @@ def apply_panels_main():
 def main():
     """
     """
-    # check workflow to make sure that it is a valid input
+    # check workflow to make sure that it is a valid input, else exit
+    check_workflow(WORKFLOW)
+    # depending on the workflow selected, prompt user for correct inpout as before
+    if WORKFLOW.upper() == "GERMLINE":
+        germline()
+    elif WORKFLOW.upper() == "MULTIQC":
+        multiqc()
+    elif WORKFLOW.upper() == "APPLY_PANELS":
+        apply_panels()
 
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-#nextflow run main.nf -work-dir '' --pipeline 'GERMLINE' --single_lane '' --exome '' --match '' --bucket '' --run_id '' --run_dir --panels_dir ''
