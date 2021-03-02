@@ -1,3 +1,5 @@
+version ?= 1.0.0
+
 build: dist/docker
 	cp -r ../../modules/ ./modules/
 	cp -r ../../bin/ ./bin/
@@ -6,7 +8,7 @@ build: dist/docker
 	cp -r ../../ufl-multiqc.nf .
 	cp -r ../../ufl-apply_panels.nf .
 	cp -r ../../nextflow.config .
-	docker build -t nextflow-ufl-germline:1.0.0 .
+	docker build -t nextflow-ufl-germline:${version} .
 	rm -rf modules/
 	rm -rf bin/
 	rm -rf dist/

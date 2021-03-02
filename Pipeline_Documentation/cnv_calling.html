@@ -382,6 +382,9 @@ sed -i '$ d' sample_id_cnv_class.csv
 <p>
 Only visualizing autosomal chromosomes because <code>panelcn.mops</code> automatically removes X and Y chromosome data when the sex of the sample is not specified. When developing version 2.0.0, we will have an ethnicity/ sex panel at the start of the pipeline that will give us this information as a 'flag'. This flag will then be used to set the sex in <code>panelcn.mops</code> and for selecting the correct simulated controls.
 </p>
+<p>
+On the plots, by default, green is a deletion and orange is a duplication.
+</p>
 <pre><code class="R">
 library(CopyNumberPlots)
 
