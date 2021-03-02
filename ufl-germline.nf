@@ -41,7 +41,7 @@ include { PICARD_COLLECT_WGS_METRICS } from './modules/picard/collect_wgs_metric
 include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CALL_CNV                   } from './modules/panelcn.mops/call_cnv'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CALL_CNV                   } from './modules/panelcn-mops/call_cnv'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
