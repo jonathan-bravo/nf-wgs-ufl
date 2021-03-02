@@ -199,7 +199,7 @@ def germline_nextflow(bucket, out_dir, run, exome):
         match = match_choices[match_index]
 
 
-    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}' -resume".format(
+    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --pipeline 'GERMLINE' --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}' -resume".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
@@ -338,11 +338,11 @@ def apply_panels_nextflow(test_pairs, bucket, runs_dir, run_id, panels_dir):
 
     os.system(launch)
 
-    os.system(TRASH)
-
     reset = "sed -i 's/^pairs_ch = Channel.from(.*$/pairs_ch = Channel.from()/' reporting-ufl.nf"
 
     os.system(reset)
+
+    os.system(TRASH)
 
 
 def apply_panels():

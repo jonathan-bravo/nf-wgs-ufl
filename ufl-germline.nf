@@ -2,34 +2,7 @@
 
 nextflow.enable.dsl   = 2
 
-//params.single_lane    = ""
-//params.exome          = ""
-//params.match          = ""
-//params.bucket         = ""
-//params.run_id         = ""
-//params.ref_dir        = "${params.bucket}/Pipeline/Reference"
-
-//params.reference      = "${params.ref_dir}/hg19/hg19.fa"
-//params.bwa_amb        = "${params.reference}.amb"
-//params.bwa_ann        = "${params.reference}.ann"
-//params.bwa_bwt        = "${params.reference}.bwt"
-//params.bwa_pac        = "${params.reference}.pac"
-//params.bwa_sa         = "${params.reference}.sa"
-//params.ref_fai        = "${params.reference}.fai"
-
-//params.cnv_control    = "${params.ref_dir}/cnv/sliding_windows_sim_control.RData"
-//params.cnv_vcf_header = "${params.ref_dir}/cnv/cnv_vcf_header.tsv"
-
-//params.bait           = "${params.ref_dir}/exome_targets/bait.interval_list"
-//params.target         = "${params.ref_dir}/exome_targets/target.interval_list"
-
-//params.dbnsfp         = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
-//params.dbnsfp_tbi     = "${params.dbnsfp}.tbi"
-//params.dbnsfp_dt      = "${params.dbnsfp}.data_types"
-
-//params.outdir         = "${params.bucket}/Pipeline_Output"
-
-
+params.germline_params = [:]
 
 include { FASTQC                     } from './modules/fastqc/fastqc'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { FASTQC_SINGLE              } from './modules/fastqc/fastqc_single'          addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
@@ -41,7 +14,7 @@ include { PICARD_COLLECT_WGS_METRICS } from './modules/picard/collect_wgs_metric
 include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CALL_CNV                   } from './modules/panelcn-mops/call_cnv'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CALL_CNV                   } from './modules/panelcn_mops/call_cnv'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])

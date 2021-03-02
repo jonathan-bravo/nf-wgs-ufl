@@ -2,10 +2,7 @@
 
 nextflow.enable.dsl   = 2
 
-//params.run_dir    = ""
-//params.panels_dir = ""
-//params.bucket     = ""
-//params.glue_dir   = "${params.bucket}/Pipeline_Output/_SampleTSV"
+params.apply_panel_params = [:]
 
 include { APPLY_PANEL } from './modules/ubuntu_python3/apply_panel' addParams([*:params, "run_dir" : params.run_dir])
 include { CREATE_TSV  } from './modules/ubuntu_python3/create_tsv'  addParams([*:params, "glue_dir" : params.glue_dir])

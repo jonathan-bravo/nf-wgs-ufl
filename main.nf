@@ -75,12 +75,15 @@ apply_panel_params = [
 
 workflow {
     if (params.pipeline == "GERMLINE") {
-        include { GERMLINE } from './ufl-germline' addParams( germline_params )
+        include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
+        GERMLINE ()
     }
     if (params.pipeline == "MULTIQC") {
-        include { MULTIQC } from './ufl-multiqc' addParams( multiqc_params )
+        include { MULTIQC } from './ufl-multiqc' addParams( multiqc_params: multiqc_params )
+        MULTIQC ()
     }
     if (params.pipeline == "APPLY_PANELS") {
-        include { APPLY_PANELS } from './ufl-apply_panels' addParams( apply_panel_params )
+        include { APPLY_PANELS } from './ufl-apply_panels' addParams( apply_panel_params: apply_panel_params )
+        APPLY_PANELS ()
     }
 }
