@@ -22,10 +22,27 @@ parser.add_argument(
     help     = 'which S3 bucket to use when launching the workflow',
     required = True
 )
+parser.add_argument(
+    '-a',
+    metavar  = '--AWS_ACCESS_KEY_ID',
+    type     = str,
+    help     = 'aws access key',
+    required = True
+)
+parser.add_argument(
+    '-s',
+    metavar  = '--AWS_SECRET_ACCESS_KEY',
+    type     = str,
+    help     = 'aws secret access key',
+    required = True
+)
+
 
 ARGS = parser.parse_args()
 BUCKET = ARGS.b # bucket = "hakmonkey-genetics-lab"
 WORKFLOW = ARGS.w
+ACCESS_KEY = ARGS.a
+SECREY_KEY = ARGS.s
 WORKFLOW_LIST = ["GERMLINE", "MULTIQC", "APPLY_PANELS"]
 OUT_DIR = 'Pipeline_Output/'
 PROCESSED_DIR = "_Processed/"
@@ -92,7 +109,6 @@ def list_data(data):
         print(datum)
 
 
-# From wgs launcher
 def get_choice(choices):
     """
     """
@@ -199,7 +215,7 @@ def germline_nextflow(bucket, out_dir, run, exome):
         match = match_choices[match_index]
 
 
-    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --pipeline 'GERMLINE' --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}' -resume".format(
+    launch = "nextflow run main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --pipeline 'GERMLINE' --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{laneage}' --match '{match_lane}' --exome '{exome}' -resume".format(
         bucket = bucket,
         out_dir = out_dir,
         run = run,
@@ -208,9 +224,10 @@ def germline_nextflow(bucket, out_dir, run, exome):
         exome = exome
     )
 
-    os.system(launch)
+    #os.system(launch)
+    submit_job(launch)
 
-    os.system(TRASH)
+    #os.system(TRASH)
 
 
 def germline():
@@ -250,26 +267,27 @@ def germline():
         exome = exome
     )
 
-    archive_fastqs(
-        bucket = BUCKET,
-        processed_dir = PROCESSED_DIR,
-        samples_dir = samples_dir,
-        run = run
-    )
+    # archive_fastqs(
+    #     bucket = BUCKET,
+    #     processed_dir = PROCESSED_DIR,
+    #     samples_dir = samples_dir,
+    #     run = run
+    # )
 
 
 def multiqc_nextflow(bucket, run_id, output_dir):
     """
     """
 
-    launch = "sudo nextflow run main.nf -work-dir s3://{bucket}/{output_dir}/_work/ --pipeline 'MULTIQC' --run_id '{run_id}' --run_dir 's3://{bucket}/{output_dir}/{run_id}'".format(
+    launch = "nextflow run main.nf -work-dir s3://{bucket}/{output_dir}/_work/ --pipeline 'MULTIQC' --run_id '{run_id}' --run_dir 's3://{bucket}/{output_dir}/{run_id}'".format(
         run_id = run_id,
         bucket = bucket,
         output_dir = output_dir)
 
-    os.system(launch)
+    #os.system(launch)
+    submit_job(launch)
 
-    os.system(TRASH)
+    #os.system(TRASH)
 
 
 def multiqc():
@@ -285,7 +303,6 @@ def multiqc():
         output_dir = OUT_DIR.strip('/'))
 
 
-# From reporting launcher (no apply_panels)
 def select_panels(sample_list, panel_list):
     """
     """
@@ -379,6 +396,40 @@ def apply_panels():
         runs_dir = OUT_DIR.strip('/'),
         run_id = run_id.strip('/'),
         panels_dir = PANELS_DIR.strip('/'))
+
+
+def submit_job(command, workflow=WORKFLOW, access=ACCESS_KEY, secret=SECREY_KEY):
+    """
+    """
+
+    work = "bash -c 'cd /data/;{command}'".format(command = command)
+
+    client = boto3.client('batch')
+
+    response = client.submit_job(
+        jobName=workflow,
+        jobQueue='hakmonkey-nextflow',
+        jobDefinition='nextflow-ufl-germline:3',
+        containerOverrides={
+            'command': [
+                work
+            ],
+            'environment': [
+            {
+                'name': 'AWS_ACCESS_KEY_ID',
+                'value': access
+            },
+            {
+                'name': 'AWS_SECRET_ACCESS_KEY',
+                'value': secret
+            }
+        ],
+        }
+    )
+
+    print(response)
+    print(command)
+
 
 
 def main():
