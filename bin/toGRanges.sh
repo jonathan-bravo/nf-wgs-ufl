@@ -7,7 +7,7 @@ awk '{print $3}' | \
 awk -F':' '{print $2":"$3}' > ${sample_id}_cnv_calls.csv
 
 grep '^chr' ${sample_id}_filtered_cnv.vcf | \
-awk '{print $7}' | \
+awk '{print $8}' | \
 awk -F';' '{print $3}' | \
 awk -F'=' '{print $2}' | \
 cut -b 3 > ${sample_id}_cnv_class.csv
