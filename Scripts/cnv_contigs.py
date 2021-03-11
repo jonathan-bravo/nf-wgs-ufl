@@ -5,8 +5,7 @@ from os import path
 from pysam import VariantFile
 
 def parse_args():
-    """
-    This function parses the input arguments.
+    """This function parses the input arguments.
 
     Keyword Arguments:
 
@@ -19,7 +18,6 @@ def parse_args():
     Return:
 
     args -- the parsed arguments
-
     """
     parser = argparse.ArgumentParser(
         description = 'inputs for generating multiple reports for CNV contigs'
@@ -41,8 +39,7 @@ def parse_args():
     return args
 
 def get_entries(vcf):
-    """
-    This function parses the input CNV file.
+    """This function parses the input CNV file.
 
     This functions takes a CNV variant call file that has been filtered to only
     deletions and duplications, and stores each hit as an entry.
@@ -63,7 +60,6 @@ def get_entries(vcf):
     Return:
 
     entries -- a list of all the hits from the VCF
-
     """
     entries = []
     for entry in vcf.fetch():
@@ -77,12 +73,8 @@ def get_entries(vcf):
         ))
     return entries
 
-# This function will be for checking if the second entry is contiguous with
-# the first entry
-# ex: first = entries[0], second = entries[1]
 def check_overlap(first, second):
-    """
-    This function checks if two CNVs overlap.
+    """This function checks if two CNVs overlap.
 
     First we check if the called CNVs are both in the same cytoband. If this
     is true we then check to see if the CNVs are of the same type, either
@@ -99,18 +91,28 @@ def check_overlap(first, second):
     Return:
 
     success   -- a boolean value of either True or False
-    gene_list -- a list of genes from `second` or None if `success` is False
-
+    gene_list -- a list of genes from `second` or `None` if `success` is False
     """
     if second[3] == first[3]:
         if second[4] == first[4]:
             if second[1]+1 < first[2]:
                 return (True, second[5])
     return (False, None)
-            
-
 
 def contig(start_index, entries):
+    """
+
+    Keyword arguments:
+
+    start_index --
+    entries     --
+
+    Return:
+
+    contig    --
+    end_index --
+
+    """
     for i in range(len(entries)):
         # This is the list that will hold the info for the CNV contig
         contig = []
@@ -165,11 +167,50 @@ def contig(start_index, entries):
         # at the next entry
         return contig, end_index
 
+def strip_cnv(cnv):
+    """This function cleans up the CNV contig CNType.
 
+    This function takes the CNV type, either deletion or duplication from
+    each CNV contig and strips it of the unnecessary characters.
+
+    Keyword arguments:
+
+    cnv --
+
+    Return:
+
+    strip_cnv --
+    """
+    strip_cnv = cnv.replace('\'', '')
+    strip_cnv = strip_cnv.replace('(', '')
+    strip_cnv = strip_cnv.replace(')', '')
+    strip_cnv = strip_cnv.replace(',', '')
+    return strip_cnv
+
+def strip_gene(gene):
+    """This function cleans up the CNV contig gene list.
+
+    This function takes the gene list from each CNV contig and strips it of
+    the unnecessary characters.
+
+    Keyword arguments:
+
+    gene --
+
+    Return:
+
+    strip_gene --
+    """
+    strip_gene = gene.replace('\"', '')
+    strip_gene = strip_gene.replace('\'', '')
+    strip_gene = strip_gene.replace('(', '')
+    strip_gene = strip_gene.replace(')', '')
+    strip_gene = strip_gene.replace('[', '')
+    strip_gene = strip_gene.replace(']', '')
+    return strip_gene
 
 def generate_report(file_name, cnvs):
-    """
-    Generates the final reports.
+    """Generates the final reports.
 
     This function takes the CNV contigs and prints them out into four different
     reports. There is a report for all duplications, all deletions, only
@@ -182,17 +223,16 @@ def generate_report(file_name, cnvs):
     Output:
 
     {sample_id}_cnv_contigs_report.tsv
-    
     """
     f = open(file_name, "w")
 
     for i in range(len(cnvs)):
         chrom = cnvs[i][0]
         cyto  = cnvs[i][1]
-        cnv   = cnvs[i][2].replace('\'', '').replace('(', '').replace(')', '').replace(',', '')
+        cnv   = strip_cnv(cnvs[i][2])
         start = cnvs[i][3]
         stop  = cnvs[i][4]
-        genes = cnvs[i][5].replace('\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '')
+        genes = strip_gene(cnvs[i][5])
         entry = f'{chrom}\t{cyto}\t{cnv}\t{start}\t{stop}\t{genes}\n'
         f.write(entry)
 
@@ -201,6 +241,8 @@ def generate_report(file_name, cnvs):
 
 
 def main():
+    """
+    """
     args = parse_args()
     vcf = VariantFile(args.c)
     sample_id = args.s
