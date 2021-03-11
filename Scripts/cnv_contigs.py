@@ -167,7 +167,7 @@ def contig(start_index, entries):
 
 
 
-def generate_report(cnvs):
+def generate_report(sample_id, cnvs):
     """
     Generates the final reports.
 
@@ -181,16 +181,11 @@ def generate_report(cnvs):
 
     Output:
 
-    duplications_report.tsv
-    duplications_genes_only_report.tsv
-    deletions_report.tsv
-    deletions_genes_only_report.tsv
+    {sample_id}_cnv_contigs_report.tsv
     
     """
-    a = open("duplications_report.tsv", "w")
-    b = open("duplications_genes_only_report.tsv", "w")
-    c = open("deletions_report.tsv", "w")
-    d = open("deletions_genes_only_report.tsv", "w")
+    file_name = f'{sample_id}_cnv_contigs_report.tsv'
+    f = open(file_name, "w")
 
     for i in range(len(cnvs)):
         chrom = cnvs[i][0]
@@ -202,25 +197,16 @@ def generate_report(cnvs):
         
         entry = f'{chrom}\t{cyto}\t{cnv}\t{start}\t{stop}\t{genes}\n'
         
-        if cnv == 'CNV: DUP':
-            a.write(entry)
-            if genes != 'GENES: ':
-                b.write(entry)
-        elif cnv == 'CNV: DEL':
-            c.write(entry)
-            if genes != 'GENES: ':
-                d.write(entry)
+        f.write(entry)
     
-    a.close()
-    b.close()
-    c.close()
-    d.close()
+    f.close()
 
 
 
 def main():
     args = parse_args()
     vcf = VariantFile(args.c)
+    sample_id = VariantFile(args.s)
 
     cnvs = []
     entries = get_entries(vcf)
@@ -230,7 +216,7 @@ def main():
         cnv, index = contig(index, entries)
         cnvs.append(cnv)
 
-    generate_report(cnvs)
+    generate_report(sample_id, cnvs)
 
         
 
