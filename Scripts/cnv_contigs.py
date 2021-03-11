@@ -195,7 +195,7 @@ def generate_report(file_name, cnvs):
         genes = cnvs[i][5].replace('\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '')
         entry = f'{chrom}\t{cyto}\t{cnv}\t{start}\t{stop}\t{genes}\n'
         f.write(entry)
-        
+
     f.close()
 
 
@@ -203,7 +203,7 @@ def generate_report(file_name, cnvs):
 def main():
     args = parse_args()
     vcf = VariantFile(args.c)
-    sample_id = VariantFile(args.s)
+    sample_id = args.s
 
     file_name = f'{sample_id}_cnv_contigs_report.tsv'
 
