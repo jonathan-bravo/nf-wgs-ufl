@@ -4,13 +4,14 @@ import argparse
 from os import path
 from pysam import VariantFile
 
+
 def parse_args():
     """This function parses the input arguments.
 
     Keyword Arguments:
 
     -c, --CNV:
-        the input CNV VCF filtered to just deletions or duplications
+        the input CNV VCF file filtered to just deletions or duplications
     
     -s, --SAMPLE_NAME:
         the desired sample name to be included in the report name
@@ -26,22 +27,23 @@ def parse_args():
         '-c',
         metavar  = '--CNV',
         type     = str,
-        help     = 'name of the CNV vcf',
+        help     = 'name of the CNV VCF file',
         required = True
     )
     parser.add_argument(
         '-s',
         metavar = '--SAMPLE_NAME',
         type = str,
-        help = 'the sample name'
+        help = 'the sample id/name'
     )
     args = parser.parse_args()
     return args
 
-def get_entries(vcf):
-    """This function parses the input CNV file.
 
-    This functions takes a CNV variant call file that has been filtered to only
+def get_entries(vcf):
+    """This function parses the input CNV VCF file.
+
+    This functions takes a CNV VCF file that has been filtered to only
     deletions and duplications, and stores each hit as an entry.
 
     The structure of an entry is as follows for any given entry at index `i`:
@@ -55,11 +57,11 @@ def get_entries(vcf):
 
     Keyword Arguments:
 
-    vcf -- the input VCF from `args.c`
+    vcf -- the input VCF file from `args.c`
 
     Return:
 
-    entries -- a list of all the hits from the VCF
+    entries -- a list of all the hits from the VCF file
     """
     entries = []
     for entry in vcf.fetch():
@@ -72,6 +74,7 @@ def get_entries(vcf):
             entry.info["GENE"]
         ))
     return entries
+
 
 def check_overlap(first, second):
     """This function checks if two CNVs overlap.
@@ -99,27 +102,34 @@ def check_overlap(first, second):
                 return (True, second[5])
     return (False, None)
 
+
 def contig(start_index, entries):
-    """
+    """Generating CNV contigs that are returned in a final report.
+
+    We create a list that will contain all the information for the CNV
+    contig and a list that will contain all the genes from all the CNVs
+    in the contig. First we append the chromosome, cytoband, CNV type, and
+    start of the first CNV into the contig list. Then we loop through the
+    entries until we either hit the end of the list or a CNV that does not
+    overlap with our 'current contig'. At the end we return the CNV
+    contig, which will either be a single CNV or multiple CNVs merged into
+    a single contig and the `end_index`, which is the starting index for
+    the next CNV contig.
 
     Keyword arguments:
 
-    start_index --
-    entries     --
+    start_index -- the index of the CNV that starts the contig
+    entries     -- the entire list of VCF entries
 
     Return:
 
-    contig    --
-    end_index --
-
+    contig    -- a list that is the CNV contig info
+    end_index -- this is the index of the start of the next CNV contig
     """
     for i in range(len(entries)):
-        # This is the list that will hold the info for the CNV contig
         contig = []
-        # This is a list that will contain all genes for the CNV contig
         genes = []
         genes.append(str(entries[start_index][5]))
-        # FIRST we need to put the information from the first entry into a list
         chrom = "CHROM: " + str(entries[start_index][0])
         cyto = "CYTO: " + str(entries[start_index][3])
         cnv = "CNV: " + str(entries[start_index][4])
@@ -128,44 +138,28 @@ def contig(start_index, entries):
         contig.append(cyto)
         contig.append(cnv)
         contig.append(start)
-        # we loop, starting with a specified index, so we can iterate through
-        # the whole list of entries without duplication.
         for i in range(start_index, len(entries)):
             end_index = i
-            # If we are at the last entry we are done matching 
-            # (there is nothing left in the vcf file)
             if entries[i] == entries[-1]:
                 stop = "STOP: " + str(entries[i][2])
                 contig.append(stop)
                 end_index += 1
                 break
             else:
-                # We get a boolean value of True or False and a tuple of
-                # genes from the entry that belongs in our contig
                 success, gene_list = check_overlap(entries[i], entries[i+1])
                 if success:
                     genes.append(gene_list)
-                    # Since we were successful we want to continue our for loop
                     continue
                 else:
-                    # Stop is determined from the last contig that overlaps
                     stop = "STOP: " + str(entries[i][2])
                     contig.append(stop)
                     end_index += 1
-                    # Then we break from the for loop because the next entry
-                    # does not overlap or is not contiguous
                     break
-        # We then set the value of the genes equal to all the genes from the
-        # contigs, but first we will want to strip any '.' (NA) values from our
-        # list
         genes[:] = [x for x in genes if x != '.']
         gene = "GENES: " + str(genes)
         contig.append(gene)
-        # we are returning the entire contig with:
-        # CHROM, CYTO, CNV (DEL/DUP), START, STOP, GENES
-        # We also need to return the index of the last entry so we can start
-        # at the next entry
         return contig, end_index
+
 
 def strip_cnv(cnv):
     """This function cleans up the CNV contig CNType.
@@ -175,17 +169,19 @@ def strip_cnv(cnv):
 
     Keyword arguments:
 
-    cnv --
+    cnv -- is the CNV type of the contig
 
     Return:
 
-    strip_cnv --
+    strip_cnv -- the returned string that is the CNV type of the contig
+              -- with extranious characters removed
     """
     strip_cnv = cnv.replace('\'', '')
     strip_cnv = strip_cnv.replace('(', '')
     strip_cnv = strip_cnv.replace(')', '')
     strip_cnv = strip_cnv.replace(',', '')
     return strip_cnv
+
 
 def strip_gene(gene):
     """This function cleans up the CNV contig gene list.
@@ -195,11 +191,12 @@ def strip_gene(gene):
 
     Keyword arguments:
 
-    gene --
+    gene -- is the list of genes for the CNV contig
 
     Return:
 
-    strip_gene --
+    strip_gene -- the returned string that is the list of genes of the contig
+               -- with extranious characters removed
     """
     strip_gene = gene.replace('\"', '')
     strip_gene = strip_gene.replace('\'', '')
@@ -208,6 +205,7 @@ def strip_gene(gene):
     strip_gene = strip_gene.replace('[', '')
     strip_gene = strip_gene.replace(']', '')
     return strip_gene
+
 
 def generate_report(file_name, cnvs):
     """Generates the final reports.
@@ -225,7 +223,6 @@ def generate_report(file_name, cnvs):
     {sample_id}_cnv_contigs_report.tsv
     """
     f = open(file_name, "w")
-
     for i in range(len(cnvs)):
         chrom = cnvs[i][0]
         cyto  = cnvs[i][1]
@@ -235,13 +232,21 @@ def generate_report(file_name, cnvs):
         genes = strip_gene(cnvs[i][5])
         entry = f'{chrom}\t{cyto}\t{cnv}\t{start}\t{stop}\t{genes}\n'
         f.write(entry)
-
     f.close()
 
 
-
 def main():
-    """
+    """ Create CNV contigs from sliding windows CNV calls.
+
+    This script looks at 25kb sliding window CNV calls from a VCF file and
+    merges the CNV windows that are on the same cytoband, are the same
+    CNV type (DEL, DUP), and are contiguous. The resulting report will
+    allow better comparisons with CGH Array data and tools already offered
+    from companies such as NxClinical and XXX.
+
+    Output:
+
+    file_name -- the name of the resulting report 
     """
     args = parse_args()
     vcf = VariantFile(args.c)
@@ -263,7 +268,6 @@ def main():
 
     generate_report(file_name, cnvs)
 
-        
 
 if __name__ == '__main__':
     main()
