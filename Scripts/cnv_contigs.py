@@ -235,6 +235,56 @@ def generate_report(file_name, cnvs):
     f.close()
 
 
+def create_file(sample_id):
+    """Check presence of file and create file name.
+
+    This function checks if a report exists for a given sample and then
+    quits if `True`. If the report is not present then the file name
+    is returned so a new report can be generated.
+
+    Keyword arguments:
+
+    sample_id -- the specified sample id from `args.s`
+
+    Return:
+
+    file_name -- the name of the report to be written
+    """
+    file_name = f'{sample_id}_cnv_contigs_report.tsv'
+    if path.exists(file_name):
+        print("The report file `" + str(file_name) + "` already exists.")
+        quit()
+    return file_name
+
+
+def check_entries(vcf):
+    """ Runs the `contig()` contig function.
+
+    This function executes the main loop of this script. A list for all
+    the CNV contigs is created, all entries from the VCF file are pulled
+    into a list, and the starting position, or index, is set to 0 because
+    lists in Python are 0 indexed (start at 0). Then we loop through all
+    the entries creating CNV contigs and appending them to the cnvs list.
+    The resulting cnvs list, the list of contigs, is returned so a report
+    can be generated.
+
+    Keyword arguments:
+
+    vcf -- the input VCF file from `args.c`
+
+    Return:
+
+    cnvs -- list of all contigs generated from `contig()`
+    """
+    cnvs = []
+    entries = get_entries(vcf)
+    index = 0
+    while index < len(entries):
+        cnv, index = contig(index, entries)
+        cnvs.append(cnv)
+    return cnvs
+
+
 def main():
     """ Create CNV contigs from sliding windows CNV calls.
 
@@ -242,30 +292,14 @@ def main():
     merges the CNV windows that are on the same cytoband, are the same
     CNV type (DEL, DUP), and are contiguous. The resulting report will
     allow better comparisons with CGH Array data and tools already offered
-    from companies such as NxClinical and XXX.
-
-    Output:
-
-    file_name -- the name of the resulting report 
+    from companies such as NxClinical. The output is a TSV file that
+    containes 'CNV contigs'.
     """
     args = parse_args()
     vcf = VariantFile(args.c)
     sample_id = args.s
-
-    file_name = f'{sample_id}_cnv_contigs_report.tsv'
-
-    if path.exists(file_name):
-        print("The report file `" + str(file_name) + "` already exists.")
-        quit()
-
-    cnvs = []
-    entries = get_entries(vcf)
-    index = 0
-
-    while index < len(entries):
-        cnv, index = contig(index, entries)
-        cnvs.append(cnv)
-
+    file_name = create_file(sample_id)
+    cnvs = check_entries(vcf)
     generate_report(file_name, cnvs)
 
 
