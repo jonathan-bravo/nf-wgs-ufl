@@ -167,7 +167,7 @@ def contig(start_index, entries):
 
 
 
-def generate_report(sample_id, cnvs):
+def generate_report(file_name, cnvs):
     """
     Generates the final reports.
 
@@ -184,7 +184,6 @@ def generate_report(sample_id, cnvs):
     {sample_id}_cnv_contigs_report.tsv
     
     """
-    file_name = f'{sample_id}_cnv_contigs_report.tsv'
     f = open(file_name, "w")
 
     for i in range(len(cnvs)):
@@ -194,11 +193,9 @@ def generate_report(sample_id, cnvs):
         start = cnvs[i][3]
         stop  = cnvs[i][4]
         genes = cnvs[i][5].replace('\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '')
-        
         entry = f'{chrom}\t{cyto}\t{cnv}\t{start}\t{stop}\t{genes}\n'
-        
         f.write(entry)
-    
+        
     f.close()
 
 
@@ -208,6 +205,12 @@ def main():
     vcf = VariantFile(args.c)
     sample_id = VariantFile(args.s)
 
+    file_name = f'{sample_id}_cnv_contigs_report.tsv'
+
+    if path.exists(file_name):
+        print("The report file `" + str(file_name) + "` already exists.")
+        quit()
+
     cnvs = []
     entries = get_entries(vcf)
     index = 0
@@ -216,7 +219,7 @@ def main():
         cnv, index = contig(index, entries)
         cnvs.append(cnv)
 
-    generate_report(sample_id, cnvs)
+    generate_report(file_name, cnvs)
 
         
 
