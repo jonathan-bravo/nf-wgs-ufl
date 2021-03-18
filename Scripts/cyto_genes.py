@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import concurrent.futures
+from concurrent.futures import ProcessPoolExecutor
 from os import path
 
 CHROM_LIST = [
@@ -93,7 +93,19 @@ def create_file():
 
 
 def get_list(item_file):
-    """
+    """Parses input files.
+
+    This function takes an input file and creates a list of tuples that
+    contain the chromosome, start, stop, and cyto/ gene information of a
+    given window or gene.
+
+    Keyword arguments:
+
+    item_file -- the input file to use.
+
+    Return:
+
+    item_list -- the list of tuples from the input file
     """
     item_list = []
     with open(item_file) as f:
@@ -105,7 +117,22 @@ def get_list(item_file):
 
 
 def get_chrom_data(chrom, windows, gene_list):
-    """
+    """Grab data for a specific chromosome.
+
+    This function takes all the windows and all the genes, then grabs
+    data for only the chromosome specified. After, `gene_map()` is called.
+    `gene_map()` will give use the list of gene matches for the selected
+    windows.
+
+    Keyword arguments:
+
+    chrom     -- the selected chromosome for the chunk
+    windows   -- the list of all windows
+    gene_list -- the list of all genes
+
+    Return:
+
+    gene_matches -- a list of genes that maps onto the windows
     """
     windows_for_chr = []
     genes_for_chr = []
@@ -123,7 +150,20 @@ def get_chrom_data(chrom, windows, gene_list):
 
 
 def check_gene(window, gene):
-    """
+    """Determine window/ gene overlap.
+
+    This function takes the range of the selected window and selected gene,
+    compares them to eachother to determine which is larger, then does the
+    appropriate check to see if there is any overlap present at all.
+
+    Ketword arguments:
+
+    window -- the selected window from the list of windows
+    gene   -- the selected gene from the list of genes
+
+    Return:
+
+    success -- boolean value that indicates overlap
     """
     window_range = range(int(window[1]), int(window[2]))
     gene_range = range(int(gene[1]), int(gene[2]))
@@ -138,7 +178,23 @@ def check_gene(window, gene):
 
 
 def gene_map(windows, gene_list):
-    """
+    """Map all gene overlaps onto count windows.
+
+    This function is looping through all the windows and genes. For each
+    window we check the list of genes for an overlap. At the start of each
+    new window we check to see if any of the stop positions of the genes are
+    less than the starting position of the current window. If this is true
+    we remove the gene from our gene list so as we loop through are windows
+    we reduce the size of the gene list.
+
+    Keyword arguments:
+
+    windows   -- list of all the windows
+    gene_list -- list of all the genes
+
+    Return:
+
+    gene_matches -- a list of genes, mapped to the windows
     """
     gene_matches = [None] * len(windows)
     for index, window in enumerate(windows):
@@ -155,7 +211,22 @@ def gene_map(windows, gene_list):
 
 
 def clean_gene_list(window, gene_list):
-    """
+    """Clean up the gene list.
+
+    This function takes the current window and the whole gene list to loop
+    through and checks if the start of the current window is greater than the
+    stop of any of the genes in the gene list. If this is true these genes
+    will no longer map to any of the remaining windows we are checking, so
+    the genes are removed from the list so our loop is smaller.
+
+    Keyword arguments:
+
+    window    -- the current window being checked
+    gene_list -- the list of genes we are looping through
+
+    Return:
+
+    gene_list -- the shortened/ cleaned up gene_list
     """
     for gene in gene_list:
         if int(window[1]) > int(gene[2]):
@@ -165,22 +236,47 @@ def clean_gene_list(window, gene_list):
     return gene_list
 
 
-def chunk_data(chrom_list, windows_list, gene_list_list, cpus):
-    """
+def chunk_data(chrom_list, windows_list, gene_list, cpus):
+    """Split data data into chunks.
+
+    This function uses multiprocessing to execute each chunk of data in a
+    different cpu, for as many cpus as selected (Default: 1).
+
+    Keyword arguments:
+
+    chrom_list   -- the list of chromosomes (default for human genome)
+    windows_list -- a list the length of the CHROM_LIST that contains the
+                    same repeated list of count windows
+    gene_list    -- a list the length of the CHROM_LIST that contains the
+                    same repeated list of genes
+    cpus         -- the number of cpus to use (Default: 1)
+
+    Return:
+
+    results -- the generator object from ProcessPoolExecutor
     """
     if cpus == None: cpus = 1
-    with concurrent.futures.ProcessPoolExecutor(max_workers = cpus) as executor:
+    with ProcessPoolExecutor(max_workers = cpus) as executor:
         results = executor.map(
             get_chrom_data,
             chrom_list,
             windows_list,
-            gene_list_list
+            gene_list
         )
     return results
 
 
 def create_report(file_name, windows, results):
-    """
+    """Creating the report.
+
+    Taking all the windows and the mapped gene matches and formatting them
+    so they can be used as count windows with the R library `panelcn.mops`.
+
+    Keyword arguments:
+
+    file_name -- the name of the output file
+    windows   -- the list of all the windows
+    results   -- the list of gene_matches that maps to the windows
     """
     genes = []
     for result in results:
@@ -203,7 +299,12 @@ def create_report(file_name, windows, results):
 
 
 def main():
-    """
+    """The main function.
+
+    First we parse the arguments, check that the output file doesn't already
+    exist, then parse both our windows and genes lists. This data is then
+    passed in the `chunk_data()` function and then the 'report' is
+    created.
     """
     args = parse_args()
     file_name = create_file()
