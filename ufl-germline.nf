@@ -132,7 +132,8 @@ workflow GERMLINE {
     }
 
     CALL_CNV(
-        params.cnv_control,
+        params.male_cnv_control,
+        params.female_cnv_control,
         params.cnv_vcf_header,
         SAMTOOLS_SORT.out.sort_bam,
         SAMTOOLS_INDEX.out.index_sort_bam

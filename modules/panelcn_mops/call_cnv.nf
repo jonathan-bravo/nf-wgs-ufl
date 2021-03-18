@@ -10,7 +10,8 @@ process CALL_CNV {
     label 'medium_process'
 
     input:
-    path control
+    path male_control
+    path female_control
     path header
     tuple val(sample_id), file("${sample_id}-sort.bam")
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
@@ -21,7 +22,7 @@ process CALL_CNV {
 
     script:
     """
-    callCNV.R ${sample_id} ${control}
+    callCNV.R ${sample_id} ${male_control} ${female_control}
     csvToVCF.sh ${sample_id} ${header}
     toGRanges.sh ${sample_id}
     CNVPlot.R ${sample_id}
