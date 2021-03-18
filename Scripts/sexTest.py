@@ -139,8 +139,8 @@ def get_sex(results):
     ycov = generator[23]
     cov_mean = sum(acov_list) / len(acov_list)
     if ycov/cov_mean >= 0.25:
-        return 'Male'
-    return 'Female'
+        return 'Male\n'
+    return 'Female\n'
 
 
 def write_out(sample_id, sex):
