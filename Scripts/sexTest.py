@@ -59,7 +59,7 @@ def parse_args():
         metavar = '--SAMPLE_ID',
         type = str,
         help = 'sample id to be included in report name',
-        required = False
+        required = True
     )
     parser.add_argument(
         '-t',
