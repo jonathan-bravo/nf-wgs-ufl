@@ -18,6 +18,7 @@ include { CALL_CNV                   } from './modules/panelcn_mops/call_cnv'   
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { DETERMINE_SEX              } from './modules/ubuntu_python3/determine_sex'  addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CAT_LANES                  } from './modules/ubuntu_python3/cat_lanes'
 include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'
 include { SAMTOOLS_VIEW              } from './modules/samtools/view'
@@ -99,6 +100,11 @@ workflow GERMLINE {
         SAMTOOLS_SORT.out.sort_bam
     )
 
+    DETERMINE_SEX(
+        SAMTOOLS_SORT.out.sort_bam,
+        SAMTOOLS_INDEX.out.index_sort_bam
+    )
+
     if (params.exome == "YES"){
         PICARD_COLLECT_HS_METRICS(
             params.reference,
@@ -135,6 +141,7 @@ workflow GERMLINE {
         params.male_cnv_control,
         params.female_cnv_control,
         params.cnv_vcf_header,
+        DETERMINE_SEX.out.sex
         SAMTOOLS_SORT.out.sort_bam,
         SAMTOOLS_INDEX.out.index_sort_bam
     )

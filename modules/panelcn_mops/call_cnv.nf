@@ -13,6 +13,7 @@ process CALL_CNV {
     path male_control
     path female_control
     path header
+    tuple val(sample_id), file("${sample_id}_m_or_f.txt")
     tuple val(sample_id), file("${sample_id}-sort.bam")
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
 
