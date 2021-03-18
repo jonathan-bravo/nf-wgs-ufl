@@ -3,6 +3,9 @@
 import argparse
 from os import path
 from pysam import VariantFile
+from concurrent.futures import ProcessPoolExecutor
+
+from pprint import pprint
 
 
 def parse_args():
@@ -10,7 +13,7 @@ def parse_args():
 
     Keyword arguments:
 
-    -b, --BENCHMARK         -- name of the benchmark VCF file
+    -v, --BENCHMARK_VCF     -- name of the benchmark VCF file
     -c, --CNV_CONTIG_REPORT -- input report generated from `cnv_contigs.py`
     -s, --SAMPLE_ID         -- sample id to be included in report name
 
@@ -22,8 +25,8 @@ def parse_args():
         description = 'inputds for checking TP, FP, TN, FN values of cnv data'
     )
     parser.add_argument(
-        '-b',
-        metavar = '--BENCHMARK',
+        '-v',
+        metavar = '--BENCHMARK_VCF',
         type = str,
         help = 'name of the benchmark VCF file',
         required = True
@@ -44,6 +47,35 @@ def parse_args():
     )
     args = parser.parse_args()
     return args
+
+
+def parse_bench_vcf(vcf):
+    """This function parses the benchmark VCF.
+
+    First a list is created that will contain a tuple for each CNV in the
+    benchmark file. Then each entry in the benchmark VCF is read and pulled
+    into the list if it is a true CNV (deletion or duplication). The returned
+    list of tuples has the chromosome, start position, stop position, and CNV
+    type for all CNVs in the benchmark file.
+
+    Keyword arguments:
+
+    vcf -- the input benchmark VCF
+
+    Return:
+
+    bench_cnvs -- the chrom, start, stop, and CNV type from our benchmark VCF
+    """
+    bench_cnvs = []
+    for entry in vcf.fetch():
+        if entry.info["SVTYPE"] == "DEL" or entry.info["SVTYPE"] == "DUP":
+            bench_cnvs.append((
+                'chr' + entry.chrom,
+                entry.start,
+                entry.stop,
+                entry.info["SVTYPE"]
+            ))
+    return bench_cnvs
 
 
 def parse_cnv_contigs(report):
@@ -76,41 +108,6 @@ def parse_cnv_contigs(report):
     return contigs
 
 
-def parse_bench_vcf(vcf):
-    """This function parses the benchmark VCF.
-
-    First a list is created that will contain a tuple for each CNV in the
-    benchmark file. Then each entry in the benchmark VCF is read and pulled
-    into the list if it is a true CNV (deletion or duplication). The returned
-    list of tuples has the chromosome, start position, stop position, and CNV
-    type for all CNVs in the benchmark file.
-
-    Keyword arguments:
-
-    vcf -- the input benchmark VCF
-
-    Return:
-
-    bench_cnvs -- the chrom, start, stop, and CNV type from our benchmark VCF
-    """
-    bench_cnvs = []
-    for entry in vcf.fetch():
-        if entry.info["SVTYPE"] == "DEL" or entry.info["SVTYPE"] == "DUP":
-            bench_cnvs.append((
-                'chr' + entry.chrom,
-                entry.start,
-                entry.stop,
-                entry.info["SVTYPE"]
-            ))
-    return bench_cnvs
-
-
-def parse_bench_bed():
-    """
-    """
-    return tmp
-
-
 def create_file(sample_id):
     """Check presence of file and create file name.
 
@@ -133,17 +130,14 @@ def create_file(sample_id):
     return file_name
 
 
-def generate_report(file_name, X):
-    """
-    """
-
-
 def check_overlap(contig_chr, contig_range, bench):
     """This function checks if two CNVs overlap.
 
     First we check if the to CNVs are in the same chromosome. Then we check
     that the CNV from a benchmark file is contained within the CNV contig
-    from the cnv_contig_report.
+    from the cnv_contig_report. The hit length is set to 80 percent because
+    if 80% of a hit from the file overlaps our contig we want to count it as
+    a hit.
 
     Keyword Arguments:
 
@@ -156,12 +150,21 @@ def check_overlap(contig_chr, contig_range, bench):
     success -- a boolean value of either True or False
     """
     if bench[0] == contig_chr:
-        if bench[1] in contig_range and bench[2] in contig_range:
+        hit_len = (bench[2] - bench[1]) * 0.8
+        check = (
+            bench[1] in contig_range
+            and bench[1] + hit_len in contig_range
+            or bench[2] - hit_len in contig_range
+            and bench[2] in contig_range
+            or bench[1] in contig_range
+            and bench[2] in contig_range
+        )
+        if check:
             return True
     return False
 
 
-def get_overlaps(contig, benchmark, start_index):
+def get_overlaps(contig, benchmark):
     """
     First we check if the called CNVs are both in the same chromosome. If this
     is true we then check to see if the CNV from the second is contained within
@@ -171,79 +174,110 @@ def get_overlaps(contig, benchmark, start_index):
     overlaps = []
     contig_chr = contig[0]
     contig_range = range(int(contig[1]), int(contig[2])+1)
-    for i in range(start_index, len(benchmark)+1):
-        end_index = i
+    for i in range(len(benchmark)):
         if check_overlap(contig_chr, contig_range, benchmark[i]):
             overlaps.append(benchmark[i])
-        else:
-            end_index += 1
-            break
-    return overlaps, end_index
+    return overlaps
 
 
-def generate_percision(contig, overlaps):
+def get_positives(contig, overlaps):
     """
     """
-    # Precision (PPV): TP-call/(TP-call+FP)
-    # Sensitivity (TPR): true positive rate = TP-base/(TP-base+FN)
-    ## as we did for the SNVs
     # yes, we need to be able to report what we got wrong (false positives)
     # and what we missed (false negatives). The other benchmarking tools
     # produced a vcf of those things. The same would be great.
     cnv_type = contig[3]
-    true_pos = 0
-    false_pos = 0
-    false_pos_list = []
+    tp = 0
+    fp = 0
+    fp_list = []
     for i in range(len(overlaps)):
         if overlaps[i][3] == cnv_type:
-            true_pos += 1
+            tp += 1
         else:
-            false_pos += 1
-            false_pos_list.append(overlaps[i])
-    percision = true_pos/(true_pos+false_pos)
-    return (true_pos, false_pos, false_pos_list, percision)
+            fp += 1
+            fp_list.append(overlaps[i])
+    return (
+        tp,
+        fp,
+        fp_list
+    )
 
 
-def generate_sensitivity(contig, overlaps):
+def get_false_negative(benchmark, all_overlaps):
     """
     """
-    cnv_type = contig[3]
-    true_neg = 0
-    false_neg = 0
-    false_neg_list = []
-    for i in range(len(overlaps)):
-        if overlaps[i][3] == cnv_type:
-            true_pos += 1
-        else:
-            false_pos += 1
-            false_pos_list.append(overlaps[i])
-    sensitivity = true_neg/(true_neg+false_neg)
-    return (true_neg, false_neg, false_neg_list, sensitivity)
+    fn_list = list(set(benchmark) - set(all_overlaps))
+    fn = len(fn_list)
+    return (
+        fn,
+        fn_list
+    )
 
 
-def validation(contigs, benchmark):
+def get_validation_values(contigs, benchmark):
     """
     The main loop
     """
-    start_index = 0
+    true_pos = 0
+    false_pos = 0
+    misses = []
+
+    all_overlaps = []
     for contig in contigs:
-        overlaps, start_index = get_overlaps(contig, benchmark, start_index)
-        true_pos, false_pos, false_pos_list, percision = generate_percision(contig, overlaps)
-        true_neg, false_neg, false_neg_list, sensativity = generate_sensitivity(contig, overlaps)
-    return temp_value
+        overlaps = get_overlaps(contig, benchmark)
+        tp, fp, fp_list = get_positives(contig, overlaps)
+        true_pos += tp
+        false_pos += fp
+        for miss in fp_list:
+            misses.append(miss)
+        for overlap in overlaps:
+            all_overlaps.append(overlap)
+    
+    false_neg, fn_list = get_false_negative(benchmark, all_overlaps)
+    for miss in fn_list:
+        misses.append(miss)
+
+    true_pos_base = len(benchmark)
+    return (
+        true_pos,
+        false_pos,
+        true_pos_base,
+        false_neg,
+        misses
+    )
+
+
+def data_tuple(tp, fp, fn, tp_base):
+    """
+    """
+    ppv = tp / (tp + fp)
+    tpr = tp_base / (tp_base + fn)
+    data = (tp, fp, fn, ppv, tpr)
+    return data
+
+
+def generate_report(file_name, results, misses):
+    """
+    """
+    pprint(misses)
+    pprint(file_name)
+    pprint(results)
 
 
 def main():
     """
     """
     args = parse_args()
-    benchmark = parse_bench_vcf(VariantFile(args.b))
-    confidence = parse_bench_bed()
+    benchmark = parse_bench_vcf(VariantFile(args.v))
     contigs = parse_cnv_contigs(args.c)
     file_name = create_file(args.s)
-    temp_value = validation(contigs, benchmark)
-    generate_report(file_name, temp_value)
+    tp, fp, tp_base, fn, misses = get_validation_values(contigs, benchmark)
+    results = data_tuple(tp, fp, fn, tp_base)
+    generate_report(file_name, results, misses)
 
 
 if __name__ == '__main__':
     main()
+
+
+#(1259, 1516, 34647, 0.45369369369369367, 0.5191856673004066)
