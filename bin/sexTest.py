@@ -129,31 +129,51 @@ def get_sex(results):
 
     Return:
 
-    sex -- a string value that is either 'Male' or 'Female' 
+    sex_vals -- a tuple containing the information to write to the output file
     """
     generator = []
     for result in results:
         generator.append(result)
     acov_list = [generator[i] for i in range(22)]
-    # xcov = generator[22]
+    xcov = generator[22]
     ycov = generator[23]
     cov_mean = sum(acov_list) / len(acov_list)
+    male, female = False, False
     if ycov/cov_mean >= 0.25:
-        return 'Male\n'
-    return 'Female\n'
+        male = True
+    if xcov/cov_mean >= 0.90:
+        female = True
+    return (male, female, cov_mean, xcov, ycov)
+    
 
 
-def write_out(sample_id, sex):
+def write_out(sample_id, sex_vals):
     """Create the output file.
 
     Keyword arguments:
 
     sample_id -- the sample id to be included in the out file name
-    sex       -- the string result to be written from `get_sex()`
+    sex       -- the tuple of results to be written from `get_sex()`
     """
     file_name = f'{sample_id}_m_or_f.txt'
+    male      = sex_vals[0]
+    female    = sex_vals[1]
+    acov_mean = sex_vals[2]
+    xcov      = sex_vals[3]
+    ycov      = sex_vals[4]
+    sex_one   = 'Female'
+    sex_two   = 'Male'
+    if male == True:
+        sex_one = 'Male'
+    if female == True:
+        sex_two = 'Female'
+
     f = open(file_name, "w")
-    f.write(sex)
+    f.write(f'{sex_one}\nThe above value comes from checking the Y chromosomal coverage.\n\n')
+    f.write(f'{sex_two}\nThe above value comes from checking the X chromosomal coverage.\n\n')
+    f.write(f'average autosomal coverage: {acov_mean}\n')
+    f.write(f'X coverage: {xcov}\n')
+    f.write(f'Y coverage: {ycov}\n')
     f.close()
 
 
@@ -165,9 +185,8 @@ def main():
     """
     args = parse_args()
     results = chunk_coverage(args.b, args.t)
-    sex = get_sex(results)
-    print(sex)
-    write_out(args.s, sex)
+    sex_vals = get_sex(results)
+    write_out(args.s, sex_vals)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ female_control_data = args[3]
 library(panelcn.mops)
 
 m_or_f <- paste(sample_id, "_m_or_f.txt", sep = '')
-sample_sex <- read.table(m_or_f, header = FALSE)
+sample_sex <- read.table(m_or_f, header = FALSE, sep = "\n")
 
 if(sample_sex[1, 1] == "Female"){
     sex <- "Female"
