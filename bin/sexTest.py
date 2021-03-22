@@ -27,7 +27,6 @@ CHROM_LIST = [
     "-rchr20",
     "-rchr21",
     "-rchr22",
-    "-rchrX",
     "-rchrY"
 ]
 
@@ -129,51 +128,32 @@ def get_sex(results):
 
     Return:
 
-    sex_vals -- a tuple containing the information to write to the output file
+    sex -- a string that is the approximate sex of the sample based on Y
+           chromosome coverage
     """
     generator = []
     for result in results:
         generator.append(result)
     acov_list = [generator[i] for i in range(22)]
-    xcov = generator[22]
-    ycov = generator[23]
+    ycov = generator[22]
     cov_mean = sum(acov_list) / len(acov_list)
-    male, female = False, False
     if ycov/cov_mean >= 0.25:
-        male = True
-    if xcov/cov_mean >= 0.90:
-        female = True
-    return (male, female, cov_mean, xcov, ycov)
+        return 'Male\n'
+    return 'Female\n'
     
 
 
-def write_out(sample_id, sex_vals):
+def write_out(sample_id, sex):
     """Create the output file.
 
     Keyword arguments:
 
     sample_id -- the sample id to be included in the out file name
-    sex       -- the tuple of results to be written from `get_sex()`
+    sex       -- the string value of the sex to be written from `get_sex()`
     """
     file_name = f'{sample_id}_m_or_f.txt'
-    male      = sex_vals[0]
-    female    = sex_vals[1]
-    acov_mean = sex_vals[2]
-    xcov      = sex_vals[3]
-    ycov      = sex_vals[4]
-    sex_one   = 'Female'
-    sex_two   = 'Male'
-    if male == True:
-        sex_one = 'Male'
-    if female == True:
-        sex_two = 'Female'
-
     f = open(file_name, "w")
-    f.write(f'{sex_one}\nThe above value comes from checking the Y chromosomal coverage.\n\n')
-    f.write(f'{sex_two}\nThe above value comes from checking the X chromosomal coverage.\n\n')
-    f.write(f'average autosomal coverage: {acov_mean}\n')
-    f.write(f'X coverage: {xcov}\n')
-    f.write(f'Y coverage: {ycov}\n')
+    f.write(sex)
     f.close()
 
 
@@ -185,8 +165,8 @@ def main():
     """
     args = parse_args()
     results = chunk_coverage(args.b, args.t)
-    sex_vals = get_sex(results)
-    write_out(args.s, sex_vals)
+    sex = get_sex(results)
+    write_out(args.s, sex)
 
 
 if __name__ == '__main__':
