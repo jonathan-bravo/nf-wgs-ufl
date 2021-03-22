@@ -268,9 +268,9 @@ def main():
     """
     """
     args = parse_args()
+    file_name = create_file(args.s)
     benchmark = parse_bench_vcf(VariantFile(args.v))
     contigs = parse_cnv_contigs(args.c)
-    file_name = create_file(args.s)
     tp, fp, tp_base, fn, misses = get_validation_values(contigs, benchmark)
     results = data_tuple(tp, fp, fn, tp_base)
     generate_report(file_name, results, misses)
