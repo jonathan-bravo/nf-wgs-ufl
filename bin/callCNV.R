@@ -11,10 +11,10 @@ m_or_f <- paste(sample_id, "_m_or_f.txt", sep = '')
 sample_sex <- read.table(m_or_f, header = FALSE, sep = "\n")
 
 if(sample_sex[1, 1] == "Female"){
-    sex <- "Female"
+    sex <- "female"
     load(file = female_control_data)
 } else {
-    sex <- "Male"
+    sex <- "male"
     load(file = male_control_data)
 }
 
