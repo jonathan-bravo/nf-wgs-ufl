@@ -283,6 +283,7 @@ def create_report(file_name, windows, results):
     test = open("results_test.txt", "w")
     for result in results:
         test.write(str(result))
+        test.write('\n')
         for g in result:
             genes.append(g)
     test.close()
