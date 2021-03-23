@@ -280,10 +280,12 @@ def create_report(file_name, windows, results):
     results   -- the list of gene_matches that maps to the windows
     """
     genes = []
+    test = open("results_test.txt", "w")
     for result in results:
-        print(result)
+        test.write(str(result))
         for g in result:
             genes.append(g)
+    test.close()
     f = open(file_name, "w")
     for i, window in enumerate(windows):
         chrom = window[0]
