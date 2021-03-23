@@ -134,6 +134,7 @@ def get_chrom_data(chrom, windows, gene_list):
 
     gene_matches -- a list of genes that maps onto the windows
     """
+    print(f'get_chrom_data: {chrom}')
     windows_for_chr = []
     genes_for_chr = []
     for w in windows:
@@ -202,7 +203,7 @@ def gene_map(windows, gene_list):
         gene_overlaps = []
         for gene in gene_list:
             if check_gene(window, gene):
-                gene_overlaps.append(gene[3])
+                gene_overlaps.append(gene)
         if not gene_overlaps:
             gene_matches[index] = '.'
         else: 
