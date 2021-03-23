@@ -197,7 +197,7 @@ def gene_map(windows, gene_list):
 
     gene_matches -- a list of genes, mapped to the windows
     """
-    gene_matches = [None] * len(windows)
+    gene_matches = ['.'] * len(windows)
     for index, window in enumerate(windows):
         gene_list = clean_gene_list(window, gene_list)
         gene_overlaps = []
