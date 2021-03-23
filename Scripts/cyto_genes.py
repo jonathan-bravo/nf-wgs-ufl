@@ -281,6 +281,7 @@ def create_report(file_name, windows, results):
     """
     genes = []
     for result in results:
+        print(result)
         for g in result:
             genes.append(g)
     f = open(file_name, "w")
