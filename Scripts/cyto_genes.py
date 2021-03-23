@@ -292,7 +292,7 @@ def create_report(file_name, windows, results):
         f.write(f'{chrom}\t{start}\t{stop}\t\"{cyto};')
         for gene in genes[i]:
             if gene == genes[i][-1]:
-                f.write(gene)
+                f.write(str(gene))
             else:
                 f.write(f'{gene},')
         f.write('\"\n')
