@@ -282,11 +282,14 @@ def create_report(file_name, windows, results):
     genes = []
     test = open("results_test.txt", "w")
     for result in results:
-        test.write(str(result))
-        test.write('\n')
         for g in result:
+            test.write(f'{g}\n')
             genes.append(g)
     test.close()
+    genes_length = len(genes)
+    windows_length = len(windows)
+    print(f'Length of gene list: {genes_length}')
+    print(f'Length of windows list: {windows_length}')
     f = open(file_name, "w")
     for i, window in enumerate(windows):
         chrom = window[0]
