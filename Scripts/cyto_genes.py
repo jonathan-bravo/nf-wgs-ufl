@@ -280,16 +280,9 @@ def create_report(file_name, windows, results):
     results   -- the list of gene_matches that maps to the windows
     """
     genes = []
-    test = open("results_test.txt", "w")
     for result in results:
         for g in result:
-            test.write(f'{g}\n')
             genes.append(g)
-    test.close()
-    genes_length = len(genes)
-    windows_length = len(windows)
-    print(f'Length of gene list: {genes_length}')
-    print(f'Length of windows list: {windows_length}')
     f = open(file_name, "w")
     for i, window in enumerate(windows):
         chrom = window[0]
@@ -299,9 +292,9 @@ def create_report(file_name, windows, results):
         f.write(f'{chrom}\t{start}\t{stop}\t\"{cyto};')
         for gene in genes[i]:
             if gene == genes[i][-1]:
-                f.write(str(gene))
+                f.write(gene[3])
             else:
-                f.write(f'{gene},')
+                f.write(f'{gene[3]},')
         f.write('\"\n')
     f.close()
 
