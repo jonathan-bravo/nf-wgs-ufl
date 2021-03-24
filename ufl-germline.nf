@@ -19,6 +19,7 @@ include { CALL_EH                    } from './modules/expansion_hunter/call_eh'
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { DETERMINE_SEX              } from './modules/ubuntu_python3/determine_sex'  addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { CNV_CONTIGS                } from './modules/ubuntu_python3/cnv_contigs'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CAT_LANES                  } from './modules/ubuntu_python3/cat_lanes'
 include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'
 include { SAMTOOLS_VIEW              } from './modules/samtools/view'
@@ -144,6 +145,10 @@ workflow GERMLINE {
         DETERMINE_SEX.out.sex
         SAMTOOLS_SORT.out.sort_bam,
         SAMTOOLS_INDEX.out.index_sort_bam
+    )
+
+    CNV_CONTIGS(
+        CALL_CNV.out.cnv
     )
 
     CALL_EH(
