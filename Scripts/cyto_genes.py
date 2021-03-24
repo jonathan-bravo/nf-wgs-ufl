@@ -197,7 +197,7 @@ def gene_map(windows, gene_list):
 
     gene_matches -- a list of genes, mapped to the windows
     """
-    gene_matches = ['.'] * len(windows)
+    gene_matches = [None] * len(windows)
     for index, window in enumerate(windows):
         gene_list = clean_gene_list(window, gene_list)
         gene_overlaps = []
@@ -292,9 +292,9 @@ def create_report(file_name, windows, results):
         f.write(f'{chrom}\t{start}\t{stop}\t\"{cyto};')
         for gene in genes[i]:
             if gene == genes[i][-1]:
-                f.write(gene[3])
+                f.write(str(gene))
             else:
-                f.write(f'{gene[3]},')
+                f.write(f'{gene},')
         f.write('\"\n')
     f.close()
 
