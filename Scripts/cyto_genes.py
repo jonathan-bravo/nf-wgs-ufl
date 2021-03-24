@@ -14,6 +14,9 @@ CHROM_LIST = [
     'chr7',
     'chr8',
     'chr9',
+    'chrM',
+    'chrX',
+    'chrY',
     'chr10',
     'chr11',
     'chr12',
@@ -26,10 +29,7 @@ CHROM_LIST = [
     'chr19',
     'chr20',
     'chr21',
-    'chr22',
-    'chrX',
-    'chrY',
-    'chrM'
+    'chr22'
 ]
 
 
