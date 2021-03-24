@@ -203,7 +203,7 @@ def gene_map(windows, gene_list):
         gene_overlaps = []
         for gene in gene_list:
             if check_gene(window, gene):
-                gene_overlaps.append(gene)
+                gene_overlaps.append(gene[3])
         if not gene_overlaps:
             gene_matches[index] = '.'
         else: 
@@ -292,7 +292,7 @@ def create_report(file_name, windows, results):
         f.write(f'{chrom}\t{start}\t{stop}\t\"{cyto};')
         for gene in genes[i]:
             if gene == genes[i][-1]:
-                f.write(str(gene))
+                f.write(gene)
             else:
                 f.write(f'{gene},')
         f.write('\"\n')
