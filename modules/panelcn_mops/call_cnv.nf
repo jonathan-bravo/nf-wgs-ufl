@@ -18,7 +18,7 @@ process CALL_CNV {
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
 
     output:
-    tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf"), emit: cnv
+    tuple val(sample_id), file("${sample_id}_cnv.vcf"), emit: cnv
     file("${sample_id}_cnv.pdf")
 
     script:

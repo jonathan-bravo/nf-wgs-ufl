@@ -10,8 +10,8 @@ process MERGE_VCF {
     label 'small_process'
 
     input:
-    path("${sample_id}_strelka2/results/variants/variants.vcf.gz")
-    tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf")
+    path("${sample_id}_strelka2/results/variants/genome.S1.vcf.gz")
+    tuple val(sample_id), file("${sample_id}_cnv.vcf")
     tuple val(sample_id), file("${sample_id}_eh.vcf")
 
     output:
@@ -21,27 +21,27 @@ process MERGE_VCF {
     """
     # change SAMPLE1 to ${sample_id}-sort in Strelka2 VCF file
 
-    gunzip ${sample_id}_strelka2/results/variants/variants.vcf.gz
+    gunzip ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz
 
-    sed -i s/SAMPLE1/${sample_id}-sort/g ${sample_id}_strelka2/results/variants/variants.vcf
+    sed -i s/SAMPLE1/${sample_id}-sort/g ${sample_id}_strelka2/results/variants/genome.S1.vcf
 
-    bgzip -@ ${task.cpus} ${sample_id}_strelka2/results/variants/variants.vcf
-    bgzip -@ ${task.cpus} ${sample_id}_filtered_cnv.vcf
+    bgzip -@ ${task.cpus} ${sample_id}_strelka2/results/variants/genome.S1.vcf
+    bgzip -@ ${task.cpus} ${sample_id}_cnv.vcf
     bgzip -@ ${task.cpus} ${sample_id}_eh.vcf
 
     bcftools index --threads ${task.cpus} \
-    ${sample_id}_strelka2/results/variants/variants.vcf.gz
+    ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz
 
     bcftools index --threads ${task.cpus} \
-    ${sample_id}_filtered_cnv.vcf.gz
+    ${sample_id}_cnv.vcf.gz
 
     bcftools index --threads ${task.cpus} \
     ${sample_id}_eh_vcf.gz
 
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.vcf \
-    ${sample_id}_filtered_cnv.vcf.gz \
-    ${sample_id}_strelka2/results/variants/variants.vcf.gz \
+    ${sample_id}_cnv.vcf.gz \
+    ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz \
     ${sample_id}_eh.vcf.gz
 
     bgzip -@ ${task.cpus} ${sample_id}_concat.vcf
