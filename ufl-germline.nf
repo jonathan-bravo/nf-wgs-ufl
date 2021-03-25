@@ -122,6 +122,13 @@ workflow GERMLINE {
             SAMTOOLS_SORT.out.sort_bam,
             SAMTOOLS_INDEX.out.index_sort_bam
         )
+
+        ANNOTATE_VCF(
+            params.dbnsfp,
+            params.dbnsfp_tbi,
+            params.dbnsfp_dt,
+            CALL_SNV_WES.out.snv
+        )
     }
     else {
         PICARD_COLLECT_WGS_METRICS(
@@ -130,11 +137,19 @@ workflow GERMLINE {
             SAMTOOLS_SORT.out.sort_bam,
             SAMTOOLS_INDEX.out.index_sort_bam
         )
+
         CALL_SNV_WGS(
             params.reference,
             params.ref_fai,
             SAMTOOLS_SORT.out.sort_bam,
             SAMTOOLS_INDEX.out.index_sort_bam
+        )
+
+        ANNOTATE_VCF(
+            params.dbnsfp,
+            params.dbnsfp_tbi,
+            params.dbnsfp_dt,
+            CALL_SNV_WGS.out.snv
         )
     }
 
@@ -158,25 +173,9 @@ workflow GERMLINE {
         SAMTOOLS_INDEX.out.index_sort_bam
     )
 
-    if (params.exome == "YES"){
-        MERGE_VCF(
-            CALL_SNV_WES.out.snv,
-            CALL_CNV.out.cnv,
-            CALL_EH.out.eh
-        )
-    }
-    else {
-        MERGE_VCF(
-            CALL_SNV_WGS.out.snv,
-            CALL_CNV.out.cnv,
-            CALL_EH.out.eh
-        )
-    }
-    
-    ANNOTATE_VCF(
-        params.dbnsfp,
-        params.dbnsfp_tbi,
-        params.dbnsfp_dt,
-        MERGE_VCF.out.vcf
+    MERGE_VCF(
+        ANNOTATE_VCF.out.sift,
+        CALL_CNV.out.cnv,
+        CALL_EH.out.eh
     )
 }
