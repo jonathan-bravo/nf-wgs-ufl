@@ -39,3 +39,8 @@ cat ${sample_id}.head ${sample_id}.tmp > ${sample_id}_cnv.vcf
 
 rm ${sample_id}.head
 rm ${sample_id}.tmp
+
+# Generate a version of the VCF file that only containes DEL/DUP
+grep '^#' ${sample_id}_cnv.vcf > ${sample_id}_filtered_cnv.vcf
+grep '^chr' ${sample_id}_cnv.vcf | \
+awk '{if ($5 !=".")print}' - >> ${sample_id}_filtered_cnv.vcf

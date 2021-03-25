@@ -10,13 +10,13 @@ process CNV_CONTIGS {
     label 'small_process'
 
     input:
-    tuple val(sample_id), file("${sample_id}_cnv.vcf")
+    tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf")
 
     output:
     file("${sample_id}_cnv_contigs_report.tsv")
 
     script:
     """
-    cnv_contigs.py -c ${sample_id}_cnv.vcf -s ${sample_id}
+    cnv_contigs.py -c ${sample_id}_filtered_cnv.vcf -s ${sample_id}
     """
 }

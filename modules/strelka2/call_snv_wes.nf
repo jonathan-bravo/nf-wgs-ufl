@@ -16,7 +16,8 @@ process CALL_SNV_WES {
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
 
     output:
-    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/genome.S1.vcf.gz"), emit: snv
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/variants.vcf.gz"), emit: snv_vcf
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/genome.S1.vcf.gz"), emit: snv_gvcf
     
     script:
     """

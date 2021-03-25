@@ -17,6 +17,7 @@ include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'   
 include { CALL_CNV                   } from './modules/panelcn_mops/call_cnv'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { MERGE_GVCF                 } from './modules/bcftools_tabix/merge_gvcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { DETERMINE_SEX              } from './modules/ubuntu_python3/determine_sex'  addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CNV_CONTIGS                } from './modules/ubuntu_python3/cnv_contigs'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
@@ -127,7 +128,7 @@ workflow GERMLINE {
             params.dbnsfp,
             params.dbnsfp_tbi,
             params.dbnsfp_dt,
-            CALL_SNV_WES.out.snv
+            CALL_SNV_WES.out.snv_vcf
         )
     }
     else {
@@ -149,7 +150,7 @@ workflow GERMLINE {
             params.dbnsfp,
             params.dbnsfp_tbi,
             params.dbnsfp_dt,
-            CALL_SNV_WGS.out.snv
+            CALL_SNV_WGS.out.snv_vcf
         )
     }
 
@@ -163,7 +164,7 @@ workflow GERMLINE {
     )
 
     CNV_CONTIGS(
-        CALL_CNV.out.cnv
+        CALL_CNV.out.cnv_vcf
     )
 
     CALL_EH(
@@ -174,8 +175,23 @@ workflow GERMLINE {
     )
 
     MERGE_VCF(
-        ANNOTATE_VCF.out.sift,
-        CALL_CNV.out.cnv,
-        CALL_EH.out.eh
+        ANNOTATE_VCF.out.sift_vcf,
+        CALL_CNV.out.cnv_vcf,
+        CALL_EH.out.eh_vcf
     )
+
+    if (params.exome == "YES"){
+        MERGE_GVCF(
+            CALL_SNV_WES.out.snv_gvcf,
+            CALL_CNV.out.cnv_gvcf,
+            CALL_EH.out.eh_gvcf
+        )
+    }
+    else {
+        MERGE_GVCF(
+            CALL_SNV_WGS.out.snv_gvcf,
+            CALL_CNV.out.cnv_gvcf,
+            CALL_EH.out.eh_gvcf
+        )
+    }
 }

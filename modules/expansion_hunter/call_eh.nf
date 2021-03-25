@@ -16,7 +16,8 @@ process CALL_EH {
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
 
     output:
-    tuple val(sample_id), file("${sample_id}_eh.vcf"), emit: eh
+    tuple val(sample_id), file("${sample_id}_filtered_eh.vcf"), emit: eh_vcf
+    tuple val(sample_id), file("${sample_id}_eh.vcf"), emit: eh_gvcf
     file "${sample_id}_eh_realigned.bam"
     file "${sample_id}_eh.json"
 
@@ -27,5 +28,9 @@ process CALL_EH {
     --reference ${reference} \
     --variant-catalog /ExpansionHunter-v4.0.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json \
     --output-prefix ${sample_id}_eh
+
+    grep '^#' ${sample_id}_eh.vcf > ${sample_id}_filtered_eh.vcf
+    grep '^chr' ${sample_id}_eh.vcf | \
+    awk '{if ($5 !=".")print}' - >> ${sample_id}_filtered_eh.vcf
     """
 }

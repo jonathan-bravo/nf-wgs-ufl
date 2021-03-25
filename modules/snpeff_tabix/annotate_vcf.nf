@@ -13,22 +13,24 @@ process ANNOTATE_VCF {
     path dbNSFP
     path dbNSFP_tbi
     path dbNSFP_data_types
-    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/genome.S1.vcf.gz")
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/variants.vcf.gz")
 
     output:
-    tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz"), emit: sift
+    tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz"), emit: sift_vcf
     file "${sample_id}_snpeff_stats.csv"
 
     script:
     """
-    tabix ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz
+    tabix ${sample_id}_strelka2/results/variants/variants.vcf.gz
 
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_snpeff_stats.csv -v -canon hg19 ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz > ${sample_id}_snpeff.vcf
+    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_snpeff_stats.csv -v -canon hg19 ${sample_id}_strelka2/results/variants/variants.vcf.gz > ${sample_id}_snpeff.vcf
 
     bgzip -@ ${task.cpus} ${sample_id}_snpeff.vcf
 
     java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/SnpSift.jar dbnsfp -v -db ${dbNSFP} ${sample_id}_snpeff.vcf.gz > ${sample_id}_snpsift.vcf
 
+    sed -i s/SAMPLE1/${sample_id}-sort/g ${sample_id}_snpsift.vcf
+    
     bgzip -@ ${task.cpus} ${sample_id}_snpsift.vcf
     """
 }

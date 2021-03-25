@@ -11,38 +11,31 @@ process MERGE_VCF {
 
     input:
     tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz")
-    tuple val(sample_id), file("${sample_id}_cnv.vcf")
-    tuple val(sample_id), file("${sample_id}_eh.vcf")
+    tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf")
+    tuple val(sample_id), file("${sample_id}_filtered_eh.vcf")
 
     output:
     tuple val(sample_id), file("${sample_id}_concat.vcf.gz"), file("${sample_id}_concat.vcf.gz.tbi"), emit: vcf
 
     script:
     """
-    # change SAMPLE1 to ${sample_id}-sort in Strelka2 VCF file
-
-    # gunzip ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz
-
-    # sed -i s/SAMPLE1/${sample_id}-sort/g ${sample_id}_strelka2/results/variants/genome.S1.vcf
-
-    # bgzip -@ ${task.cpus} ${sample_id}_strelka2/results/variants/genome.S1.vcf
-    bgzip -@ ${task.cpus} ${sample_id}_cnv.vcf
-    bgzip -@ ${task.cpus} ${sample_id}_eh.vcf
+    bgzip -@ ${task.cpus} ${sample_id}_filtered_cnv.vcf
+    bgzip -@ ${task.cpus} ${sample_id}_filtered_eh.vcf
 
     bcftools index --threads ${task.cpus} --tbi \
     ${sample_id}_snpsift.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_cnv.vcf.gz
+    ${sample_id}_filtered_cnv.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_eh_vcf.gz
+    ${sample_id}_filtered_eh_vcf.gz
 
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.vcf \
-    ${sample_id}_cnv.vcf.gz \
+    ${sample_id}_filtered_cnv.vcf.gz \
     ${sample_id}_snpsift.vcf.gz \
-    ${sample_id}_eh.vcf.gz
+    ${sample_id}_filtered_eh.vcf.gz
 
     bgzip -@ ${task.cpus} ${sample_id}_concat.vcf
 
