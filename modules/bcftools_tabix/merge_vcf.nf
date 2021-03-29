@@ -29,7 +29,7 @@ process MERGE_VCF {
     ${sample_id}_filtered_cnv.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_filtered_eh_vcf.gz
+    ${sample_id}_filtered_eh.vcf.gz
 
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.vcf \

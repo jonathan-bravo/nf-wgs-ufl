@@ -13,7 +13,7 @@ done < ${header}
 TODAY=$(date '+%D')
 
 sed -i "s|##fileDate=|##fileDate=$TODAY|" ${sample_id}.head
-sed -i "s|SAMPLE1|${sample_id}-sort|g" ${sample_id}.head
+#sed -i "s|SAMPLE1|${sample_id}-sort|g" ${sample_id}.head
 sed -i '$ s/\s/\t/g' ${sample_id}.head
 
 cut -d " " -f 3,5,6,7,8,9,10,11,12,13 ${sample_id}_cnv_table.csv | \

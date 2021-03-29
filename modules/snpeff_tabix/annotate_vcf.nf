@@ -23,13 +23,11 @@ process ANNOTATE_VCF {
     """
     tabix ${sample_id}_strelka2/results/variants/variants.vcf.gz
 
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/snpEff.jar -csvStats ${sample_id}_snpeff_stats.csv -v -canon hg19 ${sample_id}_strelka2/results/variants/variants.vcf.gz > ${sample_id}_snpeff.vcf
+    java -jar /snpEff/snpEff.jar -csvStats ${sample_id}_snpeff_stats.csv -v -canon hg19 ${sample_id}_strelka2/results/variants/variants.vcf.gz > ${sample_id}_snpeff.vcf
 
     bgzip -@ ${task.cpus} ${sample_id}_snpeff.vcf
 
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /snpEff/SnpSift.jar dbnsfp -v -db ${dbNSFP} ${sample_id}_snpeff.vcf.gz > ${sample_id}_snpsift.vcf
-
-    sed -i s/SAMPLE1/${sample_id}-sort/g ${sample_id}_snpsift.vcf
+    java -jar /snpEff/SnpSift.jar dbnsfp -v -db ${dbNSFP} ${sample_id}_snpeff.vcf.gz > ${sample_id}_snpsift.vcf
     
     bgzip -@ ${task.cpus} ${sample_id}_snpsift.vcf
     """

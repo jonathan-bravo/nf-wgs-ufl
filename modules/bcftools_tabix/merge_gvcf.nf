@@ -19,11 +19,6 @@ process MERGE_VCF {
 
     script:
     """
-    gunizp ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz
-
-    sed -i s/SAMPLE1/${sample_id}-sort/g ${sample_id}_strelka2/results/variants/genome.S1.vcf
-
-    bgzip -@ ${task.cpus} ${sample_id}_strelka2/results/variants/genome.S1.vcf
     bgzip -@ ${task.cpus} ${sample_id}_cnv.vcf
     bgzip -@ ${task.cpus} ${sample_id}_eh.vcf
 
@@ -34,7 +29,7 @@ process MERGE_VCF {
     ${sample_id}_cnv.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_eh_vcf.gz
+    ${sample_id}_eh.vcf.gz
 
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.gvcf \
