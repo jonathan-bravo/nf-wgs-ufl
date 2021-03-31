@@ -46,7 +46,14 @@ def parse_args():
         metavar = '--SAMPLE_ID',
         type = str,
         help = 'sample id to be included in report name',
-        required = False
+        required = True
+    )
+    parser.add_argument(
+        '-c',
+        metavar = '--CLASSIFY_CNV',
+        type = str,
+        help = '',
+        required = True
     )
     args = parser.parse_args()
     return args
@@ -122,11 +129,43 @@ def check_entries(cnv_list):
     return cnvs
 
 
-def cnv_bed():
+def cnv_bed(contigs, sample_id):
     """
     """
-    
-def filter_vcf(vcf, panel):
+    file_name = f'{sample_id}_cnv.bed'
+    f = open(file_name, "w")
+    for contig in contigs:
+        f.write(f'{contig[0]}\t{contig[3]}\t{contig[4]}\t{contig[2]}\n')
+    f.close()
+
+
+def call_classify_cnv(cpus, sample_id, script):
+    """
+    """
+    infile = f'{sample_id}_cnv.bed'
+    outfile = f'{sample_id}_ClassifyCNV_out'
+    launch = f'{script} --infile {infile} --GenomeBuild hg19 --cores {cpus} --outdir {outfile} --precise'
+    system(launch)
+    clean = f'rm {infile}; rm -rf {outfile}/Intermediate_files'
+    system(clean)
+
+
+def get_cnv_determination(sample_id):
+    """
+    """
+    cnvs = []
+    infile = f'{sample_id}_ClassifyCNV_out/Scoresheet.txt'
+    with open(infile) as f:
+        for line in f:
+            entry = line.split('\t')
+            if entry[5] == 'Likely pathogenic' or entry[5] == 'Pathogenic':
+                cnvs.append((entry[1], entry[2], entry[3], entry[4], entry[5], entry[42]))
+    clean = f'rm -rf {sample_id}_ClassifyCNV_out'
+    system(clean)
+    return cnvs
+
+
+def filter_vcf(vcf, panel, sample_id, cpus, script):
     """This function parses the input VCF file.
 
     This functions takes a CNV VCF file that has been filtered to only
@@ -194,8 +233,15 @@ def filter_vcf(vcf, panel):
                 exp_list.append(variant)
 
     cnv_contigs = check_entries(cnv_list)
-    print("number of CNV Contigs: ", len(cnv_contigs))
-    print("number of CNVs: ", len(cnv_list))
+    cnv_bed(cnv_contigs, sample_id)
+    call_classify_cnv(cpus, sample_id, script)
+    path_cnv_contigs = get_cnv_determination(sample_id)
+
+    print("CNV CONTIGS")
+    print(path_cnv_contigs)
+
+
+    print("number of CNV Contigs: ", len(path_cnv_contigs))
     print("number of SNPs: ", len(snp_list))
     print("number of SVs: ", len(sv_list))
     print("number of EXPs: ", len(exp_list))
@@ -207,7 +253,11 @@ def main():
     args = parse_args()
     panel = get_panel(args.p)
     vcf = VariantFile(args.v)
-    filter_vcf(vcf, panel)
+    sample_id = args.s
+    cpus = args.t
+    script = args.c
+    if cpus == None: cpus = 1
+    filter_vcf(vcf, panel, sample_id, cpus, script)
 
 
 if __name__ == '__main__':
