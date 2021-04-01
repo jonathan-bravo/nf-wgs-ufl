@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
+from json import dump
 from os import system
 from pysam import VariantFile
 from pprint import pprint
+
 
 def parse_args():
     """Parse input arguments.
@@ -75,7 +77,7 @@ def check_overlap(first, second):
     """
     if second.info['CYTO'] == first.info['CYTO']:
         if second.alts[0] == first.alts[0]:
-            if second.start < first.stop:
+            if second.start < first.stop + 4500:
                 return (True, second.info['GENE'])
     return (False, None)
 
@@ -89,7 +91,7 @@ def contig(start_index, cnv_list):
     contig.append(cnv_list[start_index].contig)
     contig.append(cnv_list[start_index].info['CYTO'])
     contig.append(cnv_list[start_index].alts[0])
-    contig.append(cnv_list[start_index].start)
+    contig.append(cnv_list[start_index].start+1)
     for i in range(start_index, len(cnv_list)):
         end_index = i
         if cnv_list[i] == cnv_list[-1]:
@@ -159,13 +161,13 @@ def get_cnv_determination(sample_id):
         for line in f:
             entry = line.split('\t')
             if entry[5] == 'Likely pathogenic' or entry[5] == 'Pathogenic':
-                cnvs.append((entry[1], entry[2], entry[3], entry[4], entry[5], entry[42]))
+                cnvs.append((entry[1], entry[2], entry[3], entry[5]))
     clean = f'rm -rf {sample_id}_ClassifyCNV_out'
     system(clean)
     return cnvs
 
 
-def filter_vcf(vcf, panel, sample_id, cpus, script):
+def filter_vcf(vcf, panel):
     """This function parses the input VCF file.
 
     This functions takes a CNV VCF file that has been filtered to only
@@ -231,20 +233,78 @@ def filter_vcf(vcf, panel, sample_id, cpus, script):
                 cnv_list.append(variant)
             elif exp:
                 exp_list.append(variant)
-
-    cnv_contigs = check_entries(cnv_list)
-    cnv_bed(cnv_contigs, sample_id)
-    call_classify_cnv(cpus, sample_id, script)
-    path_cnv_contigs = get_cnv_determination(sample_id)
-
-    print("CNV CONTIGS")
-    print(path_cnv_contigs)
+    return (snp_list, sv_list, cnv_list, exp_list)
 
 
-    print("number of CNV Contigs: ", len(path_cnv_contigs))
-    print("number of SNPs: ", len(snp_list))
-    print("number of SVs: ", len(sv_list))
-    print("number of EXPs: ", len(exp_list))
+def filter_cnv(cnv_contigs, cnv_contig_determinations):
+    """
+    """
+    path_cnvs = []
+    for contig in cnv_contigs:
+        for determination in cnv_contig_determinations:
+            match = (
+                determination[0] in contig[0]
+                and contig[3] == int(determination[1])
+                and contig[4] == int(determination[2])
+            )
+            if match:
+                path_cnvs.append((
+                    contig[0],
+                    contig[1],
+                    contig[2],
+                    contig[3],
+                    contig[4],
+                    contig[5],
+                    determination[3]
+                ))
+    return path_cnvs
+
+
+def make_json(snp_list, sv_list, exp_list, path_cnvs):
+    """
+    """
+    data = {}
+    data['snp'] = []
+    data['sv'] = []
+    data['exp'] = []
+    data['cnv'] = []
+    for snp in snp_list:
+        data['snp'].append({
+            'chrom': snp.contig,
+            'start': snp.start,
+            'stop': snp.stop,
+            'alt': snp.alts,
+            'lof': snp.info['LOF'],
+            'ann': snp.info['ANN']
+        })
+    for sv in sv_list:
+        data['sv'].append({
+            'chrom': sv.contig,
+            'start': sv.start,
+            'stop': sv.stop,
+            'alt': sv.alts,
+            'lof': sv.info['LOF']
+        })
+    for exp in exp_list:
+        data['exp'].append({
+            'chrom': exp.contig,
+            'start': exp.start,
+            'stop' : exp.stop,
+            'gene' : exp.info['VARID'],
+            'alt' : exp.alts
+        })
+    for cnv in path_cnvs:
+        data['cnv'].append({
+            'chrom': cnv[0],
+            'cyto': cnv[1],
+            'start': cnv[2],
+            'stop': cnv[3],
+            'alt': cnv[4],
+            'genes': cnv[5],
+            'variant class': cnv[6]
+        })
+    with open('data.json', 'w') as outfile:
+        dump(data, outfile, indent = 2)
 
 
 def main():
@@ -257,7 +317,13 @@ def main():
     cpus = args.t
     script = args.c
     if cpus == None: cpus = 1
-    filter_vcf(vcf, panel, sample_id, cpus, script)
+    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel)
+    cnv_contigs = check_entries(cnv_list)
+    cnv_bed(cnv_contigs, sample_id)
+    call_classify_cnv(cpus, sample_id, script)
+    cnv_contig_determinations = get_cnv_determination(sample_id)
+    path_cnvs = filter_cnv(cnv_contigs, cnv_contig_determinations)
+    make_json(snp_list, sv_list, exp_list, path_cnvs)
 
 
 if __name__ == '__main__':
