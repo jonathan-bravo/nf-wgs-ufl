@@ -60,19 +60,9 @@ multiqc_params = [
     "run_dir" : params.run_dir
 ]
 
-// apply_panel_params = [
-//     *:params,
-//     "run_dir"    : params.run_dir,
-//     "panels_dir" : params.panels_dir,
-//     "bucket"     : params.bucket,
-//     "glue_dir"   : params.glue_dir
-// ]
-
-
 workflow {
     include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
     include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
     GERMLINE ()
     MULTIQC ()
 }
-workflow.onComplete {}
