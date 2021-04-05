@@ -362,7 +362,26 @@ def filter_cnv(cnv_contigs, cnv_contig_determinations):
     return path_cnvs
 
 
-def make_json(panel, snp_list, sv_list, exp_list, path_cnvs):
+def get_literature(panel, genes):
+    """
+    """
+    lit = []
+    with open(panel) as f:
+        for line in f:
+            entry = line.split('\t')
+            if entry[0] in genes: 
+                for pub in entry[12].split(';'):
+                    if pub != '': lit.append(pub)
+    lit = set(lit)
+    lit_list = []
+    with open('PMC-ids.csv') as f:
+        for line in f:
+            pub = line.split(',') # 7 = DOI, 9 = PMID
+            if pub[9] in lit: lit_list.append(f'{pub[8]}: {pub[7]}')
+    return lit_list
+
+
+def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id):
     """
     """
     genes = []
@@ -384,7 +403,7 @@ def make_json(panel, snp_list, sv_list, exp_list, path_cnvs):
         'likely_pathogenic_exp':[]
     }
     data['metadata'] = {
-        'genes_in_panel': panel,
+        'genes_in_panel': gene_panel,
         'supporting_literature':[],
         'pipeline':[
             {
@@ -456,7 +475,7 @@ def make_json(panel, snp_list, sv_list, exp_list, path_cnvs):
         ]
     }
     for snp in snp_list:
-        genes.append(str(snp[3]).split('|')[3])
+        genes.append(str(snp[4]).split('|')[3])
         snp_dict = {
             'chrom': snp[0],
             'start': snp[1],
@@ -467,7 +486,7 @@ def make_json(panel, snp_list, sv_list, exp_list, path_cnvs):
         if float(snp[5]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
         else: data['snp']['likely_pathogenic_snp'].append(snp_dict)
     for sv in sv_list:
-        genes.append(str(sv[3]).split('|')[3])
+        genes.append(str(sv[4]).split('|')[3])
         sv_dict = {
             'chrom': sv[0],
             'start': sv[1],
@@ -487,9 +506,10 @@ def make_json(panel, snp_list, sv_list, exp_list, path_cnvs):
             'alt': cnv[2],
             'genes': cnv[5]
         }
-        if 1.0 >= float(cnv[6]): data['cnv']['pathogenic_cnv'].append(cnv_dict)
+        if float(cnv[6]) > 1.0: data['cnv']['pathogenic_cnv'].append(cnv_dict)
         else: data['cnv']['likely_pathogenic_cnv'].append(cnv_dict)
     for exp in exp_list:
+        genes.append(exp[4])
         exp_dict = {
             'chrom': exp[0],
             'start': exp[1],
@@ -499,7 +519,9 @@ def make_json(panel, snp_list, sv_list, exp_list, path_cnvs):
         }
         if any(x >= 115 for x in exp[5]): data['exp']['pathogenic_exp'].append(exp_dict)
         else: data['exp']['likely_pathogenic_exp'].append(exp_dict)
-    with open('data.json', 'w') as outfile:
+    if panel != None: data['metadata']['supporting_literature'] = get_literature(panel, genes)
+    else: data['metadata']['supporting_literature'] =  None
+    with open(f'{sample_id}_report.json', 'w') as outfile:
         dump(data, outfile, indent = 4)
 
 
@@ -520,7 +542,7 @@ def main():
     call_classify_cnv(cpus, sample_id, script)
     cnv_contig_determinations = get_cnv_determination(sample_id)
     path_cnvs = filter_cnv(cnv_contigs, cnv_contig_determinations)
-    make_json(panel, snp_list, sv_list, exp_list, path_cnvs)
+    make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id)
 
 
 if __name__ == '__main__':
