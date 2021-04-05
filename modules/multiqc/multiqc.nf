@@ -13,7 +13,7 @@ process MULTIQC_RUN {
     path run_dir
 
     output:
-    file "${params.run_id}.html"
+    file "${params.run_id}.html", emit: qc
     path "${params.run_id}_data"
 
     script:

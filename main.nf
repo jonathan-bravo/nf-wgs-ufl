@@ -2,7 +2,6 @@
 
 nextflow.enable.dsl        = 2
 
-params.pipeline            = ""
 params.single_lane         = ""
 params.exome               = ""
 params.match               = ""
@@ -61,26 +60,19 @@ multiqc_params = [
     "run_dir" : params.run_dir
 ]
 
-apply_panel_params = [
-    *:params,
-    "run_dir"    : params.run_dir,
-    "panels_dir" : params.panels_dir,
-    "bucket"     : params.bucket,
-    "glue_dir"   : params.glue_dir
-]
+// apply_panel_params = [
+//     *:params,
+//     "run_dir"    : params.run_dir,
+//     "panels_dir" : params.panels_dir,
+//     "bucket"     : params.bucket,
+//     "glue_dir"   : params.glue_dir
+// ]
 
 
 workflow {
-    if (params.pipeline == "GERMLINE") {
-        include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
-        GERMLINE ()
-    }
-    if (params.pipeline == "MULTIQC") {
-        include { MULTIQC } from './ufl-multiqc' addParams( multiqc_params: multiqc_params )
-        MULTIQC ()
-    }
-    if (params.pipeline == "APPLY_PANELS") {
-        include { APPLY_PANELS } from './ufl-apply_panels' addParams( apply_panel_params: apply_panel_params )
-        APPLY_PANELS ()
-    }
+    include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
+    include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
+    GERMLINE ()
+    MULTIQC ()
 }
+workflow.onComplete {}
