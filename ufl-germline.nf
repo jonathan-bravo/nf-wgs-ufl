@@ -158,7 +158,7 @@ workflow GERMLINE {
         params.male_cnv_control,
         params.female_cnv_control,
         params.cnv_vcf_header,
-        DETERMINE_SEX.out.sex
+        DETERMINE_SEX.out.sex,
         SAMTOOLS_SORT.out.sort_bam,
         SAMTOOLS_INDEX.out.index_sort_bam
     )
