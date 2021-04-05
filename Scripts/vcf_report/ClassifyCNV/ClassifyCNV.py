@@ -188,6 +188,7 @@ def genes_promoters_enhancers_intersect():
             detailed_results[cnv]['1A-B'] = -0.6
 
 
+## MAKING JOHNNY BRAVO EDIT HERE
 def assign_section3_points(gene_number, cnv_type):
     """Assign points for section 3 of the ACMG rubric based on the number of genes included in the CNV.
 
@@ -201,18 +202,18 @@ def assign_section3_points(gene_number, cnv_type):
     """
     number_points = 0.0
     if cnv_type.upper() == 'DEL':
-        if gene_number < 25:
+        if gene_number < 2:
             number_points = 0.0
-        elif gene_number < 35:
+        elif gene_number < 3:
             number_points = 0.45
-        elif gene_number > 34:
+        elif gene_number > 3:
             number_points = 0.9
     elif cnv_type.upper() == 'DUP':
-        if gene_number < 35:
+        if gene_number < 2:
             number_points = 0.0
-        elif gene_number < 50:
+        elif gene_number < 3:
             number_points = 0.45
-        elif gene_number > 49:
+        elif gene_number > 3:
             number_points = 0.9
     return number_points
 
