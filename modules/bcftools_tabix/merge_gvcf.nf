@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-process MERGE_VCF {
+process MERGE_GVCF {
 
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
