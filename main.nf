@@ -62,7 +62,7 @@ multiqc_params = [
 
 workflow {
     include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
-    include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
+    //include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
     GERMLINE ()
-    MULTIQC ()
+    //MULTIQC ()
 }
