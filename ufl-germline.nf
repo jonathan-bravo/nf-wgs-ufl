@@ -69,6 +69,16 @@ workflow GERMLINE {
         TRIM_READS(
             CAT_LANES.out.read_pairs
         )
+
+        ALIGN_TRIMMED_READS(
+            params.reference,
+            params.bwa_amb,
+            params.bwa_ann,
+            params.bwa_bwt,
+            params.bwa_pac,
+            params.bwa_sa,
+            TRIM_READS.out.trimmed_paired_reads
+        )
     }
     else {
         FASTQC_SINGLE(
@@ -78,17 +88,17 @@ workflow GERMLINE {
         TRIM_READS_SINGLE(
             reads_ch
         )
-    }
 
-    ALIGN_TRIMMED_READS(
-        params.reference,
-        params.bwa_amb,
-        params.bwa_ann,
-        params.bwa_bwt,
-        params.bwa_pac,
-        params.bwa_sa,
-        TRIM_READS.out.trimmed_paired_reads
-    )
+        ALIGN_TRIMMED_READS(
+            params.reference,
+            params.bwa_amb,
+            params.bwa_ann,
+            params.bwa_bwt,
+            params.bwa_pac,
+            params.bwa_sa,
+            TRIM_READS_SINGLE.out.trimmed_paired_reads
+        )
+    }
 
     SAMTOOLS_VIEW(
         ALIGN_TRIMMED_READS.out.sam
