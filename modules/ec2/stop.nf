@@ -11,6 +11,6 @@ process STOP_EC2 {
 
     script:
     """
-    sudo shutdown -h now
+    sudo shutdown -P +1
     """
 }
