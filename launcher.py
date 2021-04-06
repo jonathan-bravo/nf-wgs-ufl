@@ -129,8 +129,8 @@ def germline_nextflow(pem, bucket, out_dir, run, exome):
     ec2.start_instances(InstanceIds=['i-0671758033a9db6fd'])
     ssm_client = boto3.client('ssm') # Need your credentials here
     commands = [
-        'git -C nf-wgs-ufl/ pull',
-        f"nextflow run nf-wgs-ufl/main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{single_lane}' --match '{match}' --exome '{exome}' --run_dir 's3://{bucket}/{out_dir}/{run}' -resume"
+        'git -C /nf-wgs-ufl/ pull',
+        f"nextflow run /nf-wgs-ufl/main.nf -work-dir s3://{bucket}/{out_dir}/_work/ --bucket 's3://{bucket}' --run_id '{run}' --single_lane '{single_lane}' --match '{match}' --exome '{exome}' --run_dir 's3://{bucket}/{out_dir}/{run}' -resume"
     ]
     execute_commands_on_linux_instances(ssm_client, commands)
 
@@ -148,7 +148,6 @@ def execute_commands_on_linux_instances(client, commands):
         Parameters={'commands': commands},
         InstanceIds=['i-0671758033a9db6fd']
     )
-    print(resp)
     return resp
 
 
@@ -166,10 +165,8 @@ def germline(pem, bucket, out_dir):
             continue
         else:
             break
-    if exome_data.upper() == "N":
-        exome_data = "NO"
-    elif exome_data.upper() =="Y":
-        exome_data = "YES"
+    if exome_data.upper() == "N": exome_data = "NO"
+    elif exome_data.upper() =="Y": exome_data = "YES"
     if exome_data.upper() == "YES":
         samples_dir = "Exome_Fastqs/"
         exome = "YES"
