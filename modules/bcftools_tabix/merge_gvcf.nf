@@ -10,7 +10,7 @@ process MERGE_GVCF {
     label 'small_process'
 
     input:
-    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/genome.S1.vcf.gz")
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf.gz")
     tuple val(sample_id), file("${sample_id}_cnv.vcf")
     tuple val(sample_id), file("${sample_id}_eh.vcf")
 
@@ -23,7 +23,7 @@ process MERGE_GVCF {
     bgzip -@ ${task.cpus} ${sample_id}_eh.vcf
 
     bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz
+    ${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
     ${sample_id}_cnv.vcf.gz
@@ -34,7 +34,7 @@ process MERGE_GVCF {
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.gvcf \
     ${sample_id}_cnv.vcf.gz \
-    ${sample_id}_strelka2/results/variants/genome.S1.vcf.gz \
+    ${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf.gz \
     ${sample_id}_eh.vcf.gz
 
     bgzip -@ ${task.cpus} ${sample_id}_concat.gvcf
