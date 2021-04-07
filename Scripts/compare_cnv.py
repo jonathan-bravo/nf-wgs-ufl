@@ -53,7 +53,7 @@ def parse_args():
     return args
 
 
-def parse_vcf(vcf, chrom = None):
+def parse_vcf(vcf, chrom):
     """
     """
     cnvs = []
@@ -98,13 +98,12 @@ def parse_results(results, bench_vcf):
     fp_list = []
     fn_list = []
     for _ in VariantFile(bench_vcf).fetch(): tp_base += 1
+    
     for result in results:
         tp += result[0]
         fp += result[1]
-        for fp_cnv in result[2]:
-            fp_list.append(fp_cnv)
-        for fn_cnv in result[3]:
-            fn_list.append(fn_cnv)
+        for fp_cnv in result[2]: fp_list.append(fp_cnv)
+        for fn_cnv in result[3]: fn_list.append(fn_cnv)
     fn = len(fn_list)
     ppv = tp / (tp + fp)
     tpr = tp_base / (tp_base + fn)
