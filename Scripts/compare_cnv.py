@@ -115,9 +115,9 @@ def main():
     for result in results:
         tp += result[0]
         fp += result[1]
-        fp_cnv.append(fp_cnv[2])
-        # for fp_cnv in result[2]:
-        #     fp_list.append(fp_cnv)
+        #fp_list.append(result[2])
+        for fp_cnv in result[2]:
+            fp_list.append(fp_cnv)
     bench_cnvs = parse_vcf(VariantFile(args.b))
     sample_cnvs = parse_vcf(VariantFile(args.v))
     fn_list = setdiff1d(bench_cnvs, sample_cnvs)
