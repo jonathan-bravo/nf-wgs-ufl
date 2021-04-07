@@ -59,7 +59,9 @@ def parse_vcf(vcf, chrom):
     cnvs = []
     for cnv in vcf.fetch():
         if cnv.contig == chrom:
-            cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts[0]))
+            if cnv.alts == None: alt = '.'
+            else: alt = cnv.alts[0]
+            cnvs.append((cnv.contig, cnv.start, cnv.stop, alt))
     return cnvs
 
 
@@ -98,7 +100,6 @@ def parse_results(results, bench_vcf):
     fp_list = []
     fn_list = []
     for _ in VariantFile(bench_vcf).fetch(): tp_base += 1
-    
     for result in results:
         tp += result[0]
         fp += result[1]
