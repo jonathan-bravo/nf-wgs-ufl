@@ -214,29 +214,30 @@ def make_outfile(parsed_results, child, mother, father):
     child_name = child.split('_')[0]
     mother_name = mother.split('_')[0]
     father_name = father.split('_')[0]
-    b = open(f'both_{mother_name}_and_{father_name}.txt', "w")
-    b.write(f'CNVs in both {mother_name} and {father_name}\n\n')
-    b.write(f'Number of CNVs: {parsed_results[0]}\n\n')
-    for cnv in parsed_results[4]: b.write(f'{cnv}\n')
-    b.close()
-
-    m = open(f'only_{mother_name}.txt', "w")
-    m.write(f'CNVs in only {mother_name}\n\n')
-    m.write(f'Number of CNVs: {parsed_results[1]}\n\n')
-    for cnv in parsed_results[5]: m.write(f'{cnv}\n')
-    m.close()
-
-    f = open(f'only_{father_name}.txt', "w")
-    f.write(f'CNVs in only {father_name}\n\n')
-    f.write(f'Number of CNVs: {parsed_results[2]}\n\n')
+    both_parents = parsed_results[0]
+    only_mother = parsed_results[1]
+    only_father = parsed_results[2]
+    neither = parsed_results[3]
+    total = sum([both_parents, only_mother, only_father, neither])
+    both_percent = round(100 * (both_parents/total) ,2)
+    mother_percent = round(100 * float(only_mother/total) ,2)
+    father_percent = round(100 * float(only_father/total) ,2)
+    neither_percent = round(100 * float(neither/total) ,2)
+    f = open(f'{child_name}_vs_{mother_name}_vs_{father_name}.txt', "w")
+    f.write('CNV VALUES\n\n')
+    f.write(f'Number of CNVs in both parents: {both_parents} : {both_percent}\n')
+    f.write(f'Number of CNVs only in mother: {only_mother} : {mother_percent}\n')
+    f.write(f'Number of CNVs only in father: {only_father} : {father_percent}\n')
+    f.write(f'Number of CNVs only in child: {neither} : {neither_percent}\n\n')
+    f.write('CNVS IN BOTH PARENTS\n\n')
+    for cnv in parsed_results[4]: f.write(f'{cnv}\n')
+    f.write('\nCNVS IN MOTHER ONLY\n\n')
+    for cnv in parsed_results[5]: f.write(f'{cnv}\n')
+    f.write('\nCNVS IN FATHER ONLY\n\n')
     for cnv in parsed_results[6]: f.write(f'{cnv}\n')
+    f.write('\nCNVS IN CHILD ONLY\n\n')
+    for cnv in parsed_results[7]: f.write(f'{cnv}\n')
     f.close()
-
-    n = open(f'only_{child_name}.txt', "w")
-    n.write(f'CNVs in only {child_name}\n\n')
-    n.write(f'Number of CNVs: {parsed_results[3]}\n\n')
-    for cnv in parsed_results[7]: n.write(f'{cnv}\n')
-    n.close()
 
 
 def main():
