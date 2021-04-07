@@ -35,13 +35,6 @@ def parse_args():
         required = True
     )
     parser.add_argument(
-        '-s',
-        metavar = '--SAMPLE_ID',
-        type = str,
-        help = 'sample id to be included in report name',
-        required = False
-    )
-    parser.add_argument(
         '-t',
         metavar = '--THREADS',
         type = str,
@@ -105,8 +98,8 @@ def parse_results(results, bench_vcf):
         for fp_cnv in result[2]: fp_list.append(fp_cnv)
         for fn_cnv in result[3]: fn_list.append(fn_cnv)
     fn = len(fn_list)
-    ppv = tp / (tp + fp)
-    tpr = tp_base / (tp_base + fn)
+    ppv = 100 * (tp / (tp + fp))
+    tpr = 100 * (tp_base / (tp_base + fn))
     return(tp, fp, fn, ppv, tpr, fp_list, fn_list)
 
 
@@ -120,8 +113,8 @@ def make_outfile(parsed_results, bench, sample):
     f.write(f'True Positive: {parsed_results[0]}\n')
     f.write(f'False Positive: {parsed_results[1]}\n')
     f.write(f'False Negatives: {parsed_results[2]}\n')
-    f.write(f'Precision: {parsed_results[3]}\n')
-    f.write(f'Sensitivity: {parsed_results[4]}\n\n')
+    f.write(f'Precision: {parsed_results[3]}%\n')
+    f.write(f'Sensitivity: {parsed_results[4]}%\n\n')
     f.write(f'FALSE POSITIVES\n\n')
     for fp in parsed_results[5]: f.write(f'{fp}\n')
     f.write('\nFALSE NEGATIVES\n\n')
