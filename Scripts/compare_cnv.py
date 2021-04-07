@@ -119,7 +119,7 @@ def main():
             fp_list.append(fp_cnv)
     bench_cnvs = parse_vcf(VariantFile(args.b))
     sample_cnvs = parse_vcf(VariantFile(args.v))
-    #fn_list = setdiff1d(bench_cnvs, sample_cnvs)
+    fn_list = setdiff1d(bench_cnvs, sample_cnvs)
     fn = len(fn_list)
 
     print(f'tp: {tp}, fp: {fp}, fn: {fn}')
