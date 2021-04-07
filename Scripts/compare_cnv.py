@@ -63,7 +63,7 @@ def parse_vcf(vcf, chrom = None):
             cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
     else:
         for cnv in vcf.fetch():
-            if cnv[0] == chrom:
+            if cnv.contig == chrom:
                 cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
     return cnvs
 
