@@ -63,7 +63,7 @@ def parse_vcf(vcf, chrom = None):
             cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
     else:
         for cnv in vcf.fetch():
-            if cnv.contig == chrom:
+            if cnv[0] == chrom:
                 cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
     return cnvs
 
@@ -106,7 +106,7 @@ def main():
     args = parse_args()
     bench = [args.b] * len(chrom_tup)
     sample = [args.v] * len(chrom_tup)
-    cpus = args.t
+    cpus = int(args.t)
     results = chunk_compare(chrom_tup, bench, sample, cpus)
 
     tp = 0
@@ -119,7 +119,7 @@ def main():
             fp_list.append(fp_cnv)
     bench_cnvs = parse_vcf(VariantFile(args.b))
     sample_cnvs = parse_vcf(VariantFile(args.v))
-    fn_list = np.setdiff1d(bench_cnvs, sample_cnvs)
+    #fn_list = setdiff1d(bench_cnvs, sample_cnvs)
     fn = len(fn_list)
 
     print(f'tp: {tp}, fp: {fp}, fn: {fn}')
