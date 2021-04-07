@@ -3,7 +3,6 @@
 import argparse
 from pysam import VariantFile
 from concurrent.futures import ProcessPoolExecutor
-from pprint import pprint
 
 def parse_args():
     """Parse input arguments.
@@ -114,8 +113,8 @@ def parse_results(results, bench_vcf):
 def make_outfile(parsed_results, bench, sample):
     """
     """
-    bench_name = bench.split('_', 0)
-    sample_name = sample.split('_', 0)
+    bench_name = bench.split('_')[0]
+    sample_name = sample.split('_')[0]
     f = open(f'{sample_name}_vs_{bench_name}.txt', "w")
     f.write('VALUES\n\n')
     f.write(f'True Positive: {parsed_results[0]}\n')
