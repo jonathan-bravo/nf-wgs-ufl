@@ -9,16 +9,16 @@ def parse_args():
 
     Keyword arguments:
 
-    -v, --BENCHMARK_VCF     -- name of the benchmark VCF file
-    -c, --CNV_CONTIG_REPORT -- input report generated from `cnv_contigs.py`
-    -s, --SAMPLE_ID         -- sample id to be included in report name
+    -b, --BENCHMARK_VCF -- name of the benchmark VCF file
+    -v, --SAMPLE_VCF    -- name of the sample VCF file
+    -t, --THREADS       -- number of cpus to use, Default[1]
     
     Return:
 
     args -- the parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description = 'inputds for checking TP, FP, TN, FN values of cnv data'
+        description = 'inputs for checking TP, FP, TN, FN values of cnv data'
     )
     parser.add_argument(
         '-b',
@@ -31,14 +31,14 @@ def parse_args():
         '-v',
         metavar = '--SAMPLE_VCF',
         type = str,
-        help = '',
+        help = 'the sample VCF file',
         required = True
     )
     parser.add_argument(
         '-t',
         metavar = '--THREADS',
         type = str,
-        help = '',
+        help = 'number of cpus',
         required = False
     )
     args = parser.parse_args()
@@ -46,7 +46,20 @@ def parse_args():
 
 
 def parse_vcf(vcf, chrom):
-    """
+    """Parse input VCF files.
+
+    This function grabs the contig, start, stop, and alternate information
+    for each cnv entry in the input VCF file, and returns a list of tuples
+    that contain this data.
+
+    Keyword arguments:
+
+    vcf   -- input vcf file to parse
+    chrom -- the current chromosome being checked in `compare_cnvs()`
+
+    Return:
+
+    cnvs -- a list of tuples of the cnv data
     """
     cnvs = []
     for cnv in vcf.fetch():
@@ -58,7 +71,23 @@ def parse_vcf(vcf, chrom):
 
 
 def compare_cnvs(chrom, bench, sample):
-    """
+    """Comparing the benchmark and sample VCF cnv files.
+
+    This function takes the two input VCF files and the specific chromosome
+    from the multiprocessing and getting the initial accuracy metrics.
+
+    Keyword arguments:
+
+    chrom  -- the current chromosome being parsed
+    bench  -- the input benchmark VCF file
+    sample -- the input sample VCF file
+
+    Return:
+
+    tp      -- the number of true positives
+    fp      -- the number of false positives
+    fp_list -- a list of the false positive entries
+    fn_list -- a list of the false negatice entries
     """
     bench_vcf = parse_vcf(VariantFile(bench), chrom)
     sample_vcf = parse_vcf(VariantFile(sample), chrom)
@@ -75,7 +104,22 @@ def compare_cnvs(chrom, bench, sample):
 
 
 def chunk_compare(chrom_tup, bench, sample, cpus):
-    """
+    """Using multiprocessing to leverage multi-core cpus.
+
+    This function takes the given input lists and a number of cpus and chunks
+    the data by chromosome, and returns a list of lists, each containing
+    the returned result from `compare_cnvs()`.
+
+    Keyword arguments:
+
+    chrom_tup -- tuple of chromosomes defined in `main()`
+    bench     -- list of length of `chrom_tup` of args.b
+    sample    -- list of length of `chrom_tup` of args.v
+    cpus      -- the number of cpus to use; Default[1]
+
+    Return:
+
+    results -- list of results from multiprocessing
     """
     if cpus == None: cpus = 1
     with ProcessPoolExecutor(max_workers = cpus) as executor:
@@ -84,7 +128,26 @@ def chunk_compare(chrom_tup, bench, sample, cpus):
 
 
 def parse_results(results, bench_vcf):
-    """
+    """Create precision and sensativity values.
+
+    This function takes the returned results from `chunk_compare()` and
+    merges them into single values. It also generate the ppv, or precision
+    and tpr, or sensativity for generating the report.
+
+    Keyword arguments:
+
+    results   -- the returned results from `chunk_compare()`
+    bench_vcf -- the input benchmark vcf
+
+    Return:
+
+    tp      -- the number of true positives
+    fp      -- the number of false positives
+    fn      -- the number of false negatives
+    ppv     -- the percision
+    tpr     -- the sensativity
+    fp_list -- a list of the false positive entries
+    fn_list -- a list of the false negatice entries
     """
     tp = 0
     fp = 0
@@ -98,13 +161,19 @@ def parse_results(results, bench_vcf):
         for fp_cnv in result[2]: fp_list.append(fp_cnv)
         for fn_cnv in result[3]: fn_list.append(fn_cnv)
     fn = len(fn_list)
-    ppv = 100 * (tp / (tp + fp))
-    tpr = 100 * (tp_base / (tp_base + fn))
+    ppv = round(100 * (tp / (tp + fp)), 2)
+    tpr = round(100 * (tp_base / (tp_base + fn)), 2)
     return(tp, fp, fn, ppv, tpr, fp_list, fn_list)
 
 
 def make_outfile(parsed_results, bench, sample):
-    """
+    """Generate the outfile.
+
+    Keyword arguments:
+
+    parsed_results -- the returned value from `parse_results()`
+    bench          -- the input benchmark vcf
+    sample         -- the input sample vcf
     """
     bench_name = bench.split('_')[0]
     sample_name = sample.split('_')[0]
@@ -113,8 +182,8 @@ def make_outfile(parsed_results, bench, sample):
     f.write(f'True Positive: {parsed_results[0]}\n')
     f.write(f'False Positive: {parsed_results[1]}\n')
     f.write(f'False Negatives: {parsed_results[2]}\n')
-    f.write(f'Precision: {parsed_results[3]}%\n')
-    f.write(f'Sensitivity: {parsed_results[4]}%\n\n')
+    f.write(f'Precision: {parsed_results[3]} %\n')
+    f.write(f'Sensitivity: {parsed_results[4]} %\n\n')
     f.write(f'FALSE POSITIVES\n\n')
     for fp in parsed_results[5]: f.write(f'{fp}\n')
     f.write('\nFALSE NEGATIVES\n\n')
@@ -123,8 +192,6 @@ def make_outfile(parsed_results, bench, sample):
 
 
 def main():
-    """
-    """
     chrom_tup = (
         'chr1', 'chr2', 'chr3', 'chr4', 'chr5',
         'chr6', 'chr7', 'chr8', 'chr9', 'chr10',
