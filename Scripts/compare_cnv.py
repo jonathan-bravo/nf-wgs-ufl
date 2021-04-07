@@ -59,7 +59,7 @@ def parse_vcf(vcf, chrom = None):
     cnvs = []
     for cnv in vcf.fetch():
         if cnv.contig == chrom:
-            cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
+            cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts[0]))
     return cnvs
 
 
@@ -89,6 +89,47 @@ def chunk_compare(chrom_tup, bench, sample, cpus):
     return results
 
 
+def parse_results(results, bench_vcf):
+    """
+    """
+    tp = 0
+    fp = 0
+    tp_base = 0
+    fp_list = []
+    fn_list = []
+    for _ in VariantFile(bench_vcf).fetch(): tp_base += 1
+    for result in results:
+        tp += result[0]
+        fp += result[1]
+        for fp_cnv in result[2]:
+            fp_list.append(fp_cnv)
+        for fn_cnv in result[3]:
+            fn_list.append(fn_cnv)
+    fn = len(fn_list)
+    ppv = tp / (tp + fp)
+    tpr = tp_base / (tp_base + fn)
+    return(tp, fp, fn, ppv, tpr, fp_list, fn_list)
+
+
+def make_outfile(parsed_results, bench, sample):
+    """
+    """
+    bench_name = bench.split('_', 0)
+    sample_name = sample.split('_', 0)
+    f = open(f'{sample_name}_vs_{bench_name}.txt', "w")
+    f.write('VALUES\n\n')
+    f.write(f'True Positive: {parsed_results[0]}\n')
+    f.write(f'False Positive: {parsed_results[1]}\n')
+    f.write(f'False Negatives: {parsed_results[2]}\n')
+    f.write(f'Precision: {parsed_results[3]}\n')
+    f.write(f'Sensitivity: {parsed_results[4]}\n\n')
+    f.write(f'FALSE POSITIVES\n\n')
+    for fp in parsed_results[5]: f.write(f'{fp}\n')
+    f.write('\nFALSE NEGATIVES\n\n')
+    for fn in parsed_results[6]: f.write(f'{fn}\n')
+    f.close()
+
+
 def main():
     """
     """
@@ -104,27 +145,8 @@ def main():
     sample = [args.v] * len(chrom_tup)
     cpus = int(args.t)
     results = chunk_compare(chrom_tup, bench, sample, cpus)
-
-    tp = 0
-    fp = 0
-    fp_list = []
-    fn_list = []
-    for result in results:
-        tp += result[0]
-        fp += result[1]
-        for fp_cnv in result[2]:
-            fp_list.append(fp_cnv)
-        for fn_cnv in result[3]:
-            fn_list.append(fn_cnv)
-    fn = len(fn_list)
-
-    tp_base = 0
-    for _ in VariantFile(args.b).fetch(): tp_base += 1
-
-    ppv = tp / (tp + fp)
-    tpr = tp_base / (tp_base + fn)
-
-    print(f'tp: {tp}, fp: {fp}, fn: {fn}, ppv: {ppv}, tpr: {tpr}')
+    parsed_results = parse_results(results, args.b)
+    make_outfile(parsed_results, args.b, args.v)
 
 
 if __name__ == '__main__':
