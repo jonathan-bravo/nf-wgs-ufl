@@ -58,33 +58,38 @@ def parse_vcf(vcf, chrom = None):
     """
     """
     cnvs = []
-    for cnv in vcf.fetch():
-        cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
+    if chrom == None:
+        for cnv in vcf.fetch():
+            cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
+    else:
+        for cnv in vcf.fetch():
+            if cnv[0] == chrom:
+                cnvs.append((cnv.contig, cnv.start, cnv.stop, cnv.alts))
     return cnvs
 
 
-def compare_cnvs(chrom, bench_cnvs, sample_cnvs):
+def compare_cnvs(chrom, bench, sample):
     """
     """
-    bench_cnv_for_chr = [x for x in bench_cnv if x[0] == chrom]
-    sample_cnv_for_chr = [x for x in sample_cnv if x[0] == chrom]
+    bench_vcf = parse_vcf(VariantFile(bench), chrom)
+    sample_vcf = parse_vcf(VariantFile(sample), chrom)
     tp = 0
     fp = 0
     fp_list = []
-    for cnv in sample_cnv_for_chr:
-        if cnv in bench_cnv_for_chr: tp += 1
+    for cnv in sample_vcf:
+        if cnv in bench_vcf: tp += 1
         else:
             fp += 1
             fp_list.append(cnv)
     return (tp, fp, fp_list)
 
 
-def chunk_compare(chrom_tup, bench_list, sample_list, cpus):
+def chunk_compare(chrom_tup, bench, sample, cpus):
     """
     """
     if cpus == None: cpus = 1
     with ProcessPoolExecutor(max_workers = cpus) as executor:
-        results = executor.map(compare_cnvs, chrom_tup, bench_list, sample_list)
+        results = executor.map(compare_cnvs, chrom_tup, bench, sample)
     return results
 
 
@@ -99,12 +104,10 @@ def main():
         'chr22', 'chr21', 'chrX', 'chrY', 'chrM'
     )
     args = parse_args()
-    bench_vcf = parse_vcf(VariantFile(args.b))
-    sample_vcf = parse_vcf(VariantFile(args.s))
-    bench_list = [bench_vcf] * len(chrom_tup)
-    sample_list = [sample_vcf] * len(chrom_tup)
+    bench = [args.b] * len(chrom_tup)
+    sample = [args.v] * len(chrom_tup)
     cpus = int(args.t)
-    results = chunk_compare(chrom_tup, bench_list, sample_list, cpus)
+    results = chunk_compare(chrom_tup, bench, sample, cpus)
 
     tp = 0
     fp = 0
@@ -112,9 +115,9 @@ def main():
     for result in results:
         tp += result[0]
         fp += result[1]
-        for fp_cnv in result[2]:
-            fp_list.append(fp_cnv)
-
+        fp_cnv.append(fp_cnv[2])
+        # for fp_cnv in result[2]:
+        #     fp_list.append(fp_cnv)
     bench_cnvs = parse_vcf(VariantFile(args.b))
     sample_cnvs = parse_vcf(VariantFile(args.v))
     fn_list = setdiff1d(bench_cnvs, sample_cnvs)
