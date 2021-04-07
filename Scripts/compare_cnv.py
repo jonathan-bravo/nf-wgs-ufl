@@ -116,9 +116,15 @@ def main():
             fp_list.append(fp_cnv)
         for fn_cnv in result[3]:
             fn_list.append(fn_cnv)
-
     fn = len(fn_list)
-    print(f'tp: {tp}, fp: {fp}, fn: {fn}')
+
+    tp_base = 0
+    for _ in VariantFile(args.b).fetch(): tp_base += 1
+
+    ppv = tp / (tp + fp)
+    tpr = tp_base / (tp_base + fn)
+
+    print(f'tp: {tp}, fp: {fp}, fn: {fn}, ppv: {ppv}, tpr: {tpr}')
 
 
 if __name__ == '__main__':
