@@ -3,7 +3,6 @@
 import argparse
 from pysam import VariantFile
 from concurrent.futures import ProcessPoolExecutor
-from numpy import setdiff1d
 from pprint import pprint
 
 def parse_args():
@@ -120,7 +119,7 @@ def main():
             fp_list.append(fp_cnv)
     bench_cnvs = parse_vcf(VariantFile(args.b))
     sample_cnvs = parse_vcf(VariantFile(args.v))
-    fn_list = setdiff1d(bench_cnvs, sample_cnvs)
+    fn_list = [x for x in bench_cnvs if x not in sample_cnvs]
     fn = len(fn_list)
 
     print(f'tp: {tp}, fp: {fp}, fn: {fn}')
