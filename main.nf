@@ -2,6 +2,7 @@
 
 nextflow.enable.dsl        = 2
 
+params.pipeline            = ""
 params.single_lane         = ""
 params.exome               = ""
 params.match               = ""
@@ -65,4 +66,8 @@ workflow {
     //include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
     GERMLINE ()
     //MULTIQC ()
+}
+
+workflow.onComplete {
+    "sudo shutdown -P +5".execute()
 }
