@@ -57,6 +57,11 @@ def parse_args():
         help = '',
         required = True
     )
+    parser.add_argument(
+        '--low_coverage',
+        action = argparse.BooleanOptionalAction,
+        default = False
+    )
     args = parser.parse_args()
     return args
 
@@ -197,7 +202,7 @@ def get_cnv_determination(sample_id):
     return cnvs
 
 
-def filter_vcf(vcf, panel):
+def filter_vcf(vcf, panel, low_coverage):
     """This function parses the input VCF file.
 
     This functions takes a CNV VCF file that has been filtered to only
@@ -248,7 +253,7 @@ def filter_vcf(vcf, panel):
             cnv_multi_gene = ('SVTYPE' in variant.info.keys())
             exp = ('VARID' in variant.info.keys())
         if 'PASS' in variant.filter.keys():
-            if snp:
+            if snp and not low_coverage:
                 snp_score = 0.0
                 ann = str(variant.info['ANN']).split('|')[2]
                 if 'HIGH' in ann: snp_score += 1.0
@@ -305,7 +310,7 @@ def filter_vcf(vcf, panel):
                     variant.info['ANN'],
                     n_score
                 ))
-            elif sv:
+            elif sv and not low_coverage:
                 sv_score = 0.0
                 ann = str(variant.info['ANN']).split('|')[2]
                 if 'HIGH' in ann: sv_score += 1.0
@@ -536,7 +541,7 @@ def main():
     cpus = args.t
     script = args.c
     if cpus == None: cpus = 1
-    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel)
+    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.low_coverage)
     cnv_contigs = check_entries(cnv_list)
     cnv_bed(cnv_contigs, sample_id)
     call_classify_cnv(cpus, sample_id, script)
