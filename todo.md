@@ -29,6 +29,19 @@
 - FIXME Why did the GE sample stop before alignment?
 - TODO Remake the Nextflow EC2 instance
 - TODO Put SNPID into pipeline
+- TODO Make sure that `classify_vcf.py` is run in AWS
+  - we want all data to remain in AWS, the less files that have to come down the better
+- TODO Build a simple python gui for running pipeline
+- TODO Translate gui to web app that will be hosted in AWS S3
+- TODO Write a script for transfering files from Illumina BaseSpace to our AWS S3 bucket
+- TODO Database the correct output from the pipeline
+- TODO Request an increase of the vcpu limit to 2500 so that we don't encounter an upper limit when we expand
+
+
+### CLASSIFY VCF
+
+- TODO Possible build a docker image to run this script
+- How do we want to run this in AWS?
 
 
 ### SNPID
