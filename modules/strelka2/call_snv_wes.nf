@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 process CALL_SNV_WES {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Strelka2", mode: 'copy'
     label 'strelka2'
     label 'medium_process'
 
