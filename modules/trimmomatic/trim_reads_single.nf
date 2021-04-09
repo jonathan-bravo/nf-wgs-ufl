@@ -15,7 +15,7 @@ process TRIM_READS_SINGLE {
     output:
     tuple val(sample_id), file("${sample_id}_forward-paired.fastq.gz"), file("${sample_id}_reverse-paired.fastq.gz"), emit: trimmed_paired_reads
     tuple val(sample_id), file("${sample_id}_forward-unpaired.fastq.gz"), file("${sample_id}_reverse-unpaired.fastq.gz"), emit: trimmed_unpaired_reads
-    tuple val(sample_id), file("${sample_id}_trim_out.log")
+    tuple val(sample_id), file("${sample_id}_trim_out.log"), emit: trim_log
 
     script:
     """
