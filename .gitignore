@@ -1,3 +1,5 @@
 *.pyc
 .nextflow*
+timeline*
+trace*
 **/.DS_Store
