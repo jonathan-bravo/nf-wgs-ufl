@@ -18,7 +18,7 @@ process PICARD_COLLECT_HS_METRICS {
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
 
     output:
-    file "${sample_id}_gatk_collect_hs_metrics.txt"
+    tuple val(sample_id), file("${sample_id}_gatk_collect_hs_metrics.txt"), emit: hs_metrics
 
     script:
     """

@@ -16,7 +16,7 @@ process PICARD_COLLECT_WGS_METRICS {
     tuple val(sample_id), file("${sample_id}-sort.bam.bai")
 
     output:
-    file "${sample_id}_gatk_collect_wgs_metrics.txt"
+    tuple val(sample_id), file("${sample_id}_gatk_collect_wgs_metrics.txt"), emit: wgs_metrics
 
     script:
     """
