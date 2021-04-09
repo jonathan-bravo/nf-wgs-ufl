@@ -17,7 +17,7 @@ process ANNOTATE_VCF {
 
     output:
     tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz"), emit: sift_vcf
-    file "${sample_id}_snpeff_stats.csv"
+    tuple val(sample_id), file("${sample_id}_snpeff_stats.csv"), emit: snpeff_stats
 
     script:
     """
