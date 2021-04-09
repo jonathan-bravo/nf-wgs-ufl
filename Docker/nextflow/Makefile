@@ -6,7 +6,6 @@ build: dist/docker
 	cp -r ../../main.nf .
 	cp -r ../../ufl-germline.nf .
 	cp -r ../../ufl-multiqc.nf .
-	cp -r ../../ufl-apply_panels.nf .
 	cp -r ../../nextflow.config .
 	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 178175818611.dkr.ecr.us-east-1.amazonaws.com
 	docker build -t nextflow-ufl-germline:${version} .
@@ -15,10 +14,7 @@ build: dist/docker
 	rm -rf modules/
 	rm -rf bin/
 	rm -rf dist/
-	rm main.nf
-	rm ufl-germline.nf
-	rm ufl-multiqc.nf
-	rm ufl-apply_panels.nf
+	rm *.nf
 	rm nextflow.config
 dist/docker:
 	curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.03.1-ce.tgz

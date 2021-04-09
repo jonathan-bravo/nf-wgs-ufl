@@ -11,7 +11,6 @@ ENV NXF_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
 # copy docker client
 RUN mkdir /data/
 COPY main.nf /data/
-COPY ufl-apply_panels.nf /data/
 COPY ufl-germline.nf /data/
 COPY ufl-multiqc.nf /data/
 COPY nextflow.config /data/
