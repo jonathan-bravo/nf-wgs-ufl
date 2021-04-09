@@ -21,6 +21,7 @@ include { MERGE_GVCF                 } from './modules/bcftools_tabix/merge_gvcf
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { DETERMINE_SEX              } from './modules/ubuntu_python3/determine_sex'  addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CNV_CONTIGS                } from './modules/ubuntu_python3/cnv_contigs'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { MULTIQC_SAMPLE             } from './modules/multiqc/multiqc_sample'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CAT_LANES                  } from './modules/ubuntu_python3/cat_lanes'
 include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'
 include { SAMTOOLS_VIEW              } from './modules/samtools/view'
@@ -55,7 +56,6 @@ else {
 
 
 workflow GERMLINE {
-
     if (params.single_lane == "NO"){
         CAT_LANES(
             reads1_ch,
@@ -204,4 +204,23 @@ workflow GERMLINE {
             CALL_EH.out.eh_gvcf
         )
     }
-}
+        
+    if (params.exome == "YES"){ picard = PICARD_COLLECT_HS_METRICS.out.hs_metrics}
+    else {picard = PICARD_COLLECT_WGS_METRICS.out.wgs_metrics}
+    if (params.single_lane == "NO"){
+        trim = TRIM_READS.out.trim_log
+        fastqc = FASTQC.out.qc
+    }
+    else {
+        trim = TRIM_READS_SINGLE.out.trim_log
+        fastqc = FASTQC_SINGLE.out.qc
+    }
+    snpeff = ANNOTATE_VCF.out.snpeff_stats
+
+    MULTIQC_SAMPLE(
+        snpeff,
+        picard,
+        trim,
+        fastqc
+    )
+}   
