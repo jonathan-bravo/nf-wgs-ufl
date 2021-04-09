@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 process CALL_CNV {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Panelcn_MOPS", mode: 'copy'
     label 'panelcn_mops'
     label 'medium_process'
 
