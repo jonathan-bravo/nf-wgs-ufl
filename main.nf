@@ -8,8 +8,7 @@ params.exome               = ""
 params.match               = ""
 params.bucket              = ""
 params.run_id              = ""
-params.run_dir             = ""
-params.panels_dir          = ""
+params.run_dir             = "${params.bucket}/Pipeline_Output/${params.run_id}"
 params.ref_dir             = "${params.bucket}/Pipeline/Reference"
 params.reference           = "${params.ref_dir}/hg19/hg19.fa"
 params.bwa_amb             = "${params.reference}.amb"
@@ -62,12 +61,12 @@ multiqc_params = [
 ]
 
 workflow {
-    include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
-    //include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
-    GERMLINE ()
-    //MULTIQC ()
-}
-
-workflow.onComplete {
-    "sudo shutdown -P +5".execute()
+    if (params.pipeline == "GERMLINE") {
+        include { GERMLINE } from './ufl-germline' addParams( germline_params: germline_params )
+        GERMLINE ()
+    }
+    if (params.pipeline == "MULTIQC") {
+        include { MULTIQC  } from './ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
+        MULTIQC ()
+    }
 }
