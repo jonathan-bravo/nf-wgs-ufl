@@ -358,7 +358,6 @@ def filter_vcf(vcf, panel, low_coverage):
                 if isinstance(gnomad, float): gnomad = f'{gnomad:.3e}'
                 if isinstance(gp3, float): gp3 = f'{gp3:.3e}'
                 n_score = map_score(snp_score, -9.5, 15.0, 1.0, 0.0)
-                if 0.9 >= n_score >= 0.88: print(n_score)
                 if n_score >= 0.87: snp_list.append((
                     variant.contig,
                     variant.start,
@@ -531,7 +530,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'genotype': sv[8],
                     'F:R_ref_F:R_alt': sv[9]
                 }
-                overlap['svs'].append(sv)
+                overlap['svs'].append(sv_dict)
         for exp in exp_list:
             exp_overlap = (exp[0] == cnv[0] and exp[1] in cnv_range)
             if exp_overlap:
@@ -580,77 +579,279 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
     data['metadata'] = {
         'genes_in_panel': gene_panel,
         'supporting_literature':[],
-        # 'snp_qc_metrics': [
-        #     {
-        #         'name': 'snpeff_impact',
-        #         'max_val': 1.0,
-        #         'min_val': 0.0,
-        #         'values' : {
-        #             'HIGH': '1.0',
-        #             'MODERATE': '0.5',
-        #             'default': '0'
-        #         }
-        #     },
-        #     {
-        #         'name': 'snpeff_lof',
-        #         'max_val': 1.0,
-        #         'min_val': 0.0,
-        #         'values' : {
-        #             'lrt_percentage_range': '0.0 to 1.0'
-        #         }
-        #     },
-        #     {
-        #         'name': 'CADD_phred',
-        #         'max_val': 1.0,
-        #         'min_val': 0.01,
-        #         'values': {
-        #             '15'
-        #         }
-        #     },
-        #     {
-        #         'name': 'phastCons100way_vertebrate'
-        #     },
-        #     {
-        #         'name': 'MutationTaster_pred'
-        #     },
-        #     {
-        #         'name': 'MutationAssessor_pred'
-        #     },
-        #     {
-        #         'name': 'LRT_pred'
-        #     },
-        #     {
-        #         'name': 'FATHMM_pred'
-        #     },
-        #     {
-        #         'name': 'MetaSVM_pred'
-        #     },
-        #     {
-        #         'name': 'PROVEAN_pred'
-        #     },
-        #     {
-        #         'name': 'Polyphen2_HVAR_pred'
-        #     },
-        #     {
-        #         'name': 'SIFT_pred'
-        #     },
-        #     {
-        #         'name': 'GERP___RS'
-        #     },
-        #     {
-        #         'name': 'dbNSFP_ExAC_AF'
-        #     },
-        #     {
-        #         'name': '1000Gp3_AF'
-        #     },
-        #     {
-        #         'name': 'final_impact',
-        #         'min_mapped_value': 0.87,
-        #     }
-        # ],
-        # 'sv_qc_metrics': [],
-        # 'cnv_qc_metrics': [],
-        # 'exp_qc_metrics': [],
+        'snp_qc_metrics': [
+            {
+                'name': 'snpeff_impact',
+                'max_score': '1',
+                'min_score': '0',
+                'HIGH': '1',
+                'MEDIUM': '0.5',
+                'all_else': '0'
+            },
+            {
+                'name': 'snpeff_lof',
+                'max_score': '1',
+                'min_score': '0',
+                'percentage_of_lof': '0...1'
+            },
+            {
+                'name': 'CADD_phred',
+                'max_score': '1',
+                'min_score': '0',
+                'scale': 'log10',
+                'CADD': '0...99',
+                'CADD < 15': '0',
+                'CADD >= 15': '0.01...1'
+            },
+            {
+                'name': 'phastCons100way_vertebrate',
+                'max_score': '1',
+                'min_score': '-1',
+                'scale': '0...1 to -1...1'
+            },
+            {
+                'name': 'MutationTaster_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'A': '+  value',
+                'D': '+  value * 0.5',
+                'N': '-  value * 0.5',
+                'P': '-  value'
+            },
+            {
+                'name': 'MutationAssessor_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'H': '+  value',
+                'M': '+  value * 0.5',
+                'L': '-  value * 0.5',
+                'N': '-  value'
+            },
+            {
+                'name': 'LRT_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'D': '+  value',
+                'N': '-  value'
+            },
+            {
+                'name': 'FATHMM_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'D': '+  value',
+                'T': '-  value'
+            },
+            {
+                'name': 'MetaSVM_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'D': '+  value',
+                'T': '-  value'
+            },
+            {
+                'name': 'PROVEAN_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'D': '+  value',
+                'N': '-  value'
+            },
+            {
+                'name': 'Polyphen2_HVAR_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'D': '+  value',
+                'P': '+  value * 0.75',
+                'B': '-  value'
+            },
+            {
+                'name': 'SIFT_pred',
+                'max_score': '1',
+                'min_score': '-1',
+                'value': '1/ length of result list',
+                'D': '+  value',
+                'T': '-  value'
+            },
+            {
+                'name': 'GERP___RS',
+                'max_score': '1',
+                'min_score': '-1',
+                'GERP >= 0': '0...1',
+                'GERP < 0': '0...-1'
+            },
+            {
+                'name': 'dbNSFP_ExAC_AF',
+                'max_score': '1',
+                'min_score': '0',
+                'scale': 'log10',
+                'gnomad': '0...1',
+                'no_value': '1'
+            },
+            {
+                'name': '1000Gp3_AF',
+                'max_score': '1',
+                'min_score': '0',
+                'scale': 'log10',
+                'gp3': '0...1',
+                'no_value': '1'
+            },
+            {
+                'name': 'final_impact',
+                'max_score': '1',
+                'min_score': '0',
+                'scale': '-9.5...15 to 0...1',
+                'accepted_values': '>= 0.87'
+            }
+        ],
+        'sv_qc_metrics': [
+                        {
+                'name': 'snpeff_impact',
+                'max_score': '1',
+                'min_score': '0',
+                'HIGH': '1',
+                'MEDIUM': '0.5',
+                'all_else': '0'
+            },
+            {
+                'name': 'snpeff_lof',
+                'max_score': '1',
+                'min_score': '0',
+                'percentage_of_lof': '0...1'
+            },
+            {
+                'name': 'final_impact',
+                'max_score': '2',
+                'min_score': '0',
+                'accepted_values': '>= 1'
+            }
+        ],
+        'cnv_qc_metrics': [
+            {
+                'name': 'ClassifyCNV',
+                'max_score': '1.8',
+                'min_score': '-2.6',
+                'any_promoters_or_enhancers': [
+                    {
+                        'answer': 'yes',
+                        'score': '0'
+                    },
+                    {
+                        'answer': 'no',
+                        'score': '-.6'
+                    }
+                ],
+                'number_of_genes': [
+                    {
+                        'number_of_genes': '< 2',
+                        'score': '0'
+                    },
+                    {
+                        'number_of_genes': '< 3',
+                        'score': '0.45'
+                    },
+                    {
+                        'number_of_genes': '> 3',
+                        'score': '0.9'
+                    }
+                ],
+                'region_overlap_del': [
+                    {
+                        'overlap_type': 'no overlap',
+                        'inside_benign': [
+                            {
+                                'answer': 'yes',
+                                'score': '-1'
+                            },
+                            {
+                                'answer': 'no',
+                                'multiple_predictors_genes': [
+                                    {
+                                        'answer': 'yes',
+                                        'score': '0.15'
+                                    },
+                                    {
+                                        'answer': 'no',
+                                        'pop_freq_high': [
+                                            {
+                                                'answer': 'yes',
+                                                'score': '-1'
+                                            },
+                                            {
+                                                'answer': 'no',
+                                                'score': '0'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        'overlap_type': 'complete overlap',
+                        'score': '1'
+                    },
+                    {
+                        'overlap_type': 'partial overlap with the 5\' end, coding sequence involved',
+                        'score': '0.9'
+                    },
+                    {
+                        'overlap_type': 'only the last exon involved',
+                        'score': '0.3'
+                    },
+                    {
+                        'overlap_type': 'last exon and other exons involved, nonsense-mediated decay expected',
+                        'score': '0.9'
+                    },
+                    {
+                        'overlap_type': 'both CNV breakpoints are withint the same genes + PVS1',
+                        'score': '0.9'
+                    }
+                ],
+                'region_overlap_dup': [
+                    {
+                        'overlap_type': 'CNV fully contained inside triplosensative region',
+                        'score': '1'
+                    },
+                    {
+                        'overlap_type': 'no overlap',
+                        'score': '0',
+                        'popultaion_fre_high': '-1'
+                    },
+                    {
+                        'overlap_type': 'CNV identical to a benign region',
+                        'score': '-1',
+                        'popultaion_fre_high': '-1'
+                    },
+                    {
+                        'overlap_type': 'larger than a benign region, no other protein-coding genes included',
+                        'score': '-1',
+                        'popultaion_fre_high': '-1'
+                    },
+                    {
+                        'overlap_type': 'smaller than a benign region, breakpoints don\'t interrupt protein-coding genes',
+                        'score': '-1',
+                        'popultaion_fre_high': '-1'
+                    }
+                ]
+            },
+            {
+                'name': 'final_impact',
+                'max_score': '1.8',
+                'min_score': '-2.6',
+                'accepted_values': '>= 1'
+            }
+        ],
+        'all_variants_qc': [
+            {
+                'filter': 'PASS'
+            }
+        ],
         'pipeline': [
             {
                 'name': 'TrimmomaticPE',
