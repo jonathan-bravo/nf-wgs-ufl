@@ -58,6 +58,13 @@ def parse_args():
         required = True
     )
     parser.add_argument(
+        '-l',
+        metavar = '--PMC_IDS',
+        type = str,
+        help = '',
+        required = True
+    )
+    parser.add_argument(
         '--low_coverage',
         action = argparse.BooleanOptionalAction,
         default = False
@@ -122,11 +129,15 @@ def contig(start_index, cnv_list):
     """
     contig = []
     genes = []
+    rcn = 0
+    mrcn = 0
     genes.append(cnv_list[start_index].info['GENE'])
     contig.append(cnv_list[start_index].contig)
     contig.append(cnv_list[start_index].info['CYTO'])
     contig.append(cnv_list[start_index].alts[0])
     contig.append(cnv_list[start_index].start+1)
+    rcn += cnv_list[start_index].samples['SAMPLE1'].get('RCN')
+    mrcn += cnv_list[start_index].samples['SAMPLE1'].get('MRCN')
     for i in range(start_index, len(cnv_list)):
         end_index = i
         if cnv_list[i] == cnv_list[-1]:
@@ -137,6 +148,8 @@ def contig(start_index, cnv_list):
             success, gene_list = check_overlap(cnv_list[i], cnv_list[i+1])
             if success:
                 genes.append(gene_list)
+                rcn += cnv_list[start_index].samples['SAMPLE1'].get('RCN')
+                mrcn += cnv_list[start_index].samples['SAMPLE1'].get('MRCN')
                 continue
             else:
                 contig.append(cnv_list[i].stop)
@@ -152,6 +165,8 @@ def contig(start_index, cnv_list):
     genes_final = []
     [genes_final.append(x) for x in genes_tmp if x not in genes_final]
     contig.append(genes_final)
+    contig.append(rcn)
+    contig.append(mrcn)
     return contig, end_index
 
 
@@ -234,11 +249,11 @@ def filter_vcf(vcf, panel, low_coverage):
                 and str(variant.info['ANN']).split('|')[3] in panel
             )
             cnv = (
-                'SVTYPE' in variant.info.keys()
+                'CNCLASS' in variant.info.keys()
                 and variant.info['GENE'] in panel
             )
             cnv_multi_gene = (
-                'SVTYPE' in variant.info.keys()
+                'CNCLASS' in variant.info.keys()
                 and isinstance(variant.info['GENE'], tuple)
                 and any(item in variant.info['GENE'] for item in panel)
             )
@@ -249,7 +264,7 @@ def filter_vcf(vcf, panel, low_coverage):
         else:
             snp = ('SNVHPOL' in variant.info.keys() and len(variant.info.keys()) > 3)
             sv = ('CIGAR' in variant.info.keys())
-            cnv = ('SVTYPE' in variant.info.keys())
+            cnv = ('CNCLASS' in variant.info.keys())
             cnv_multi_gene = ('SVTYPE' in variant.info.keys())
             exp = ('VARID' in variant.info.keys())
         if 'PASS' in variant.filter.keys():
@@ -258,9 +273,15 @@ def filter_vcf(vcf, panel, low_coverage):
                 ann = str(variant.info['ANN']).split('|')[2]
                 if 'HIGH' in ann: snp_score += 1.0
                 elif 'MODERATE' in ann: snp_score += 0.5
-                if 'LOF' in variant.info.keys(): snp_score += float(
-                    variant.info['LOF'][0].split('|')[3].strip(')')
-                )
+                if 'LOF' in variant.info.keys(): 
+                    snp_score += float(
+                        variant.info['LOF'][0].split('|')[3].strip(')')
+                    )
+                    lof = variant.info['LOF'][0]
+                else: lof = '.'
+                if 'NMD' in variant.info.keys():
+                    nmd = variant.info['NMD'][0]
+                else: nmd = '.'
                 if 'dbNSFP_CADD_phred' in variant.info.keys():
                     cadd = variant.info['dbNSFP_CADD_phred'][0]
                     if cadd >= 15: snp_score += map_score(
@@ -270,44 +291,88 @@ def filter_vcf(vcf, panel, low_coverage):
                         1.0,
                         0.01
                     )
+                else: cadd = '.'
                 if 'dbNSFP_phastCons100way_vertebrate' in variant.info.keys():
-                    info = variant.info['dbNSFP_phastCons100way_vertebrate'][0]
-                    snp_score += map_score(info, 0.0, 1.0, 1.0, -1.0)
+                    phastcons = variant.info['dbNSFP_phastCons100way_vertebrate'][0]
+                    snp_score += map_score(phastcons, 0.0, 1.0, 1.0, -1.0)
                 if 'dbNSFP_MutationTaster_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_MutationTaster_pred']
-                    snp_score += decision_tree(info, ['A', 'D', 'N', 'P'])
+                    mutaste = variant.info['dbNSFP_MutationTaster_pred']
+                    snp_score += decision_tree(mutaste, ['A', 'D', 'N', 'P'])
                 if 'dbNSFP_MutationAssessor_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_MutationAssessor_pred']
-                    snp_score += decision_tree(info, ['H', 'M', 'L', 'N'])
+                    muassess = variant.info['dbNSFP_MutationAssessor_pred']
+                    snp_score += decision_tree(muassess, ['H', 'M', 'L', 'N'])
                 if 'dbNSFP_LRT_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_LRT_pred']
-                    snp_score += decision_tree(info, ['D', 'N'])
+                    lrt = variant.info['dbNSFP_LRT_pred']
+                    snp_score += decision_tree(lrt, ['D', 'N'])
                 if 'dbNSFP_FATHMM_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_FATHMM_pred']
-                    snp_score += decision_tree(info, ['D', 'T'])
+                    fathmm = variant.info['dbNSFP_FATHMM_pred']
+                    snp_score += decision_tree(fathmm, ['D', 'T'])
                 if 'dbNSFP_MetaSVM_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_MetaSVM_pred']
-                    snp_score += decision_tree(info, ['D', 'T'])
+                    metasvm = variant.info['dbNSFP_MetaSVM_pred']
+                    snp_score += decision_tree(metasvm, ['D', 'T'])
                 if 'dbNSFP_PROVEAN_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_PROVEAN_pred']
-                    snp_score += decision_tree(info, ['D', 'N'])
+                    provean = variant.info['dbNSFP_PROVEAN_pred']
+                    snp_score += decision_tree(provean, ['D', 'N'])
                 if 'dbNSFP_Polyphen2_HVAR_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_Polyphen2_HVAR_pred']
-                    snp_score += decision_tree(info, ['D', 'P', 'B'])
+                    polyphen = variant.info['dbNSFP_Polyphen2_HVAR_pred']
+                    snp_score += decision_tree(polyphen, ['D', 'P', 'B'])
                 if 'dbNSFP_SIFT_pred' in variant.info.keys():
-                    info = variant.info['dbNSFP_SIFT_pred']
-                    snp_score += decision_tree(info, ['D', 'T'])
+                    sift = variant.info['dbNSFP_SIFT_pred']
+                    snp_score += decision_tree(sift, ['D', 'T'])
                 if 'dbNSFP_GERP___RS' in variant.info.keys():
                     gerp = variant.info['dbNSFP_GERP___RS'][0]
-                    if gerp >= 0: snp_score += map_score(gerp, 0.0, 6.18, 1.0, 0.01)
-                    elif 0 > gerp: snp_score += map_score(gerp, -10.7, 0.0, 0.0, -1.0)
-                n_score = map_score(snp_score, -9.5, 13.0, 1.0, 0.0)
+                    if gerp >= 0:
+                        snp_score += map_score(gerp, 0.0, 6.18, 1.0, 0.01)
+                    elif 0 > gerp:
+                        snp_score += map_score(gerp, -10.7, 0.0, 0.0, -1.0)
+                if 'dbNSFP_ExAC_AF' in variant.info.keys():
+                    gnomad = variant.info['dbNSFP_ExAC_AF'][0]
+                    snp_score += map_score(
+                        10**(gnomad / -10),
+                        10**(1.0 / -10),
+                        10**(0.0 / -10),
+                        1.0,
+                        0.0
+                    )
+                else: 
+                    snp_score += 1.0
+                    gnomad = '.'
+                if 'dbNSFP_1000Gp3_AF' in variant.info.keys():
+                    gp3 = variant.info['dbNSFP_1000Gp3_AF'][0]
+                    snp_score += map_score(
+                        10**(gp3 / -10),
+                        10**(1.0 / -10),
+                        10**(0.0 / -10),
+                        1.0,
+                        0.0
+                    )
+                else:
+                    snp_score += 1.0
+                    gp3 = '.'
+                gt = variant.samples['SAMPLE1'].get('GT')
+                if gt[0] == gt[1]: genotype = 'heterozygous'
+                elif gt[0] != gt[1]: genotype = 'homozygous'
+                adf = variant.samples['SAMPLE1'].get('ADF')
+                adr = variant.samples['SAMPLE1'].get('ADR')
+                fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
+                if isinstance(gnomad, float): gnomad = f'{gnomad:.3e}'
+                if isinstance(gp3, float): gp3 = f'{gp3:.3e}'
+                n_score = map_score(snp_score, -9.5, 15.0, 1.0, 0.0)
+                if 0.9 >= n_score >= 0.88: print(n_score)
                 if n_score >= 0.87: snp_list.append((
                     variant.contig,
                     variant.start,
                     variant.stop,
+                    variant.ref,
                     variant.alts,
                     variant.info['ANN'],
+                    lof,
+                    nmd,
+                    genotype,
+                    fr,
+                    round(cadd, 3),
+                    gnomad,
+                    gp3,
                     n_score
                 ))
             elif sv and not low_coverage:
@@ -317,28 +382,51 @@ def filter_vcf(vcf, panel, low_coverage):
                 elif 'MODERATE' in ann: sv_score += 0.5
                 if 'LOF' in variant.info.keys():
                     sv_score += float(variant.info['LOF'][0].split('|')[3].strip(')'))
+                    lof = variant.info['LOF'][0]
+                else: lof = '.'
+                if 'NMD' in variant.info.keys():
+                    nmd = variant.info['NMD'][0]
+                else: nmd = '.'
+                gt = variant.samples['SAMPLE1'].get('GT')
+                if gt[0] == gt[1]: genotype = 'heterozygous'
+                elif gt[0] != gt[1]: genotype = 'homozygous'
+                adf = variant.samples['SAMPLE1'].get('ADF')
+                adr = variant.samples['SAMPLE1'].get('ADR')
+                fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
                 if sv_score >= 1.0: sv_list.append((
                     variant.contig,
                     variant.start,
                     variant.stop,
+                    variant.ref,
                     variant.alts,
                     variant.info['ANN'],
+                    lof,
+                    nmd,
+                    genotype,
+                    fr,
                     sv_score
                 ))
             elif cnv or cnv_multi_gene:
                 cnv_list.append(variant)
             elif exp:
-                alt_length = []
-                for alt in variant.alts:
-                    length = int(alt.strip('<STR').strip('>'))
-                    alt_length.append(length)
-                if any(x >= 70 for x in alt_length): exp_list.append((
+                # alt_length = []
+                # for alt in variant.alts:
+                #     length = int(alt.strip('<STR').strip('>'))
+                #     alt_length.append(length)
+                # if any(x >= 70 for x in alt_length):
+                gt = variant.samples['SAMPLE1'].get('GT')
+                if gt[0] == gt[1]: genotype = 'heterozygous'
+                elif gt[0] != gt[1]: genotype = 'homozygous'
+                repcn = variant.samples['SAMPLE1'].get('REPCN').split('/')
+                exp_list.append((
                     variant.contig,
                     variant.start,
                     variant.stop,
                     variant.alts,
                     variant.info['VARID'],
-                    alt_length
+                    genotype,
+                    repcn
+                    #alt_length
                 ))
     return (snp_list, sv_list, cnv_list, exp_list)
 
@@ -362,12 +450,14 @@ def filter_cnv(cnv_contigs, cnv_contig_determinations):
                     contig[3],
                     contig[4],
                     contig[5],
+                    contig[6],
+                    contig[7],
                     determination[3]
                 ))
     return path_cnvs
 
 
-def get_literature(panel, genes):
+def get_literature(panel, genes, pmc):
     """
     """
     lit = []
@@ -379,14 +469,92 @@ def get_literature(panel, genes):
                     if pub != '': lit.append(pub)
     lit = set(lit)
     lit_list = []
-    with open('PMC-ids.csv') as f:
+    with open(pmc) as f:
         for line in f:
             pub = line.split(',') # 7 = DOI, 9 = PMID
             if pub[9] in lit: lit_list.append(f'{pub[8]}: {pub[7]}')
     return lit_list
 
 
-def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id):
+def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
+    """
+    """
+    overlaps = []
+    for cnv in path_cnvs:
+        cnv_dict = {
+            'chrom': cnv[0],
+            'cyto': cnv[1],
+            'start': cnv[3],
+            'stop': cnv[4],
+            'alt': cnv[2],
+            'genes': cnv[5],
+            'RCN:MRCN': f'{cnv[6]}:{cnv[7]}'
+        }
+        overlap = {
+            'cnv': cnv_dict,
+            'snps': [],
+            'svs': [],
+            'exps': []
+        }
+        cnv_range = range(cnv[3], cnv[4]+1)
+        for snp in snp_list:
+            snp_overlap = (snp[0] == cnv[0] and snp[1] in cnv_range)
+            if snp_overlap:
+                snp_dict = snp_dict = {
+                    'chrom': snp[0],
+                    'start': snp[1],
+                    'stop': snp[2],
+                    'ref': snp[3],
+                    'alt': snp[4],
+                    'annotation': snp[5],
+                    'lof': snp[6],
+                    'nmd': snp[7],
+                    'genotype': snp[8],
+                    'F:R_ref_F:R_alt': snp[9],
+                    'cadd': snp[10],
+                    'gnomad_freq': snp[11],
+                    '1000_genomes_freq': snp[12]
+                }
+                overlap['snps'].append(snp_dict)
+        for sv in sv_list:
+            sv_overlap = (sv[0] == cnv[0] and sv[1] in cnv_range)
+            if sv_overlap:
+                sv_dict = {
+                    'chrom': sv[0],
+                    'start': sv[1],
+                    'stop': sv[2],
+                    'ref': sv[3],
+                    'alt': sv[4],
+                    'ann': sv[5],
+                    'lof': sv[6],
+                    'nmd': sv[7],
+                    'genotype': sv[8],
+                    'F:R_ref_F:R_alt': sv[9]
+                }
+                overlap['svs'].append(sv)
+        for exp in exp_list:
+            exp_overlap = (exp[0] == cnv[0] and exp[1] in cnv_range)
+            if exp_overlap:
+                exp_dict = {
+                    'chrom': exp[0],
+                    'start': exp[1],
+                    'stop' : exp[2],
+                    'alt' : exp[3],
+                    'gene': exp[4],
+                    'genotype': exp[5],
+                    'Alt:Ref': f'{exp[6][1]}:{exp[6][0]}'
+                }
+                overlap['exps'].append(exp_dict)
+        empty = (
+            not overlap['snps']
+            and not overlap['svs']
+            and not overlap['exps']
+        )
+        if not empty: overlaps.append(overlap)
+    return overlaps
+
+
+def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, pmc, interactions):
     """
     """
     genes = []
@@ -404,13 +572,86 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         'likely_pathogenic_cnv':[]
     }
     data['exp'] = {
-        'pathogenic_exp':[],
-        'likely_pathogenic_exp':[]
+        'all_expansions':[],
+    }
+    data['cnv_interactions'] = {
+        'all_interactions': interactions
     }
     data['metadata'] = {
         'genes_in_panel': gene_panel,
         'supporting_literature':[],
-        'pipeline':[
+        # 'snp_qc_metrics': [
+        #     {
+        #         'name': 'snpeff_impact',
+        #         'max_val': 1.0,
+        #         'min_val': 0.0,
+        #         'values' : {
+        #             'HIGH': '1.0',
+        #             'MODERATE': '0.5',
+        #             'default': '0'
+        #         }
+        #     },
+        #     {
+        #         'name': 'snpeff_lof',
+        #         'max_val': 1.0,
+        #         'min_val': 0.0,
+        #         'values' : {
+        #             'lrt_percentage_range': '0.0 to 1.0'
+        #         }
+        #     },
+        #     {
+        #         'name': 'CADD_phred',
+        #         'max_val': 1.0,
+        #         'min_val': 0.01,
+        #         'values': {
+        #             '15'
+        #         }
+        #     },
+        #     {
+        #         'name': 'phastCons100way_vertebrate'
+        #     },
+        #     {
+        #         'name': 'MutationTaster_pred'
+        #     },
+        #     {
+        #         'name': 'MutationAssessor_pred'
+        #     },
+        #     {
+        #         'name': 'LRT_pred'
+        #     },
+        #     {
+        #         'name': 'FATHMM_pred'
+        #     },
+        #     {
+        #         'name': 'MetaSVM_pred'
+        #     },
+        #     {
+        #         'name': 'PROVEAN_pred'
+        #     },
+        #     {
+        #         'name': 'Polyphen2_HVAR_pred'
+        #     },
+        #     {
+        #         'name': 'SIFT_pred'
+        #     },
+        #     {
+        #         'name': 'GERP___RS'
+        #     },
+        #     {
+        #         'name': 'dbNSFP_ExAC_AF'
+        #     },
+        #     {
+        #         'name': '1000Gp3_AF'
+        #     },
+        #     {
+        #         'name': 'final_impact',
+        #         'min_mapped_value': 0.87,
+        #     }
+        # ],
+        # 'sv_qc_metrics': [],
+        # 'cnv_qc_metrics': [],
+        # 'exp_qc_metrics': [],
+        'pipeline': [
             {
                 'name': 'TrimmomaticPE',
                 'version': '0.39',
@@ -480,26 +721,39 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         ]
     }
     for snp in snp_list:
-        genes.append(str(snp[4]).split('|')[3])
+        genes.append(str(snp[5]).split('|')[3])
         snp_dict = {
             'chrom': snp[0],
             'start': snp[1],
             'stop': snp[2],
-            'alt': snp[3],
-            'ann': snp[4]
+            'ref': snp[3],
+            'alt': snp[4],
+            'annotation': snp[5],
+            'lof': snp[6],
+            'nmd': snp[7],
+            'genotype': snp[8],
+            'F:R_ref_F:R_alt': snp[9],
+            'cadd': snp[10],
+            'gnomad_freq': snp[11],
+            '1000_genomes_freq': snp[12]
         }
-        if float(snp[5]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
+        if float(snp[13]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
         else: data['snp']['likely_pathogenic_snp'].append(snp_dict)
     for sv in sv_list:
-        genes.append(str(sv[4]).split('|')[3])
+        genes.append(str(sv[5]).split('|')[3])
         sv_dict = {
             'chrom': sv[0],
             'start': sv[1],
             'stop': sv[2],
-            'alt': sv[3],
-            'ann': sv[4]
+            'ref': sv[3],
+            'alt': sv[4],
+            'ann': sv[5],
+            'lof': sv[6],
+            'nmd': sv[7],
+            'genotype': sv[8],
+            'F:R_ref_F:R_alt': sv[9]
         }
-        if float(sv[5]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
+        if float(sv[10]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
         else: data['sv']['likely_pathogenic_sv'].append(sv_dict)
     for cnv in path_cnvs:
         genes.append(cnv[5])
@@ -509,9 +763,10 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'start': cnv[3],
             'stop': cnv[4],
             'alt': cnv[2],
-            'genes': cnv[5]
+            'genes': cnv[5],
+            'RCN:MRCN': f'{cnv[6]}:{cnv[7]}'
         }
-        if float(cnv[6]) > 1.0: data['cnv']['pathogenic_cnv'].append(cnv_dict)
+        if float(cnv[8]) > 1.0: data['cnv']['pathogenic_cnv'].append(cnv_dict)
         else: data['cnv']['likely_pathogenic_cnv'].append(cnv_dict)
     for exp in exp_list:
         genes.append(exp[4])
@@ -520,11 +775,14 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'start': exp[1],
             'stop' : exp[2],
             'alt' : exp[3],
-            'gene': exp[4]
+            'gene': exp[4],
+            'genotype': exp[5],
+            'Alt:Ref': f'{exp[6][1]}:{exp[6][0]}'
         }
-        if any(x >= 115 for x in exp[5]): data['exp']['pathogenic_exp'].append(exp_dict)
-        else: data['exp']['likely_pathogenic_exp'].append(exp_dict)
-    if panel != None: data['metadata']['supporting_literature'] = get_literature(panel, genes)
+        data['exp']['all_expansions'].append(exp_dict)
+        # if any(x >= 115 for x in exp[5]): data['exp']['pathogenic_exp'].append(exp_dict)
+        # else: data['exp']['likely_pathogenic_exp'].append(exp_dict)
+    if panel != None: data['metadata']['supporting_literature'] = get_literature(panel, genes, pmc)
     else: data['metadata']['supporting_literature'] =  None
     with open(f'{sample_id}_report.json', 'w') as outfile:
         dump(data, outfile, indent = 4)
@@ -540,6 +798,7 @@ def main():
     sample_id = args.s
     cpus = args.t
     script = args.c
+    pmc = args.l
     if cpus == None: cpus = 1
     snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.low_coverage)
     cnv_contigs = check_entries(cnv_list)
@@ -547,7 +806,8 @@ def main():
     call_classify_cnv(cpus, sample_id, script)
     cnv_contig_determinations = get_cnv_determination(sample_id)
     path_cnvs = filter_cnv(cnv_contigs, cnv_contig_determinations)
-    make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id)
+    interactions = check_interactions(path_cnvs, snp_list, sv_list, exp_list)
+    make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, pmc, interactions)
 
 
 if __name__ == '__main__':
