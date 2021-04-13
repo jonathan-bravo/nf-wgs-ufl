@@ -25,40 +25,23 @@
 
 ## PIPELINE
 
-- TODO Run MultiQC after germline pipeline automatically
-- FIXME Why did the GE sample stop before alignment?
-- TODO Remake the Nextflow EC2 instance
+- TODO Get files to automatically upload from NovaSeq to AWS
 - TODO Put SNPID into pipeline
-- TODO Make sure that `classify_vcf.py` is run in AWS
-  - we want all data to remain in AWS, the less files that have to come down the better
-- TODO Build a simple python gui for running pipeline
-- TODO Translate gui to web app that will be hosted in AWS S3
-- TODO Write a script for transfering files from Illumina BaseSpace to our AWS S3 bucket
+  - TODO Pull specific SNPS from GVCF (using PGX bed files)
+  - TODO Make sure that GENE information is included in the pulled SNPs
+  - TODO Build nextflow module for pulling the SNPID
+- TODO Make sure that `classify_vcf.py` is run in AWS (runnabel image)
+  - TODO Also need to hard code the paths to ClassifyCNV.py and the PMC_id.csv and remove them as options
+  - We want all data to remain in AWS, the less files that have to come down the better
+  - Image will plot the CNVs
+  - Output file will be 'sample_id_panel_report.json'
+- TODO Web app that will be hosted in AWS S3 (buttons to launch pipeline)
+- TODO Create clinical bucket/ environment
 - TODO Database the correct output from the pipeline
+  - Frequency of variant startified by ethnicity
+  - Position of variant
+  - Zygosity of variant
+  - Counts of the variants (tied into frequency?)
+  - Affected vs Unaffected
+- TODO Create cloud launch/ public version of pipeline
 - TODO Request an increase of the vcpu limit to 2500 so that we don't encounter an upper limit when we expand
-
-
-### CLASSIFY VCF
-
-- TODO Possible build a docker image to run this script
-- How do we want to run this in AWS?
-
-
-### SNPID
-
-- TODO Pull specific SNPS from genomic VCF (using PGX bed files)
-- TODO Make sure that GENE information is included in the pulled SNPs
-- TODO Build nextflow module for pulling the SNPID
-
-
-### DATABASE
-
-- TODO Make a database of vairants from the samples we have run
-- What do we want to do with the data? This will change which data we need. We might be able to get away with just a datalake, might need multiple databases.
-- Will want to filter all results to passing and then simplify some of the fields. Once again this depends on what we want to do with the data.
-- There is some worry about determination of homo/heterozygosity at lower coverages. This is one of the fields we will probably want to simplify.
-
-
-## OTHER
-
-TODO Show Matt the CNV plot
