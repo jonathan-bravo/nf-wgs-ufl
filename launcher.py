@@ -129,7 +129,7 @@ def get_match():
             return match_choices[match_index]
 
 
-def get_commands(bucket, out_dir, exome, single_lane, multiqc):
+def run_commands(bucket, out_dir, exome, single_lane, multiqc):
     """
     """
     if exome:
@@ -144,34 +144,23 @@ def get_commands(bucket, out_dir, exome, single_lane, multiqc):
     else:
         match = ""
         single_lane = "NO"
-    if multiqc: pipeline = "GERMLINE"
+    if not multiqc: pipeline = "GERMLINE"
     else: pipeline = "MULTIQC"
     all_samples = get_data(bucket, samples_dir)
     all_run_ids = get_runs(all_samples)
     run = get_run_id(all_run_ids)
-    commands = [
-        "nextflow",
-        "run", "/data/main.nf",
-        "-work-dir", f"s3://{bucket}/{out_dir}_work/",
-        "--bucket", f"s3://{bucket}",
-        "--run_id", f"{run}",
-        "--single_lane", f"{single_lane}",
-        "--match", f"{match}",
-        "--exome", f"{exome}",
-        "--pipeline", f"{pipeline}"
-    ]
-    return commands
-
-
-def run_command(commands):
-    """
-    """
     client = boto3.client('batch')
     response = client.submit_job(
         jobName='ufl-germline',
         jobQueue='hakmonkey-nextflow',
         jobDefinition='nextflow-ufl-germline:10',
-        containerOverrides={'command': [commands]}
+        containerOverrides={
+            'command': [
+                "bash",
+                "-c",
+                f"nextflow run /data/main.nf -work-dir s3://{bucket}/{out_dir}_work/ --bucket s3://{bucket} --run_id {run} --single_lane {single_lane} --match {match} --exome {exome} --pipeline {pipeline}"
+            ],
+        }
     )
     return response
 
@@ -180,9 +169,8 @@ def main():
     args = parse_args()
     bucket = args.b
     out_dir = 'Pipeline_Output/'
-    commands = get_commands(bucket, out_dir, args.exome, args.single_lane, args.multiqc)
-    response = run_command(commands)
-    print(response)
+    response = run_commands(bucket, out_dir, args.exome, args.single_lane, args.multiqc)
+    #print(response)
 
 
 if __name__ == '__main__':
