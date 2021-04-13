@@ -4,7 +4,6 @@ import boto3
 import re
 import argparse
 from time import sleep
-from pprint import pprint
 
 def parse_args():
     """
@@ -18,6 +17,21 @@ def parse_args():
         type     = str,
         help     = 'which S3 bucket to use when launching the workflow',
         required = True
+    )
+    parser.add_argument(
+        '--exome',
+        action = argparse.BooleanOptionalAction,
+        default = False
+    )
+    parser.add_argument(
+        '--single_lane',
+        action = argparse.BooleanOptionalAction,
+        default = False
+    )
+    parser.add_argument(
+        '--multiqc',
+        action = argparse.BooleanOptionalAction,
+        default = False
     )
     args = parser.parse_args()
     return args
@@ -115,71 +129,60 @@ def get_match():
             return match_choices[match_index]
 
 
-def get_commands(bucket, out_dir):
+def get_commands(bucket, out_dir, exome, single_lane, multiqc):
     """
     """
-    exome = yes_no("Is this a WES run? [Y/n]: ")
-    single_lane = yes_no("Is this a single lane run? [Y/n]: ")
-    if exome == "NO": samples_dir = "Fastqs/"
-    elif exome == "YES": samples_dir = "Exome_Fastqs/"
-    if single_lane == "NO": match = ""
-    elif single_lane == "YES": match = get_match()
+    if exome:
+        samples_dir = "Exome_Fastqs/"
+        exome = "YES"
+    else:
+        samples_dir = "Fastqs/"
+        exome = "NO"
+    if single_lane:
+        match = get_match()
+        single_lane = "YES"
+    else:
+        match = ""
+        single_lane = "NO"
+    if multiqc: pipeline = "GERMLINE"
+    else: pipeline = "MULTIQC"
     all_samples = get_data(bucket, samples_dir)
     all_run_ids = get_runs(all_samples)
     run = get_run_id(all_run_ids)
     commands = [
-        "rm .nextflow.log*",
-        "sudo systemctl start docker",
-        "sudo /usr/local/bin/nextflow run /nf-wgs-ufl/main.nf "\
-        f"-work-dir 's3://{bucket}/{out_dir}_work/' "\
-        f"--bucket 's3://{bucket}' "\
-        f"--run_id '{run}' "\
-        f"--single_lane '{single_lane}' "\
-        f"--match '{match}' "\
-        f"--exome '{exome}' "\
-        f"--run_dir 's3://{bucket}/{out_dir}{run}'"
+        "nextflow",
+        "run", "/data/main.nf",
+        "-work-dir", f"s3://{bucket}/{out_dir}_work/",
+        "--bucket", f"s3://{bucket}",
+        "--run_id", f"{run}",
+        "--single_lane", f"{single_lane}",
+        "--match", f"{match}",
+        "--exome", f"{exome}",
+        "--pipeline", f"{pipeline}"
     ]
     return commands
 
 
-def start_instance(instance_id):
-    """
-    """
-    ec2 = boto3.client('ec2')
-    ec2.start_instances(InstanceIds=[instance_id])
-
-
 def run_command(commands):
-    """Runs commands on remote linux EC2 instance.
-
-    Keyword arguments:
-
-    commands -- a list of strings, each one a command to execute on the instance
-
-    Return:
-    
-    response -- the response from the send_command function
     """
-    client = boto3.client('ssm')
-    response = client.send_command(
-        DocumentName="AWS-RunShellScript",
-        Parameters={'commands': commands},
-        InstanceIds=['i-0671758033a9db6fd']
+    """
+    client = boto3.client('batch')
+    response = client.submit_job(
+        jobName='ufl-germline',
+        jobQueue='hakmonkey-nextflow',
+        jobDefinition='nextflow-ufl-germline:10',
+        containerOverrides={'command': [commands]}
     )
     return response
 
 
 def main():
     args = parse_args()
-    bucket = args.b # bucket = "hakmonkey-genetics-lab"
+    bucket = args.b
     out_dir = 'Pipeline_Output/'
-    instance_id = 'i-0671758033a9db6fd'
-    commands = get_commands(bucket, out_dir)
-    start_instance(instance_id)
-    print('Starting Nextflow Instance...')
-    sleep(30)
+    commands = get_commands(bucket, out_dir, args.exome, args.single_lane, args.multiqc)
     response = run_command(commands)
-    print(response['Command']['Parameters']['commands'])
+    print(response)
 
 
 if __name__ == '__main__':
