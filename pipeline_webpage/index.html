@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>UFL-GERMLINE</title>
+    <link rel="stylesheet" href="css/stylesheet.css">
+    <script src="js/jquery.min.js"></script>	
+    <script src="js/aws-sdk-2.888.0.min.js"></script>
+    <script src="js/aws-cognito-sdk.min.js"></script>
+    <script src="js/amazon-cognito-identity.min.js"></script>
+    <script src="js/context.js"></script>
+    <script src="js/log_in.js"></script>
+    <script src="js/pipeline_launch.js"></script>
+</head>
+<body>
+    <style>
+    .loader {
+        border: 16px solid #f3f3f3; /* Light grey */
+        border-top: 16px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    </style>
+    
+    <input id="userNameInput" type="text" placeholder="Username"/></br>
+    <input id="passwordInput" type="password" placeholder="Password"/></br>
+    <input id="logInButton" type="Button" value="Log In" onclick="logIn()">
+    <input id="pipeline" type="Button" value="Pipeline Launcher" onclick="switchToPipelineView()" style="display:none">
+    <input id="documentation" type="Button" value="Pipeline Documentation" onclick="switchToDocumentationView()" style="display:none">
+    <input id="logOutButton" type="Button" value="Log Out" onclick="logOut()" style="display:none">
+    </br></br>
+    <div id="loader" class="loader" style="display:none"></div>
+    </br></br>
+    <div id="workflow_question_box" style="display:none">
+        <p>Is this a germline run or a multiqc run?</p>
+        <input type="radio" name="workflow" id="germline"> GERMLINE
+        <br/><br/>
+        <input type="radio" name="workflow" id="multiqc"> MULTIQC
+        <br/><br/>
+        <button onclick="get_workflow()" id="workflow_button">Get Runs</button>
+    </div>
+    <div id="exome_question_box" style="display:none">
+        <p>Is this an exome run or a whole genome run?</p>
+        <input type="radio" name="exome" id="WES"> WES
+        <br/><br/>
+        <input type="radio" name="exome" id="WGS"> WGS
+        <br/><br/>
+        <button onclick="get_type()" id="exome_button">Submit</button>
+    </div>
+    <div id="runs_box" style="display:none">
+        <p>Select the run to process in the pipeline.</p>
+        <div id="runs_list"></div>
+    </div>
+    <div id="lane_box" style="display:none">
+        <p>Is this run single-lane or multi-lane run?</p>
+        <input type="radio" name="lanes" id="single"> Single Lane
+        <br/><br/>
+        <input type="radio" name="lanes" id="multi"> Multi Lane
+        <br/><br/>
+        <button onclick="get_match()" id="lane_button">Submit</button>
+    </div>
+    <div id="match_box" style="display:none">
+        <p>Select the correct matching pattern.</p>
+        <input type="radio" name="match" id="match_one"> _{R1,R2}_001.fastq.gz
+        <br/><br/>
+        <input type="radio" name="match" id="match_two"> _{1,2}.fq.gz
+        <br/><br/>
+        <button onclick="set_match()" id="match_button">Submit</button>
+    </div>
+    <div id="command_box" style="display:none">
+        <p>If the command looks correct please press the button to launch.</p>
+        <div id="germline_command"></div>
+        <div id="multiqc_command"></div>
+        <button onclick="launch_pipeline()" id="launch_command_button">Launch Pipeline</button>
+    </div>
+    <img src="img/launch.png" id="launch_img" style="display:none">
+</body>
+</html>

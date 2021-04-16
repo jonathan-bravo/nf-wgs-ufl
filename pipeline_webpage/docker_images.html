@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Pipeline Documentation</title>
+<meta name="author" content="Johnny Bravo">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="js/highlight/styles/dracula.css">
+<script src="js/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+<div id='content'>
+
+<h1 id="">Docker Images</h1>
+
+<a href="toc.html">Return to Table of Contents</a>
+
+<h2 id="bcftools-tabix">Bcftools &amp; Tabix</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y bcftools wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+    
+</code></pre>
+<br />
+
+<h2 id="bwa">Bwa</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y bwa wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+</code></pre>
+<br />
+
+<h2 id="deepvariant">DeepVariant</h2>
+<pre><code class="bash">
+docker pull google/deepvariant:1.1.0
+
+</code></pre>
+<br />
+
+<h2 id="deepvariant-gpu">DeepVariant GPU</h2>
+<pre><code class="bash">
+docker pull google/deepvariant:1.1.0-gpu
+
+</code></pre>
+<br />
+
+<h2 id="expansion-hunter">Expansion Hunter</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y curl wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+RUN wget https://github.com/Illumina/ExpansionHunter/releases/download/v4.0.2/ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
+RUN tar -xvzf ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
+RUN rm ExpansionHunter-v4.0.2-linux_x86_64.tar.gz
+    
+</code></pre>
+<br />
+
+<h2 id="fastqc">Fastqc</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y fastqc wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+</code></pre>
+<br />
+
+<h2 id="hap.py">Hap.py</h2>
+<pre><code class="bash">
+docker pull pkrusche/hap.py
+
+</code></pre>
+<br />
+
+<h2 id="multiqc">Multiqc</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y python3-pip curl wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+RUN pip3 install multiqc
+    
+</code></pre>
+<br />
+
+<h2 id="nextflow">Nextflow</h2>
+<pre><code class="Dockerfile">
+FROM openjdk:8-jre-alpine
+
+RUN apk update && apk add bash coreutils curl graphviz python3 py3-pip
+
+RUN pip3 install --upgrade pip
+RUN pip3 install awscli
+
+RUN curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.03.1-ce.tgz
+RUN mkdir dist
+RUN tar --strip-components=1 -xvzf docker-17.03.1-ce.tgz -C dist
+RUN rm docker-17.03.1-ce.tgz
+RUN mv dist/docker /usr/local/bin/docker
+
+# see https://blogs.oracle.com/java-platform-group/java-se-support-for-docker-cpu-and-memory-limits
+ENV NXF_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap' NXF_HOME=/.nextflow AWS_DEFAULT_REGION=us-east-1
+
+# copy docker client
+COPY entry.sh /usr/local/bin/entry.sh
+COPY nextflow /usr/local/bin/nextflow
+
+# download runtime
+RUN mkdir /.nextflow \
+    && touch /.nextflow/dockerized \
+    && chmod 755 /usr/local/bin/nextflow \
+    && chmod 755 /usr/local/bin/entry.sh \
+    && nextflow info
+
+# define the entry point
+ENTRYPOINT ["/usr/local/bin/entry.sh"]
+
+</code></pre>
+<br />
+
+<h2 id="panelcn.mops">Panelcn.MOPS</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y curl libcurl4-openssl-dev r-base wget libxml2-dev libxmlsec1-dev unzip
+
+RUN R -e "install.packages('RCurl')"
+RUN R -e "install.packages('BiocManager')"
+RUN R -e "BiocManager::install('panelcn.mops')"
+RUN R -e "BiocManager::install('KaryoploteR')"
+RUN R -e "BiocManager::install('CopyNumberPlots')"
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+    
+</code></pre>
+<br />
+
+<h2 id="picard">Picard</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y default-jre default-jdk curl wget unzip
+
+RUN wget https://github.com/broadinstitute/picard/releases/download/2.23.8/picard.jar
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+    
+</code></pre>
+<br />
+
+<h2 id="rtgtools">RTGTools</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y default-jre default-jdk curl wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+RUN wget https://github.com/RealTimeGenomics/rtg-tools/releases/download/3.12/rtg-tools-3.12-linux-x64.zip
+RUN unzip rtg-tools-3.12-linux-x64.zip
+RUN rm rtg-tools-3.12-linux-x64.zip
+
+</code></pre>
+<br />
+
+<h2 id="samtools">Samtools</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y samtools curl wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+    
+</code></pre>
+<br />
+
+<h2 id="snpeff-tabix">SnpEff &amp; Tabix</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y default-jre default-jdk curl wget unzip tabix
+
+RUN wget https://snpeff.blob.core.windows.net/versions/snpEff_latest_core.zip
+RUN unzip snpEff_latest_core.zip
+RUN rm snpEff_latest_core.zip
+
+RUN java -jar /snpEff/snpEff.jar download -v hg19
+RUN java -jar /snpEff/snpEff.jar download -v hg38
+RUN java -jar /snpEff/snpEff.jar download -v GRCh37.75
+RUN java -jar /snpEff/snpEff.jar download -v GRCh38.99
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+</code></pre>
+<br />
+
+<h2 id="strelka2">Strelka2</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y python default-jre default-jdk curl wget unzip
+
+RUN wget https://github.com/Illumina/strelka/releases/download/v2.9.10/strelka-2.9.10.centos6_x86_64.tar.bz2
+RUN bzip2 -d strelka-2.9.10.centos6_x86_64.tar.bz2
+RUN tar -xvf strelka-2.9.10.centos6_x86_64.tar
+RUN rm strelka-2.9.10.centos6_x86_64.tar
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+</code></pre>
+<br />
+
+<h2 id="trimmomatic">Trimmomatic</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y trimmomatic curl wget unzip
+
+RUN wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+RUN unzip awscli-exe-linux-x86_64.zip
+RUN rm awscli-exe-linux-x86_64.zip
+RUN /aws/install
+
+ENV AWS_DEFAULT_REGION=us-east-1
+    
+</code></pre>
+<br />
+
+<h2 id="ubuntu-python3">Ubuntu & Python3</h2>
+<pre><code class="Dockerfile">
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && apt-get install -y python python3-pip curl wget unzip
+
+RUN pip3 install awscli boto3 tqdm numpy scipy pandas scikit-learn matplotlib subsample
+
+ENV AWS_DEFAULT_REGION=us-east-1
+    
+</code></pre>
+<br />
+
+<a href="#">To Top</a>
+</div>
+</body>
+</html>

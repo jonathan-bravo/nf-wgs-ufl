@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Pipeline Documentation</title>
+<meta name="author" content="Johnny Bravo">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="js/highlight/styles/dracula.css">
+<script src="js/highlight/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+<div id='content'>
+
+<h1 id="program-default-settings">Program Default Settings</h1>
+
+<a href="toc.html">Return to Table of Contents</a>
+
+<blockquote>
+<p>More tables will be added**</p>
+</blockquote>
+
+<h2 id="bwa-mem">BWA MEM</h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-t</td>
+<td>1</td>
+<td>number of reads</td>
+</tr>
+<tr>
+<td>-k</td>
+<td>19</td>
+<td>minimum seed length</td>
+</tr>
+<tr>
+<td>-w</td>
+<td>100</td>
+<td>band width for banded alignment</td>
+</tr>
+<tr>
+<td>-d</td>
+<td>100</td>
+<td>off diagonal X-droppoff</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>1.5</td>
+<td>look for internal seeds inside a seed longer than {-k} * FLOAT</td>
+</tr>
+<tr>
+<td>-y</td>
+<td>20</td>
+<td>seed occurrence for the 3rd round seeding</td>
+</tr>
+<tr>
+<td>-c</td>
+<td>500</td>
+<td>skip seeds with more than INT occurrences</td>
+</tr>
+<tr>
+<td>-D</td>
+<td>0.50</td>
+<td>drop chains shorter than FLOAT fraction of the longest overlapping chain</td>
+</tr>
+<tr>
+<td>-W</td>
+<td>0</td>
+<td>discard a chain if seeded bases shorter than INT</td>
+</tr>
+<tr>
+<td>-m</td>
+<td>50</td>
+<td>perform at most INT rounds of mate rescues for each read</td>
+</tr>
+<tr>
+<td>-S</td>
+<td>NULL</td>
+<td>skip mate rescue</td>
+</tr>
+<tr>
+<td>-P</td>
+<td>NULL</td>
+<td>skip pairing; mate rescue performed unless -S also in use</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="wgsim">Wgsim</h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-N</td>
+<td>1000000</td>
+<td>number of reads</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>70</td>
+<td>length of reads for fq 1</td>
+</tr>
+<tr>
+<td>-2</td>
+<td>70</td>
+<td>length of reads for fq 2</td>
+</tr>
+<tr>
+<td>-e</td>
+<td>0.020</td>
+<td>base error rate</td>
+</tr>
+<tr>
+<td>-d</td>
+<td>500</td>
+<td>outer distance between the two ends</td>
+</tr>
+<tr>
+<td>-s</td>
+<td>50</td>
+<td>standard deviation</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>0.0010</td>
+<td>rate of mutation</td>
+</tr>
+<tr>
+<td>-R</td>
+<td>0.15</td>
+<td>fraction of indels</td>
+</tr>
+<tr>
+<td>-X</td>
+<td>0.30</td>
+<td>probability an indel is extended</td>
+</tr>
+<tr>
+<td>-S</td>
+<td>-1</td>
+<td>seed for random generator</td>
+</tr>
+<tr>
+<td>-A</td>
+<td>0.05</td>
+<td>disgard if the fracton of ambiguous bases is higher than value</td>
+</tr>
+</tbody>
+</table>
+<a href="#">To Top</a>
+</div>
+</body>
+</html>
