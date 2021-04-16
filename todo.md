@@ -1,5 +1,16 @@
 # TO DD LIST
 
+## CNV COMPARE
+
+- TODO Add panel filtering option to `compare_cnv.py`
+- TODO generate CNV data for agregate giab
+- TODO generate CNV data for NIST samples
+- TODO compare 5x, 10x, 15x, 30x-agg to 30x
+- TODO compare 5x, 10x, 15x, 30x, 30x-agg to NIST 60x
+- TODO Compare 30x agregate samples to 30x giab samples
+- TODO Compare 5x, 10x, 15x, 30x-agg to 30x ddd_gel3 panel
+- TODO compare 5x, 10x, 15x, 30x, 30x-agg to NIST 60x ddd_gel3 panel
+
 ## DOCUMENT
 
 - TODO Fill out SNP scoring table
@@ -14,15 +25,6 @@
 - What about DeepVariant? DeepVariant is bound to be better and is part of the plan for v2
 - TODO Document the CNV results generated
 
-
-## CNV COMPARE
-
-- TODO Download agregate giab bams
-- TODO generate CNV data for agregate giab
-- TODO Compare 30x agregate samples to 30x giab samples
-- TODO RUN 30X NIST SAMPLE
-
-
 ## PIPELINE
 
 - TODO Get files to automatically upload from NovaSeq to AWS
@@ -35,7 +37,10 @@
   - We want all data to remain in AWS, the less files that have to come down the better
   - Image will plot the CNVs
   - Output file will be 'sample_id_panel_report.json'
-- TODO Web app that will be hosted in AWS S3 (buttons to launch pipeline)
+  - TODO add excel output
+- TODO add varClass to website
+  - TODO allow users to select multiple panels
+  - TODO send files to user
 - TODO Create clinical bucket/ environment
 - TODO Database the correct output from the pipeline
   - Frequency of variant startified by ethnicity
