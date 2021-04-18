@@ -41,11 +41,36 @@ def parse_args():
         help = 'number of cpus',
         required = False
     )
+    parser.add_argument(
+        '-p',
+        metavar = '--GENE_PANEL',
+        type = str,
+        help = '',
+        required = False
+    )
+    parser.add_argument(
+        '-o',
+        metavar = '--OUTFILE',
+        type = str,
+        help = '',
+        required = False
+    )
     args = parser.parse_args()
     return args
 
 
-def parse_vcf(vcf, chrom):
+def get_panel(panel):
+    """
+    """
+    panel_genes = []
+    with open(panel) as f:
+        for line in f:
+            panel_genes.append(line.split('\t')[0])
+    panel_genes.pop(0)
+    return panel_genes
+
+
+def parse_vcf(vcf, chrom, panel):
     """Parse input VCF files.
 
     This function grabs the contig, start, stop, and alternate information
@@ -63,14 +88,27 @@ def parse_vcf(vcf, chrom):
     """
     cnvs = []
     for cnv in vcf.fetch():
-        if cnv.contig == chrom:
+        if panel != None:
+            if isinstance(cnv.info['GENE'], tuple):
+                check = (
+                    cnv.contig == chrom
+                    and any(item in cnv.info['GENE'] for item in panel)
+                )
+            else:
+                check = (
+                    cnv.contig == chrom
+                    and cnv.info['GENES'] in panel
+                )
+        else:
+            check = (cnv.contig == chrom)
+        if check:
             if cnv.alts == None: alt = '.'
             else: alt = cnv.alts[0]
             cnvs.append((cnv.contig, cnv.start, cnv.stop, alt))
     return cnvs
 
 
-def compare_cnvs(chrom, bench, sample):
+def compare_cnvs(chrom, bench, sample, panel):
     """Comparing the benchmark and sample VCF cnv files.
 
     This function takes the two input VCF files and the specific chromosome
@@ -89,8 +127,8 @@ def compare_cnvs(chrom, bench, sample):
     fp_list -- a list of the false positive entries
     fn_list -- a list of the false negatice entries
     """
-    bench_vcf = parse_vcf(VariantFile(bench), chrom)
-    sample_vcf = parse_vcf(VariantFile(sample), chrom)
+    bench_vcf = parse_vcf(VariantFile(bench), chrom, panel)
+    sample_vcf = parse_vcf(VariantFile(sample), chrom, panel)
     tp = 0
     fp = 0
     fp_list = []
@@ -103,7 +141,7 @@ def compare_cnvs(chrom, bench, sample):
     return (tp, fp, fp_list, fn_list)
 
 
-def chunk_compare(chrom_tup, bench, sample, cpus):
+def chunk_compare(chrom_tup, bench, sample, panel, cpus):
     """Using multiprocessing to leverage multi-core cpus.
 
     This function takes the given input lists and a number of cpus and chunks
@@ -123,7 +161,7 @@ def chunk_compare(chrom_tup, bench, sample, cpus):
     """
     if cpus == None: cpus = 1
     with ProcessPoolExecutor(max_workers = cpus) as executor:
-        results = executor.map(compare_cnvs, chrom_tup, bench, sample)
+        results = executor.map(compare_cnvs, chrom_tup, bench, sample, panel)
     return results
 
 
@@ -166,7 +204,7 @@ def parse_results(results, bench_vcf):
     return(tp, fp, fn, ppv, tpr, fp_list, fn_list)
 
 
-def make_outfile(parsed_results, bench, sample):
+def make_outfile(parsed_results, outfile):
     """Generate the outfile.
 
     Keyword arguments:
@@ -175,9 +213,8 @@ def make_outfile(parsed_results, bench, sample):
     bench          -- the input benchmark vcf
     sample         -- the input sample vcf
     """
-    bench_name = bench.split('_')[0]
-    sample_name = sample.split('_')[0]
-    f = open(f'{sample_name}_vs_{bench_name}.txt', "w")
+    if outfile == None: outfile = 'compare_cnv'
+    f = open(f'{outfile}.txt', "w")
     f.write('VALUES\n\n')
     f.write(f'True Positive: {parsed_results[0]}\n')
     f.write(f'False Positive: {parsed_results[1]}\n')
@@ -202,10 +239,15 @@ def main():
     args = parse_args()
     bench = [args.b] * len(chrom_tup)
     sample = [args.v] * len(chrom_tup)
+    if args.p != None: 
+        panel = get_panel(args.p)
+        panels = [panel] * len(chrom_tup)
+    else:
+        panels = [args.p] * len(chrom_tup)
     cpus = int(args.t)
-    results = chunk_compare(chrom_tup, bench, sample, cpus)
+    results = chunk_compare(chrom_tup, bench, sample, panels, cpus)
     parsed_results = parse_results(results, args.b)
-    make_outfile(parsed_results, args.b, args.v)
+    make_outfile(parsed_results, args.o)
 
 
 if __name__ == '__main__':
