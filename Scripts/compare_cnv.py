@@ -97,7 +97,7 @@ def parse_vcf(vcf, chrom, panel):
             else:
                 check = (
                     cnv.contig == chrom
-                    and cnv.info['GENES'] in panel
+                    and cnv.info['GENE'] in panel
                 )
         else:
             check = (cnv.contig == chrom)
