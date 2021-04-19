@@ -1,16 +1,5 @@
 # TO DD LIST
 
-## CNV COMPARE
-
-- TODO Add panel filtering option to `compare_cnv.py`
-- TODO generate CNV data for agregate giab
-- TODO generate CNV data for NIST samples
-- TODO compare 5x, 10x, 15x, 30x-agg to 30x
-- TODO compare 5x, 10x, 15x, 30x, 30x-agg to NIST 60x
-- TODO Compare 30x agregate samples to 30x giab samples
-- TODO Compare 5x, 10x, 15x, 30x-agg to 30x ddd_gel3 panel
-- TODO compare 5x, 10x, 15x, 30x, 30x-agg to NIST 60x ddd_gel3 panel
-
 ## DOCUMENT
 
 - TODO Fill out SNP scoring table
