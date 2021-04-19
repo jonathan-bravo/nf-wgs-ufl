@@ -67,41 +67,47 @@ def parse_cnv_interactions(json):
     """
     """
     interactions = []
+    index = 0
     if json['cnv_interactions']['all_interactions'] != []:
         for interaction in json['cnv_interactions']['all_interactions']:
-            cnv = (
+            cnv = str((
                 interaction['cnv']['chrom'],
-                interaction['cnv']['cyto'],
                 interaction['cnv']['start'],
-                interaction['cnv']['stop']
-            )
+                interaction['cnv']['stop'],
+                interaction['cnv']['alt']
+            ))
             snps = interaction['snps']
-            snp_list = [] # list of snp dicts
             for snp in snps:
-                snp_list.append((
+                current_snp = str((
                     snp['chrom'],
                     snp['start'],
-                    snp['stop']
+                    snp['stop'],
+                    str(snp['alt']).split('|')[3]
                 ))
+                interactions.append(pd.DataFrame({'CNV': cnv, 'snp': current_snp}, index = [index]))
+                index += 1
             svs = interaction['svs']
-            sv_list = []
             for sv in svs:
-                sv_list.append((
+                current_sv = str((
                     sv['chrom'],
                     sv['start'],
-                    sv['stop']
+                    sv['stop'],
+                    str(sv['ann']).split('|')[3]
                 ))
+                interactions.append(pd.DataFrame({'CNV': cnv, 'sv': current_sv}, index = [index]))
+                index += 1
             exps = interaction['exps']
-            exp_list = []
             for exp in exps:
-                exp_list.append((
+                current_exp = str((
                     exp['chrom'],
                     exp['start'],
-                    exp['stop']
+                    exp['stop'],
+                    exp['gene']
                 ))
-            interactions.append(pd.DataFrame({'CNV': cnv, 'SNPs': snp_list, 'SVs': sv_list, 'EXPs': exp_list}))
+                interactions.append(pd.DataFrame({'CNV': cnv, 'exp': current_exp}, index = [index]))
+                index += 1
         return pd.concat(interactions)
-    else: return None
+    else: return pd.DataFrame()
 
 def read_json(json_file):
     """
@@ -113,7 +119,6 @@ def read_json(json_file):
         cnv = parse_variant(data, 'cnv')
         exp = pd.DataFrame(data['exp']['all_expansions'])
         interactions = parse_cnv_interactions(data)
-        if interactions == None: interactions = pd.DataFrame()
         genes = pd.DataFrame(data['metadata']['genes_in_panel'], columns = ['genes'])
         lit = pd.DataFrame(data['metadata']['supporting_literature'], columns = ['literature'])
         tools = pd.DataFrame(data['metadata']['pipeline'])
