@@ -350,8 +350,10 @@ def filter_vcf(vcf, panel, low_coverage):
                     snp_score += 1.0
                     gp3 = '.'
                 gt = variant.samples['SAMPLE1'].get('GT')
-                if gt[0] == gt[1]: genotype = 'heterozygous'
-                elif gt[0] != gt[1]: genotype = 'homozygous'
+                if gt != None and len(gt) > 1:
+                    if gt[0] == gt[1]: genotype = 'heterozygous'
+                    elif gt[0] != gt[1]: genotype = 'homozygous'
+                else: genotype == 'None'
                 adf = variant.samples['SAMPLE1'].get('ADF')
                 adr = variant.samples['SAMPLE1'].get('ADR')
                 fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
@@ -387,8 +389,10 @@ def filter_vcf(vcf, panel, low_coverage):
                     nmd = variant.info['NMD'][0]
                 else: nmd = '.'
                 gt = variant.samples['SAMPLE1'].get('GT')
-                if gt[0] == gt[1]: genotype = 'heterozygous'
-                elif gt[0] != gt[1]: genotype = 'homozygous'
+                if gt != None and len(gt) > 1:
+                    if gt[0] == gt[1]: genotype = 'heterozygous'
+                    elif gt[0] != gt[1]: genotype = 'homozygous'
+                else: genotype == 'None'
                 adf = variant.samples['SAMPLE1'].get('ADF')
                 adr = variant.samples['SAMPLE1'].get('ADR')
                 fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
@@ -414,8 +418,10 @@ def filter_vcf(vcf, panel, low_coverage):
                 #     alt_length.append(length)
                 # if any(x >= 70 for x in alt_length):
                 gt = variant.samples['SAMPLE1'].get('GT')
-                if gt[0] == gt[1]: genotype = 'heterozygous'
-                elif gt[0] != gt[1]: genotype = 'homozygous'
+                if gt != None and len(gt) > 1:
+                    if gt[0] == gt[1]: genotype = 'heterozygous'
+                    elif gt[0] != gt[1]: genotype = 'homozygous'
+                else: genotype == 'None'
                 repcn = variant.samples['SAMPLE1'].get('REPCN').split('/')
                 exp_list.append((
                     variant.contig,
