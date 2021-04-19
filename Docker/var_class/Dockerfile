@@ -12,14 +12,16 @@ libcurl4-openssl-dev \
 r-base \
 wget \
 libxml2-dev \
-libxmlsec1-dev
+libxmlsec1-dev \
+bedtools
 
 RUN pip3 install \
 awscli \
 boto3 \
 pandas \
 pysam \
-argparse
+argparse \
+openpyxl
 
 RUN R -e "install.packages('RCurl')"
 RUN R -e "install.packages('BiocManager')"
@@ -36,5 +38,6 @@ COPY Resources /Resources/
 COPY PMC-ids.csv.gz /
 COPY CNV_json_plot.R /
 COPY g_ranges.py /
+COPY json_to_csv.py /
 
 RUN gunzip PMC-ids.csv.gz
