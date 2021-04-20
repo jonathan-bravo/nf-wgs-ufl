@@ -82,7 +82,7 @@ def parse_cnv_interactions(json):
                     snp['chrom'],
                     snp['start'],
                     snp['stop'],
-                    str(snp['alt']).split('|')[3]
+                    snp['gene']
                 ))
                 interactions.append(pd.DataFrame({'CNV': cnv, 'snp': current_snp}, index = [index]))
                 index += 1
@@ -92,7 +92,7 @@ def parse_cnv_interactions(json):
                     sv['chrom'],
                     sv['start'],
                     sv['stop'],
-                    str(sv['ann']).split('|')[3]
+                    sv['gene']
                 ))
                 interactions.append(pd.DataFrame({'CNV': cnv, 'sv': current_sv}, index = [index]))
                 index += 1
