@@ -4,7 +4,6 @@ import argparse
 from json import dump
 from os import system
 from pysam import VariantFile
-from pprint import pprint
 
 
 def parse_args():
@@ -48,20 +47,6 @@ def parse_args():
         metavar = '--SAMPLE_ID',
         type = str,
         help = 'sample id to be included in report name',
-        required = True
-    )
-    parser.add_argument(
-        '-c',
-        metavar = '--CLASSIFY_CNV',
-        type = str,
-        help = '',
-        required = True
-    )
-    parser.add_argument(
-        '-l',
-        metavar = '--PMC_IDS',
-        type = str,
-        help = '',
         required = True
     )
     parser.add_argument(
@@ -191,12 +176,12 @@ def cnv_bed(contigs, sample_id):
     f.close()
 
 
-def call_classify_cnv(cpus, sample_id, script):
+def call_classify_cnv(cpus, sample_id):
     """
     """
     infile = f'{sample_id}_cnv.bed'
     outfile = f'{sample_id}_ClassifyCNV_out'
-    launch = f'{script} --infile {infile} --GenomeBuild hg19 --cores {cpus} --outdir {outfile} --precise'
+    launch = f'/ClassifyCNV.py --infile {infile} --GenomeBuild hg19 --cores {cpus} --outdir {outfile} --precise'
     system(launch)
     clean = f'rm {infile}; rm -rf {outfile}/Intermediate_files'
     system(clean)
@@ -351,8 +336,8 @@ def filter_vcf(vcf, panel, low_coverage):
                     gp3 = '.'
                 gt = variant.samples['SAMPLE1'].get('GT')
                 if gt != None and len(gt) > 1:
-                    if gt[0] == gt[1]: genotype = 'heterozygous'
-                    elif gt[0] != gt[1]: genotype = 'homozygous'
+                    if gt[0] == gt[1]: genotype = 'homozygous'
+                    elif gt[0] != gt[1]: genotype = 'heterozygous'
                 else: genotype == 'None'
                 adf = variant.samples['SAMPLE1'].get('ADF')
                 adr = variant.samples['SAMPLE1'].get('ADR')
@@ -360,13 +345,21 @@ def filter_vcf(vcf, panel, low_coverage):
                 if isinstance(gnomad, float): gnomad = f'{gnomad:.3e}'
                 if isinstance(gp3, float): gp3 = f'{gp3:.3e}'
                 n_score = map_score(snp_score, -9.5, 15.0, 1.0, 0.0)
+                ann = str(variant.info['ANN']).split('|')
+                gene = ann[3]
+                nm = ann[6]
+                codon = ann[9]
+                protein = ann[10]
                 if n_score >= 0.87: snp_list.append((
                     variant.contig,
                     variant.start,
                     variant.stop,
                     variant.ref,
                     variant.alts,
-                    variant.info['ANN'],
+                    gene,
+                    nm,
+                    codon,
+                    protein,
                     lof,
                     nmd,
                     genotype,
@@ -390,19 +383,27 @@ def filter_vcf(vcf, panel, low_coverage):
                 else: nmd = '.'
                 gt = variant.samples['SAMPLE1'].get('GT')
                 if gt != None and len(gt) > 1:
-                    if gt[0] == gt[1]: genotype = 'heterozygous'
-                    elif gt[0] != gt[1]: genotype = 'homozygous'
+                    if gt[0] == gt[1]: genotype = 'homozygous'
+                    elif gt[0] != gt[1]: genotype = 'heterozygous'
                 else: genotype == 'None'
                 adf = variant.samples['SAMPLE1'].get('ADF')
                 adr = variant.samples['SAMPLE1'].get('ADR')
                 fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
+                ann = str(variant.info['ANN']).split('|')
+                gene = ann[3]
+                nm = ann[6]
+                codon = ann[9]
+                protein = ann[10]
                 if sv_score >= 1.0: sv_list.append((
                     variant.contig,
                     variant.start,
                     variant.stop,
                     variant.ref,
                     variant.alts,
-                    variant.info['ANN'],
+                    gene,
+                    nm,
+                    codon,
+                    protein,
                     lof,
                     nmd,
                     genotype,
@@ -419,8 +420,8 @@ def filter_vcf(vcf, panel, low_coverage):
                 # if any(x >= 70 for x in alt_length):
                 gt = variant.samples['SAMPLE1'].get('GT')
                 if gt != None and len(gt) > 1:
-                    if gt[0] == gt[1]: genotype = 'heterozygous'
-                    elif gt[0] != gt[1]: genotype = 'homozygous'
+                    if gt[0] == gt[1]: genotype = 'homozygous'
+                    elif gt[0] != gt[1]: genotype = 'heterozygous'
                 else: genotype == 'None'
                 repcn = variant.samples['SAMPLE1'].get('REPCN').split('/')
                 exp_list.append((
@@ -462,7 +463,7 @@ def filter_cnv(cnv_contigs, cnv_contig_determinations):
     return path_cnvs
 
 
-def get_literature(panel, genes, pmc):
+def get_literature(panel, genes):
     """
     """
     lit = []
@@ -474,7 +475,7 @@ def get_literature(panel, genes, pmc):
                     if pub != '': lit.append(pub)
     lit = set(lit)
     lit_list = []
-    with open(pmc) as f:
+    with open('/PMC-ids.csv') as f:
         for line in f:
             pub = line.split(',') # 7 = DOI, 9 = PMID
             if pub[9] in lit: lit_list.append(f'{pub[8]}: {pub[7]}')
@@ -511,14 +512,17 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'stop': snp[2],
                     'ref': snp[3],
                     'alt': snp[4],
-                    'annotation': snp[5],
-                    'lof': snp[6],
-                    'nmd': snp[7],
-                    'genotype': snp[8],
-                    'F:R_ref_F:R_alt': snp[9],
-                    'cadd': snp[10],
-                    'gnomad_freq': snp[11],
-                    '1000_genomes_freq': snp[12]
+                    'gene': snp[5],
+                    'nm': snp[6],
+                    'c': snp[7],
+                    'p': snp[8],
+                    'lof': snp[9],
+                    'nmd': snp[10],
+                    'genotype': snp[11],
+                    'F:R_ref_F:R_alt': snp[12],
+                    'cadd': snp[13],
+                    'gnomad_freq': snp[14],
+                    '1000_genomes_freq': snp[15]
                 }
                 overlap['snps'].append(snp_dict)
         for sv in sv_list:
@@ -530,11 +534,14 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'stop': sv[2],
                     'ref': sv[3],
                     'alt': sv[4],
-                    'ann': sv[5],
-                    'lof': sv[6],
-                    'nmd': sv[7],
-                    'genotype': sv[8],
-                    'F:R_ref_F:R_alt': sv[9]
+                    'gene': sv[5],
+                    'nm': sv[6],
+                    'c': sv[7],
+                    'p': sv[8],
+                    'lof': sv[9],
+                    'nmd': sv[10],
+                    'genotype': sv[11],
+                    'F:R_ref_F:R_alt': sv[12]
                 }
                 overlap['svs'].append(sv_dict)
         for exp in exp_list:
@@ -559,7 +566,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
     return overlaps
 
 
-def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, pmc, interactions):
+def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions):
     """
     """
     genes = []
@@ -928,39 +935,45 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         ]
     }
     for snp in snp_list:
-        genes.append(str(snp[5]).split('|')[3])
+        genes.append(snp[5])
         snp_dict = {
             'chrom': snp[0],
             'start': snp[1],
             'stop': snp[2],
             'ref': snp[3],
             'alt': snp[4],
-            'annotation': snp[5],
-            'lof': snp[6],
-            'nmd': snp[7],
-            'genotype': snp[8],
-            'F:R_ref_F:R_alt': snp[9],
-            'cadd': snp[10],
-            'gnomad_freq': snp[11],
-            '1000_genomes_freq': snp[12]
+            'gene': snp[5],
+            'nm': snp[6],
+            'c': snp[7],
+            'p': snp[8],
+            'lof': snp[9],
+            'nmd': snp[10],
+            'genotype': snp[11],
+            'F:R_ref_F:R_alt': snp[12],
+            'cadd': snp[13],
+            'gnomad_freq': snp[14],
+            '1000_genomes_freq': snp[15]
         }
-        if float(snp[13]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
+        if float(snp[16]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
         else: data['snp']['likely_pathogenic_snp'].append(snp_dict)
     for sv in sv_list:
-        genes.append(str(sv[5]).split('|')[3])
+        genes.append(sv[5])
         sv_dict = {
             'chrom': sv[0],
             'start': sv[1],
             'stop': sv[2],
             'ref': sv[3],
             'alt': sv[4],
-            'ann': sv[5],
-            'lof': sv[6],
-            'nmd': sv[7],
-            'genotype': sv[8],
-            'F:R_ref_F:R_alt': sv[9]
+            'gene': sv[5],
+            'nm': sv[6],
+            'c': sv[7],
+            'p': sv[8],
+            'lof': sv[9],
+            'nmd': sv[10],
+            'genotype': sv[11],
+            'F:R_ref_F:R_alt': sv[12]
         }
-        if float(sv[10]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
+        if float(sv[13]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
         else: data['sv']['likely_pathogenic_sv'].append(sv_dict)
     for cnv in path_cnvs:
         genes.append(cnv[5])
@@ -989,10 +1002,14 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         data['exp']['all_expansions'].append(exp_dict)
         # if any(x >= 115 for x in exp[5]): data['exp']['pathogenic_exp'].append(exp_dict)
         # else: data['exp']['likely_pathogenic_exp'].append(exp_dict)
-    if panel != None: data['metadata']['supporting_literature'] = get_literature(panel, genes, pmc)
-    else: data['metadata']['supporting_literature'] =  None
-    with open(f'{sample_id}_report.json', 'w') as outfile:
-        dump(data, outfile, indent = 4)
+    if panel != None:
+        data['metadata']['supporting_literature'] = get_literature(panel, genes)
+        with open(f'{sample_id}_{panel}_report.json', 'w') as outfile:
+            dump(data, outfile, indent = 4)
+    else:
+        data['metadata']['supporting_literature'] =  None
+        with open(f'{sample_id}_report.json', 'w') as outfile:
+            dump(data, outfile, indent = 4)
 
 
 def main():
@@ -1004,17 +1021,15 @@ def main():
     vcf = VariantFile(args.v)
     sample_id = args.s
     cpus = args.t
-    script = args.c
-    pmc = args.l
     if cpus == None: cpus = 1
     snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.low_coverage)
     cnv_contigs = check_entries(cnv_list)
     cnv_bed(cnv_contigs, sample_id)
-    call_classify_cnv(cpus, sample_id, script)
+    call_classify_cnv(cpus, sample_id)
     cnv_contig_determinations = get_cnv_determination(sample_id)
     path_cnvs = filter_cnv(cnv_contigs, cnv_contig_determinations)
     interactions = check_interactions(path_cnvs, snp_list, sv_list, exp_list)
-    make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, pmc, interactions)
+    make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions)
 
 
 if __name__ == '__main__':
