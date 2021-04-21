@@ -14,8 +14,6 @@ var poolData = {
     ClientId : clientId
 };
 
-getCurrentLoggedInSession();
-
 function logOut(){
     if (cognitoUser != null) {
 
