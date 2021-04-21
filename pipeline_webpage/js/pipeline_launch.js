@@ -1,5 +1,4 @@
 var workflow = '';
-var filtered_samples = [];
 var pipeline = '';
 var match = '';
 var lane = '';
@@ -25,8 +24,8 @@ function launch_pipeline() {
         jobQueue: "hakmonkey-nextflow",
         containerOverrides: {
             'command': [
-                "bash",
-                "-c",
+                'bash',
+                '-c',
                 nextflow_command
             ]
         }
@@ -44,13 +43,13 @@ function launch_pipeline() {
 
 function check_germline() {
 
+    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --single_lane \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
+
     $("#command_box").show();
     
     var command_to_run = document.createElement('p');
-    var command = document.createTextNode('nextflow run /data/main.nf -work-dir s3://hakmonkey-genetics-lab/Pipeline_Output/_work/ --bucket s3://hakmonkey-genetics-lab --run_id '+run_id+' --single_lane '+lane+' --match '+match+' --exome '+exome+' --pipeline '+pipeline);
+    var command = document.createTextNode(nextflow_command);
     command_to_run.appendChild(command);
-
-    nextflow_command = 'nextflow run /data/main.nf -work-dir s3://hakmonkey-genetics-lab/Pipeline_Output/_work/ --bucket s3://hakmonkey-genetics-lab --run_id '+run_id+' --single_lane '+lane+' --match '+match+' --exome '+exome+' --pipeline '+pipeline;
 
     var germline_command = document.getElementById('germline_command');
     germline_command.appendChild(command_to_run);
@@ -163,6 +162,7 @@ async function get_runs() {
     };
     
     var samples = [];
+    var filtered_samples = [];
 
     s3.listObjects(bucketParams, function(err, data) {
         if (err) {
