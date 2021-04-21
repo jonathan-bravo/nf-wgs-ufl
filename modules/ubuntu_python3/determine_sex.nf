@@ -7,7 +7,7 @@ process DETERMINE_SEX {
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
     label 'ubuntu_python3'
-    label 'small_process'
+    label 'high_mem'
 
     input:
     tuple val(sample_id), file("${sample_id}-sort.bam")
