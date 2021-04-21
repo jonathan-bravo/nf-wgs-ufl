@@ -16,6 +16,6 @@ process SAMTOOLS_VIEW {
 
     script:
     """
-    samtools view -@ ${task.cpus} -Sbu -o ${sample_id}.bam ${sample_id}.sam
+    samtools view -@ ${task.cpus} -b -o ${sample_id}.bam ${sample_id}.sam
     """
 }
