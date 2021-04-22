@@ -169,7 +169,6 @@ function launch_reporting() {
 async function get_report_sample() {
 
     $('#report_runs_box').hide();
-    $('#report_selection').show();
     
 
     var runs = document.getElementsByName('run_id');
@@ -243,6 +242,7 @@ async function get_report_sample() {
 
     await new Promise(r => setTimeout(r, 3000));
 
+    $('#report_selection').show();
     $('#report_sample_box').show();
     $('#report_panel_box').show();
 
