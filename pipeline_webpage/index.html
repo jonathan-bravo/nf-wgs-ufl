@@ -7,9 +7,10 @@
     <script src="js/aws-sdk-2.888.0.min.js"></script>
     <script src="js/aws-cognito-sdk.min.js"></script>
     <script src="js/amazon-cognito-identity.min.js"></script>
-    <script src="js/context.js"></script>
     <script src="js/log_in.js"></script>
     <script src="js/pipeline_launch.js"></script>
+    <script src="js/var_class_launch.js"></script>
+    <script src="js/context.js"></script>
 </head>
 <body>
     <style>
@@ -26,12 +27,26 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    .flex-container {
+        display: flex;
+    }
+
+    .flex-child {
+        flex: 1;
+        border: 2px solid #6272a4;
+    }  
+
+    .flex-child:first-child {
+        margin-right: 20px;
+    } 
     </style>
     
     <input id="userNameInput" type="text" placeholder="Username"/></br>
     <input id="passwordInput" type="password" placeholder="Password"/></br>
     <input id="logInButton" type="Button" value="Log In" onclick="logIn()">
     <input id="pipeline" type="Button" value="Pipeline Launcher" onclick="switchToPipelineView()" style="display:none">
+    <input id="report" type="Button" value="Research Report" onclick="switchToReportView()" style="display:none">
     <input id="documentation" type="Button" value="Pipeline Documentation" onclick="switchToDocumentationView()" style="display:none">
     <input id="logOutButton" type="Button" value="Log Out" onclick="logOut()" style="display:none">
     </br></br>
@@ -80,6 +95,28 @@
         <button onclick="launch_pipeline()" id="launch_command_button">Launch Pipeline</button>
     </div>
     <img src="img/launch.png" id="launch_img" style="display:none">
+    <div id="report_runs_box" style="display:none">
+        <p>Select the run to process in the pipeline.</p>
+        <div id="report_runs_list"></div>
+        <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
+    </div>
+    <div id="report_selection" class="flex-container" style="display:none">
+        <div id="report_sample_box" class="flex-child" style="display:none">
+            <p><b>Sample Selection:</b></p>
+            <div id="samples"></div>
+        </div>
+        <div id="report_panel_box" class="flex-child" style="display:none">
+            <p><b>Panel Selection:</b></p>
+            <div id="panels"></div>
+        </div>
+    </div>
+    <br/><br/>
+    <form id="email" onsubmit="return false;" style="display:none">
+        <label for="user_email">Email:</label>
+        <input type="text" id="user_email" name="User_Email" placeholder="gator@ufl.edu">
+        <br/><br/>
+        <input type="submit" onclick="launch_reporting()" id="launch_report_button" value="Get Research Report">
+    </form>
 
     <script type="text/javascript">getCurrentLoggedInSession();</script>
 </body>
