@@ -76,14 +76,14 @@ function launch_reporting() {
                 '<a href='+cnv_link+'>CNV Plot</a>'
             ];
 
-            batch.submitJob(job_params, function(err, data) {
-                if(err) {
-                    console.log(err, err.stack);
-                } else {
-                    $("#launch_img").show();
-                    console.log(data);
-                }
-            });
+            // batch.submitJob(job_params, function(err, data) {
+            //     if(err) {
+            //         console.log(err, err.stack);
+            //     } else {
+            //         $("#launch_img").show();
+            //         console.log(data);
+            //     }
+            // });
             
         }
     } else {
@@ -125,16 +125,18 @@ function launch_reporting() {
             '<a href='+cnv_link+'>CNV Plot</a>'
         ];
 
-        batch.submitJob(job_params, function(err, data) {
-            if(err) {
-                console.log(err, err.stack);
-            } else {
-                $("#launch_img").show();
-                console.log(data);
-            }
-        });
+        // batch.submitJob(job_params, function(err, data) {
+        //     if(err) {
+        //         console.log(err, err.stack);
+        //     } else {
+        //         $("#launch_img").show();
+        //         console.log(data);
+        //     }
+        // });
 
     }
+
+    console.log(email)
 
     var url_list = JSON.stringify(url, null, 4);
 
@@ -242,14 +244,7 @@ async function get_report_sample() {
 
     await new Promise(r => setTimeout(r, 3000));
 
-    $('#report_selection').show();
-    $('#report_sample_box').show();
-    $('#report_panel_box').show();
-
-    var samples_box = document.getElementById("report_sample_box");
     var sample_list = document.getElementById('samples');
-
-    var panels_box = document.getElementById('report_panel_box');
     var panel_list = document.getElementById('panels');
 
     for (const i in filtered_samples) {
@@ -283,6 +278,9 @@ async function get_report_sample() {
     }
 
     $("#loader").hide();
+    $('#report_selection').show();
+    $('#report_sample_box').show();
+    $('#report_panel_box').show();
     $('#email').show();
     $('#launch_report_button').show();
 
@@ -342,4 +340,5 @@ async function get_report_runs() {
     }
 
     $("#loader").hide();
+    $("#report_runs_box").show();
 }

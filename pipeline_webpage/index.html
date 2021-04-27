@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <title>UFL-GERMLINE</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono:wght@600&display=swap">
     <link rel="stylesheet" href="css/stylesheet.css">
-    <script src="js/jquery.min.js"></script>	
+    <script src="js/jquery.min.js"></script>
     <script src="js/aws-sdk-2.888.0.min.js"></script>
     <script src="js/aws-cognito-sdk.min.js"></script>
     <script src="js/amazon-cognito-identity.min.js"></script>
@@ -13,111 +15,247 @@
     <script src="js/context.js"></script>
 </head>
 <body>
-    <style>
-    .loader {
-        border: 16px solid #f3f3f3; /* Light grey */
-        border-top: 16px solid #3498db; /* Blue */
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 2s linear infinite;
-    }
 
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .flex-container {
-        display: flex;
-    }
-
-    .flex-child {
-        flex: 1;
-        border: 2px solid #6272a4;
-    }  
-
-    .flex-child:first-child {
-        margin-right: 20px;
-    } 
-    </style>
-    
-    <input id="userNameInput" type="text" placeholder="Username"/></br>
-    <input id="passwordInput" type="password" placeholder="Password"/></br>
-    <input id="logInButton" type="Button" value="Log In" onclick="logIn()">
-    <input id="pipeline" type="Button" value="Pipeline Launcher" onclick="switchToPipelineView()" style="display:none">
-    <input id="report" type="Button" value="Research Report" onclick="switchToReportView()" style="display:none">
-    <input id="documentation" type="Button" value="Pipeline Documentation" onclick="switchToDocumentationView()" style="display:none">
-    <input id="logOutButton" type="Button" value="Log Out" onclick="logOut()" style="display:none">
-    </br></br>
-    <div id="loader" class="loader" style="display:none"></div>
-    </br></br>
-    <div id="workflow_question_box" style="display:none">
-        <p>Is this a germline run or a multiqc run?</p>
-        <input type="radio" name="workflow" id="germline"> GERMLINE
-        <br/><br/>
-        <input type="radio" name="workflow" id="multiqc"> MULTIQC
-        <br/><br/>
-        <button onclick="get_workflow()" id="workflow_button">Get Runs</button>
-    </div>
-    <div id="exome_question_box" style="display:none">
-        <p>Is this an exome run or a whole genome run?</p>
-        <input type="radio" name="exome" id="WES"> WES
-        <br/><br/>
-        <input type="radio" name="exome" id="WGS"> WGS
-        <br/><br/>
-        <button onclick="get_type()" id="exome_button">Submit</button>
-    </div>
-    <div id="runs_box" style="display:none">
-        <p>Select the run to process in the pipeline.</p>
-        <div id="runs_list"></div>
-    </div>
-    <div id="lane_box" style="display:none">
-        <p>Is this run single-lane or multi-lane run?</p>
-        <input type="radio" name="lanes" id="single"> Single Lane
-        <br/><br/>
-        <input type="radio" name="lanes" id="multi"> Multi Lane
-        <br/><br/>
-        <button onclick="get_match()" id="lane_button">Submit</button>
-    </div>
-    <div id="match_box" style="display:none">
-        <p>Select the correct matching pattern.</p>
-        <input type="radio" name="match" id="match_one"> _{R1,R2}_001.fastq.gz
-        <br/><br/>
-        <input type="radio" name="match" id="match_two"> _{1,2}.fq.gz
-        <br/><br/>
-        <button onclick="set_match()" id="match_button">Submit</button>
-    </div>
-    <div id="command_box" style="display:none">
-        <p>If the command looks correct please press the button to launch.</p>
-        <div id="germline_command"></div>
-        <div id="multiqc_command"></div>
-        <button onclick="launch_pipeline()" id="launch_command_button">Launch Pipeline</button>
-    </div>
-    <img src="img/launch.png" id="launch_img" style="display:none">
-    <div id="report_runs_box" style="display:none">
-        <p>Select the run to process in the pipeline.</p>
-        <div id="report_runs_list"></div>
-        <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
-    </div>
-    <div id="report_selection" class="flex-container" style="display:none">
-        <div id="report_sample_box" class="flex-child" style="display:none">
-            <p><b>Sample Selection:</b></p>
-            <div id="samples"></div>
+    <div class="banner" id="banner">
+        <img src="img/uf_health_logo.png" id="uf_health_logo">
+        <div class="nav-main">
+            <a class="ctsi" href="https://www.ctsi.ufl.edu/">CTSI</a>
+            <a class="lnn" href="https://neurology.ufl.edu/divisions/lnn/">LNN</a>
+            <a class="test1">TEST</a>
+            <a class="test2">TEST</a>
+            <a class="test3">TEST</a>
+            <a class="test4">TEST</a>
+            <a class="test5">TEST</a>
+            <a class="test6">TEST</a>
+            <a class="test7">TEST</a>
+            <a class="test8">TEST</a>
+            <a class="test9">TEST</a>
+            <a class="test10">TEST</a>
+            <a class="test11">TEST</a>
+            <a class="test12">TEST</a>
+            <a class="test13">TEST</a>
         </div>
-        <div id="report_panel_box" class="flex-child" style="display:none">
-            <p><b>Panel Selection:</b></p>
-            <div id="panels"></div>
+        <button id="log_out_button" onclick="logOut()" style="display:none;">Log Out</button>
+    </div>
+
+    <div class="content" id="main-content">
+
+        <div id="log_in_box" class="centered">
+            <input id="userNameInput" type="text" placeholder="Username"/></br>
+            <input id="passwordInput" type="password" placeholder="Password"/></br>
+            <input id="logInButton" type="Button" value="Log In" onclick="logIn()">
+        </div>
+
+        <div id="menu" class="menu" style="display:none">
+
+            <div class="menu-child" id="menu-child">
+                <button id="pipeline" class="card" onclick="switchToPipelineView()" onmouseover="dimmer()" onmouseout="brightner()">
+                    Pipeline
+                    <span>
+                        <br/>
+                        Click here to begin making selections for a germline or multiqc run.
+                    </span>
+                </button>
+            </div>
+
+            <div class="menu-child" id="menu-child">
+                <button id="report" class="card" onclick="switchToReportView()" onmouseover="dimmer()" onmouseout="brightner()">
+                    Reporting
+                    <span>
+                        <br/>
+                        Click here to request a research report for any/ none of the provided panels.
+                    </span>
+                </button>
+            </div>
+            
+            <div class="menu-child" id="menu-child">
+                <button id="documentation"  class="card" onclick="switchToDocumentationView()" onmouseover="dimmer()" onmouseout="brightner()">
+                    Documentation
+                    <span>
+                        <br/>
+                        Click here to view the documentation on the pipeline.
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader" style="display:none"></div>
+
+        <div id="workflow_question_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="workflow_text">
+                <p class="statement" id="workflow_statement">Is this a germline run or a multiqc run?</p>
+                <input type="radio" class="choices" name="workflow" id="germline"> GERMLINE pipeline
+                <br/><br/>
+                <input type="radio" class="choices" name="workflow" id="multiqc"> MULTIQC for run
+                <br/><br/>
+            </div>
+            <button onclick="get_workflow()" id="workflow_button">Get Runs</button>
+        </div>
+
+        <div id="exome_question_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="exome_text">
+                <p class="statement" id="exome_statement">Is this an exome run or a whole genome run?</p>
+                <input type="radio" class="choices" name="exome" id="WGS"> WGS [genome]
+                <br/><br/>
+                <input type="radio" class="choices" name="exome" id="WES"> WES [exome]
+                <br/><br/>
+            </div>
+            <button onclick="get_type()" id="exome_button">Submit</button>
+        </div>
+
+        <div id="runs_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="runs_text">
+                <p class="statement" id="runs_statement">Select the run to process in the pipeline.</p>
+                <div class="choices" id="runs_list"></div>
+            </div>
+        </div>
+
+        <div id="lane_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="lane_text">
+                <p class="statement" id="lane_statement">Is this run single-lane or multi-lane run?</p>
+                <input type="radio" class="choices" name="lanes" id="single"> NextSeq [Single Lane]
+                <br/><br/>
+                <input type="radio" class="choices" name="lanes" id="multi"> NovaSeq [Multi Lane]
+                <br/><br/>
+            </div>
+            <button onclick="get_match()" id="lane_button">Submit</button>
+        </div>
+
+        <div id="match_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="match_text">
+                <p class="statement" id="match_statement">Select the correct matching pattern.</p>
+                <input type="radio" class="choices" name="match" id="match_one"> Illumina: [_{R1,R2}_001.fastq.gz]
+                <br/><br/>
+                <input type="radio" class="choices" name="match" id="match_two"> Other: [_{1,2}.fq.gz]
+                <br/>
+                <label class="choices" id="other_match_label" for="other_match">Custom: </label>
+                <input type="text" name="match" id="other_match" placeholder="_{x,y}.fq/fastq.gz"/>
+                <br/><br/>
+            </div>
+            <button onclick="set_match()" id="match_button">Submit</button>
+        </div>
+
+        <div id="command_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="command_text">
+                <p class="statement" id="command_statement">Confirm choices, then launch pipeline.</p>
+                <div class="centered" id="germline_command">
+                    <table class="command-table" id="germline_table">
+                        <tr>
+                            <th>Variabel</th>
+                            <th>Value</th>
+                            <th>Return Button</th>
+                        </tr>
+                        <tr>
+                            <td>Workflow</td>
+                            <td id="workflow_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToPipelineView()" value="Select Workflow"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Type</td>
+                            <td id="type_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToTypeView()" value="Select Type"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Run ID</td>
+                            <td id="run_id_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToRunIdView()" value="Select Run ID"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Single Lane</td>
+                            <td id="lane_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToLaneView()" value="Select Lanes"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Match Pattern</td>
+                            <td id="match_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToMatchView()" value="Select Match"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="multiqc_command"></div>
+            </div>
+            <input type="submit" onclick="launch_pipeline()" id="launch_command_button" value="Launch Pipeline"/>
+        </div>
+
+        <div id="report_runs_box" class="centered question-container" style="display:none">
+            <div class="text-box" id="report_runs_text">
+                <p class="statement" id="report_runs_statement"><b>Select the run to process in the pipeline.</b></p>
+                <div class="choices" id="report_runs_list"></div>
+            </div>
+            <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
+        </div>
+
+        <div id="report_selection" class="flex-container" style="display:none">
+            <div id="report_sample_box" class="flex-child" style="display:none">
+                <p id="sample_title"><b>Sample Selection:</b></p>
+                <div id="samples"></div>
+            </div>
+
+            <div id="report_panel_box" class="flex-child" style="display:none">
+                <p id="panel_title"><b>Panel Selection:</b></p>
+                <div id="panels"></div>
+            </div>
+        </div>
+
+        <div class="centered">
+            <form id="email" onsubmit="return false;" style="display:none">
+                <div class="centered">
+                    <label id="user_email_label" for="user_email">Email: </label>
+                    <input type="email" id="user_email" name="User_Email" placeholder="gator@ufl.edu">
+                    <br/><br/>
+                    <input type="submit" onclick="launch_reporting()" id="launch_report_button" value="Get Research Report">
+                </div>
+            </form>
+        </div>
+
+        <div class="centered" id="launch_img" style="display:none">
+            <img src="img/launch.png">
+        </div>
+
+        <div class="flex-container">
+            <div class="flex-child">
+                <img src="img/ClinicalTransScienceInst.png" id="uf_logo">
+            </div>
+            <div class="flex-child">
+                <img src="img/gator_good.png" id="gator_good">
+            </div>
         </div>
     </div>
-    <br/><br/>
-    <form id="email" onsubmit="return false;" style="display:none">
-        <label for="user_email">Email:</label>
-        <input type="text" id="user_email" name="User_Email" placeholder="gator@ufl.edu">
-        <br/><br/>
-        <input type="submit" onclick="launch_reporting()" id="launch_report_button" value="Get Research Report">
-    </form>
 
     <script type="text/javascript">getCurrentLoggedInSession();</script>
+
+    <script type="text/javascript">
+        const c = document.getElementById("main-content");
+        const b = document.getElementById("banner");
+        const p = document.getElementById("pipeline");
+        const r = document.getElementById("report");
+        const d = document.getElementById("documentation");
+
+        function dimmer() {
+            document.body.style.backgroundColor = "black";
+            c.style.backgroundColor = "rgba(245,245,245,0.5)";
+            b.style.opacity = 0.5;
+            p.style.backgroundColor = "#0021A5";
+            r.style.backgroundColor = "#0021A5";
+            d.style.backgroundColor = "#0021A5";
+        }
+
+        function brightner() {
+            document.body.style.backgroundColor = "whitesmoke";
+            b.style.opacity = "0.8";
+            c.style.backgroundColor = "rgba(245,245,245,1)";
+        }
+    </script>
+
 </body>
 </html>

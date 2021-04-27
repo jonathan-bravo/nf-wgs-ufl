@@ -58,6 +58,7 @@ function logIn(){
 
             onFailure: function(err) {
                 console.log(err.message);
+                alert("Username or password incorrect.\nIf you believe there is an error please contact the admin.");
                 $("#loader").hide();
             },
 

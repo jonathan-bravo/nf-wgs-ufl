@@ -26,7 +26,7 @@ function launch_pipeline() {
             'command': [
                 'bash',
                 '-c',
-                nextflow_command
+                nextflow_command+'; aws s3 rm s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/'
             ]
         }
     };
@@ -43,17 +43,21 @@ function launch_pipeline() {
 
 function check_germline() {
 
-    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --single_lane \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
+    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --single_lane \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
 
     $("#command_box").show();
-    
-    var command_to_run = document.createElement('p');
-    var command = document.createTextNode(nextflow_command);
-    command_to_run.appendChild(command);
 
-    var germline_command = document.getElementById('germline_command');
-    germline_command.appendChild(command_to_run);
+    if(exome == "NO") {
+        var type = "WGS";
+    } else if(exome == "YES") {
+        var type = "WES";
+    }
 
+    document.getElementById('workflow_cell').innerHTML = pipeline;
+    document.getElementById('type_cell').innerHTML = type;
+    document.getElementById('run_id_cell').innerHTML = run_id;
+    document.getElementById('lane_cell').innerHTML = lane;
+    document.getElementById('match_cell').innerHTML = match;
 }
 
 
@@ -68,12 +72,12 @@ function check_multiqc() {
             run_id = runs[i].id;
         }
     }
+
+    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --pipeline \"'+pipeline+'\"';
     
     var command_to_run = document.createElement('p');
-    var command = document.createTextNode('nextflow run /data/main.nf -work-dir s3://hakmonkey-genetics-lab/Pipeline_Output/_work/ --bucket s3://hakmonkey-genetics-lab --run_id '+run_id+' --pipeline '+pipeline);
+    var command = document.createTextNode(nextflow_command);
     command_to_run.appendChild(command);
-
-    nextflow_command = 'nextflow run /data/main.nf -work-dir s3://hakmonkey-genetics-lab/Pipeline_Output/_work/ --bucket s3://hakmonkey-genetics-lab --run_id '+run_id+' --pipeline '+pipeline;
 
     var multiqc_command = document.getElementById('multiqc_command');
     multiqc_command.appendChild(command_to_run);
@@ -87,12 +91,15 @@ function set_match() {
 
     var match_one = document.getElementById('match_one');
     var match_two = document.getElementById('match_two');
+    var other_match = document.getElementById('other_match').value;
 
     if(match_one.checked==true) {
         match = '_{R1,R2}_001.fastq.gz';
 
     } else if(match_two.checked==true) {
         match = '_{1,2}.fq.gz';
+    } else {
+        match = other_match;
     }
 
     check_germline();
@@ -195,8 +202,6 @@ async function get_runs() {
     $("#loader").show();
 
     await new Promise(r => setTimeout(r, 2000));
-    
-    $("#runs_box").show();
 
     var runs_box = document.getElementById("runs_box");
     var runs_list = document.getElementById('runs_list');
@@ -217,6 +222,7 @@ async function get_runs() {
     }
 
     $("#loader").hide();
+    $("#runs_box").show();
 
     var run_button = document.createElement('button');
     var button_label = document.createTextNode('Submit');
@@ -230,6 +236,8 @@ async function get_runs() {
     run_button.setAttribute('id', 'run_button');
     run_button.appendChild(button_label);
     runs_box.appendChild(run_button);
+
+    
 }
 
 
