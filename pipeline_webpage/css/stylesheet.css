@@ -430,3 +430,8 @@ th, tr, td {
 #report_selection_back {
     margin-left: 1vw !important;
 }
+
+.body-div {
+    height: 100%;
+    width: 100%;
+}
