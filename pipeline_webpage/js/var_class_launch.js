@@ -278,6 +278,7 @@ async function get_report_sample() {
     }
 
     $("#loader").hide();
+    $("#report_selection_back").show();
     $('#report_selection').show();
     $('#report_sample_box').show();
     $('#report_panel_box').show();

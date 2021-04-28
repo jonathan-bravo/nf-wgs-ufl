@@ -11,8 +11,12 @@ function switchToLogInView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
 }
 
 function switchToLoggedInView(){
@@ -26,8 +30,12 @@ function switchToLoggedInView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").show();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
 }
 
 function switchToPipelineView(){
@@ -41,8 +49,12 @@ function switchToPipelineView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
     document.getElementById("runs_list").innerHTML = '';
     document.getElementById("run_button").remove();
 }
@@ -58,8 +70,12 @@ function switchToTypeView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
     document.getElementById("runs_list").innerHTML = '';
     document.getElementById("run_button").remove();
 }
@@ -75,8 +91,12 @@ function switchToRunIdView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
 }
 
 function switchToLaneView(){
@@ -90,8 +110,12 @@ function switchToLaneView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
 }
 
 function switchToMatchView(){
@@ -105,16 +129,18 @@ function switchToMatchView(){
     $("#match_box").show();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
     $("#report_runs_box").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
 }
 
 function switchToReportView(){
     $("#log_in_box").hide();
     $("#log_out_button").show();
     $("#menu").hide();
-    $("#pipeline").hide();
-    $("#documentation").hide();
     $("#workflow_question_box").hide();
     $("#exome_question_box").hide();
     $("#runs_box").hide();
@@ -122,7 +148,14 @@ function switchToReportView(){
     $("#match_box").hide();
     $("#command_box").hide();
     $("#launch_img").hide();
-    $("#report").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
+    document.getElementById("report_runs_list").innerHTML = '';
+    document.getElementById("samples").innerHTML = '';
+    document.getElementById("panels").innerHTML = '';
     get_report_runs();
 }
 

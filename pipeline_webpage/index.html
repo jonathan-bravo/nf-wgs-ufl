@@ -82,6 +82,7 @@
         <div id="loader" class="loader" style="display:none"></div>
 
         <div id="workflow_question_box" class="centered question-container" style="display:none">
+            <button class="back" onclick="switchToLoggedInView()"></button>
             <div class="text-box" id="workflow_text">
                 <p class="statement" id="workflow_statement">Is this a germline run or a multiqc run?</p>
                 <input type="radio" class="choices" name="workflow" id="germline"> GERMLINE pipeline
@@ -93,6 +94,7 @@
         </div>
 
         <div id="exome_question_box" class="centered question-container" style="display:none">
+            <button class="back" onclick="switchToPipelineView()"></button>
             <div class="text-box" id="exome_text">
                 <p class="statement" id="exome_statement">Is this an exome run or a whole genome run?</p>
                 <input type="radio" class="choices" name="exome" id="WGS"> WGS [genome]
@@ -104,6 +106,7 @@
         </div>
 
         <div id="runs_box" class="centered question-container" style="display:none">
+            <button class="back" id="run_box_back"></button>
             <div class="text-box" id="runs_text">
                 <p class="statement" id="runs_statement">Select the run to process in the pipeline.</p>
                 <div class="choices" id="runs_list"></div>
@@ -111,6 +114,7 @@
         </div>
 
         <div id="lane_box" class="centered question-container" style="display:none">
+            <button class="back" onclick="switchToRunIdView()"></button>
             <div class="text-box" id="lane_text">
                 <p class="statement" id="lane_statement">Is this run single-lane or multi-lane run?</p>
                 <input type="radio" class="choices" name="lanes" id="single"> NextSeq [Single Lane]
@@ -122,6 +126,7 @@
         </div>
 
         <div id="match_box" class="centered question-container" style="display:none">
+            <button class="back" onclick="switchToLaneView()"></button>
             <div class="text-box" id="match_text">
                 <p class="statement" id="match_statement">Select the correct matching pattern.</p>
                 <input type="radio" class="choices" name="match" id="match_one"> Illumina: [_{R1,R2}_001.fastq.gz]
@@ -136,10 +141,11 @@
         </div>
 
         <div id="command_box" class="centered question-container" style="display:none">
+            <button class="back" id="command_back"></button>
             <div class="text-box" id="command_text">
                 <p class="statement" id="command_statement">Confirm choices, then launch pipeline.</p>
-                <div class="centered" id="germline_command">
-                    <table class="command-table" id="germline_table">
+                <div class="centered" id="germline_command" style="display:none">
+                    <table class="germline-table" id="germline_table">
                         <tr>
                             <th>Variabel</th>
                             <th>Value</th>
@@ -182,12 +188,35 @@
                         </tr>
                     </table>
                 </div>
-                <div id="multiqc_command"></div>
+                <div id="multiqc_command" style="display:none">
+                    <table class="qc-table" id="multiqc_table">
+                        <tr>
+                            <th>Variabel</th>
+                            <th>Value</th>
+                            <th>Return Button</th>
+                        </tr>
+                        <tr>
+                            <td>Workflow</td>
+                            <td id="qc_workflow_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToPipelineView()" value="Select Workflow"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Run ID</td>
+                            <td id="qc_run_id_cell"></td>
+                            <td>
+                                <input type="button" class="table-button" onclick="switchToRunIdView()" value="Select Run ID"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
             </div>
             <input type="submit" onclick="launch_pipeline()" id="launch_command_button" value="Launch Pipeline"/>
         </div>
 
         <div id="report_runs_box" class="centered question-container" style="display:none">
+            <button class="back" onclick="switchToLoggedInView()"></button>
             <div class="text-box" id="report_runs_text">
                 <p class="statement" id="report_runs_statement"><b>Select the run to process in the pipeline.</b></p>
                 <div class="choices" id="report_runs_list"></div>
@@ -195,6 +224,7 @@
             <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
         </div>
 
+        <button id="report_selection_back" class="back" onclick="switchToReportView()" style="display:none"></button>
         <div id="report_selection" class="flex-container" style="display:none">
             <div id="report_sample_box" class="flex-child" style="display:none">
                 <p id="sample_title"><b>Sample Selection:</b></p>

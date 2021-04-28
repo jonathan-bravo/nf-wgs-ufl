@@ -30,7 +30,7 @@ img {
 }
 
 p {
-    font-size: 14pt;
+    font-size: 1vmax;
     color: black;
 }
 
@@ -50,10 +50,10 @@ p {
 [type="text"] {
     margin-top: 20px;
     width: 40%;
-    height: 40px;
+    height: 2vmax;
     margin-left: 30%;
     text-align: center;
-    font-size: 16pt;
+    font-size: 1vmax;
     border: 1px solid black;
     border-radius: 25px;
 }
@@ -61,10 +61,10 @@ p {
 [type="password"] {
     margin-top: 20px;
     width: 40%;
-    height: 40px;
+    height: 2vmax;
     margin-left: 30%;
     text-align: center;
-    font-size: 16pt;
+    font-size: 1vmax;
     border: 1px solid black;
     border-radius: 25px;
 }
@@ -72,11 +72,11 @@ p {
 [type="email"] {
     margin-top: 20px;
     width: 40%;
-    height: 40px;
+    height: 2vmax;
     border: 1px solid black;
     border-radius: 25px;
     text-align: center;
-    font-size: 16pt;
+    font-size: 1vmax;
 }
 
 #user_email_label {
@@ -98,8 +98,8 @@ p {
 [type="submit"] {
     background-color: lightgrey;
     color: #44475a;
-    height:40px;
-    font-size: 16pt;
+    height: 2vmax;
+    font-size: 1vmax;
     border-radius: 12px;
     border-color: #44475a;
     margin-top: 20px;
@@ -117,8 +117,8 @@ p {
 [type="button"]:not([class=table-button]) {
     background-color: lightgrey;
     color: #44475a;
-    height:40px;
-    font-size: 16pt;
+    height: 2vmax;
+    font-size: 1vmax;
     border-radius: 12px;
     border-color: #44475a;
     margin-top: 20px;
@@ -141,15 +141,15 @@ p {
 #log_out_button {
     float: left;
     width: 7%;
-    margin-left: 92%;
-    margin-top: -70px;
+    margin-left: 92.5%;
+    margin-top: -8.7vmax;
 }
 
 button:not([class=card]) {
     background-color: lightgrey;
     color: #44475a;
-    height:40px;
-    font-size: 16pt;
+    height: 2vmax;
+    font-size: 1vmax;
     border-radius: 12px;
     border-color: #44475a;
     margin-top: 20px;
@@ -174,8 +174,8 @@ button:not([class=card]):hover {
     border: 16px solid #0021A5;
     border-top: 16px solid #E28F41;
     border-radius: 50%;
-    width: 80px;
-    height: 80px;
+    width: 4vmax;
+    height: 4vmax;
     margin-left: 45%;
     margin-top: 0;
     animation: spin 2s linear infinite;
@@ -205,13 +205,13 @@ button:not([class=card]):hover {
     border: 3px solid #bdbdbd;
     width: 20%;
     border-radius: 25px;
-    font-size: 16pt;
+    font-size: 1vmax;
 }
 
 #report_panel_box {
     border: 3px solid #bdbdbd;
     border-radius: 25px;
-    font-size: 16pt;
+    font-size: 1vmax;
 }
 
 #samples_button {
@@ -240,19 +240,29 @@ body::after {
     opacity: 0.8;
     border-radius: 10px;
     box-shadow: inset 0 0 10px #000000;
+    height: 5vmax;
+}
+
+.nav-main {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    top: -5vmax;
+    left: 10.5vmax;
+    width: 80%;
+    /* border: solid 1px blue; */
 }
 
 .nav-main a {
-    position: absolute; /* Position them relative to the browser window */
-    top: 9px;
     transition: 0.3s;
-    padding-top: 36px;
-    padding-bottom: 36px;
-    width: 100px;
+    width: 2.5vmax; /*4.75*/
     text-decoration: none; /* Remove underline */
     color: whitesmoke;
     text-align: center;
-    font-size: 22pt;
+    font-size: 1.2vmax;
+    padding-top: 1.75vmax;
+    padding-bottom: 1.75vmax;
+    flex: 1;
 }
 
 .nav-main a:hover {
@@ -285,7 +295,7 @@ body::after {
     margin: auto;
     margin-top: 150px;
     margin-bottom: 150px;
-    padding-top: 50px;
+    padding-top: 2vmax;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
@@ -296,18 +306,17 @@ body::after {
 }
 
 .card {
-    font-size: 20pt;
+    font-size: 1.2vmax;
     background-image: linear-gradient(100deg, #0021A5, #E28F41);
     background-attachment: fixed;
     background-position: center;
     border-color: rgba(27,27,27, 1);
     color: #f5f5f5;
-    font-weight: bold;
     border-radius: 25px;
     text-align: center;
-    width: 100%;
-    height: 150px;
-    transition: 0.25s;
+    width: 75%;
+    height: 7.5vmax;
+    transition: ease-in-out .3s;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
@@ -322,7 +331,7 @@ body::after {
 }
 
 .card:hover {
-    padding: 50px 20px 135px 75px;
+    padding: 0.5vmax;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
@@ -330,33 +339,31 @@ body::after {
         0 22.3px 17.9px rgba(0, 0, 0, 0.072),
         0 41.8px 33.4px rgba(0, 0, 0, 0.086),
         0 100px 80px rgba(0, 0, 0, 0.12);
-    white-space: nowrap;
     text-align: justify;
 }
 
 .card:hover span {
     display: block;
-    font-weight: normal;
-    font-size: 14pt;
+    font-size: 1vmax;
 }
 
 .menu {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    margin-left: -1.5%;
+    margin-left: 1.5vw;
     width: 100%;
     padding: 20px;
 }
 
 .menu-child {
-    padding: 2rem 1rem;
-    margin: 0.375rem;
-    flex-grow: 0.30;
+    /* padding: 2rem 1rem; */
+    margin: -1%;
+    flex-grow: 0.15;
 }
 
 .question-container {
-    font-size: 16pt;
+    font-size: 1vmax;
     width: 50%;
 }
 
@@ -366,26 +373,31 @@ body::after {
 }
 
 .statement {
-    margin-left: 20%;
+    margin-left: 6vw;
 }
 
 .choices {
-    margin-left: 27.5%;
+    margin-left: 8vw;
 }
 
-.command-table {
-    margin-top: -10px;
-    margin-left: -25px;
+.germline-table {
+    margin-top: -1vh;
+    margin-left: -1vmin;
+}
+
+.qc-table {
+    margin-left: 6vw;
+    padding-bottom: 1vh;
 }
 
 .table-button {
-    margin-top: -20px;
-    width: 220px;
+    margin-top: -0.5vh;
+    width: 11.5vw;
     background-color: lightgrey;
     color: #44475a;
-    height:40px;
-    font-size: 16pt;
-    border-radius: 12px;
+    height: 2vmax;
+    font-size: 1vmax;
+    border-radius: 8px;
     border-color: #44475a;
     text-align: center;
     box-shadow: 0 8px 6px -6px #44475a;
@@ -396,8 +408,25 @@ body::after {
     color: lightgrey;
 }
 
+#match_cell {
+    font-size: 0.75vmax;
+}
+
 th, tr, td {
     border: 1px solid black;
     text-align: center;
-    padding: 10px;
+    padding: 0.8vmax;
+}
+
+.back {
+    background-image: url(../img/back_arrow.svg);
+    background-repeat: no-repeat;
+    border-radius: 50% !important;
+    width: 2vmax !important;
+    margin-top: 0 !important;
+    margin-left: -15vw !important;
+}
+
+#report_selection_back {
+    margin-left: 1vw !important;
 }
