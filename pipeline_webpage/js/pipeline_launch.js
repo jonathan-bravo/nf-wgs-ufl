@@ -46,7 +46,10 @@ function check_germline() {
     nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --single_lane \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
 
     $("#command_box").show();
+    $("#germline_command").show();
 
+    document.getElementById("command_back").setAttribute("onclick", "switchToMatchView()");
+    
     if(exome == "NO") {
         var type = "WGS";
     } else if(exome == "YES") {
@@ -65,6 +68,9 @@ function check_multiqc() {
 
     $("#runs_box").hide();
     $("#command_box").show();
+    $("#multiqc_command").show();
+
+    document.getElementById("command_back").setAttribute("onclick", "switchToRunIdView()");
 
     var runs = document.getElementsByName('run_id');
     for(var i in runs) {
@@ -75,13 +81,8 @@ function check_multiqc() {
 
     nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --pipeline \"'+pipeline+'\"';
     
-    var command_to_run = document.createElement('p');
-    var command = document.createTextNode(nextflow_command);
-    command_to_run.appendChild(command);
-
-    var multiqc_command = document.getElementById('multiqc_command');
-    multiqc_command.appendChild(command_to_run);
-
+    document.getElementById('qc_workflow_cell').innerHTML = pipeline;
+    document.getElementById('qc_run_id_cell').innerHTML = run_id;
 }
 
 
@@ -224,13 +225,16 @@ async function get_runs() {
     $("#loader").hide();
     $("#runs_box").show();
 
+    var back_button = document.getElementById("run_box_back");
     var run_button = document.createElement('button');
     var button_label = document.createTextNode('Submit');
 
     if(workflow != 'multiqc') {
-        run_button.setAttribute('onclick', "lanes()");
+        run_button.setAttribute("onclick", "lanes()");
+        back_button.setAttribute("onclick", "switchToTypeView()");
     } else if(workflow == 'multiqc'){
         run_button.setAttribute('onclick', "check_multiqc()");
+        back_button.setAttribute("onclick", "switchToPipelineView()");
     }
 
     run_button.setAttribute('id', 'run_button');
