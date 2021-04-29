@@ -175,7 +175,6 @@ function switchToReportView(){
     $("#email").hide();
     document.getElementById("report_runs_list").innerHTML = '';
     document.getElementById("samples").innerHTML = '';
-    // document.getElementById("panels").innerHTML = '';
     get_report_runs();
 }
 

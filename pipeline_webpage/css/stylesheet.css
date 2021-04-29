@@ -76,7 +76,7 @@ p {
     border: 1px solid black;
     border-radius: 25px;
     text-align: center;
-    font-size: 1vmax;
+    font-size: 0.8vmax;
 }
 
 #user_email_label {

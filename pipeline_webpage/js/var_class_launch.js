@@ -1,30 +1,23 @@
 var run_id = '';
-var sample_id = '';
-var panel_choices = [];
+var sample_id = [];
 var filtered_panels = [];
 
 function distinct(value, index, self) {
     return self.indexOf(value) === index;
 }
 
-function launch_reporting() {
+async function launch_reporting() {
 
     $("#report_selection").hide();
+    $("#report_selection_back").hide();
     $("#email").hide();
     $('#launch_report_button').hide();
 
 
     var samples = document.getElementsByName('sample_id');
-    for(var i in samples) {
+    for(var i = 0; i < samples.length; i++) {
         if(samples[i].checked==true){
-            sample_id = samples[i].id;
-        }
-    }
-
-    var panels = document.getElementsByName('panel_name');
-    for(var i in panels) {
-        if(panels[i].checked==true){
-            panel_choices.push(panels[i].id);
+            sample_id.push(samples[i].id);
         }
     }
 
@@ -36,42 +29,102 @@ function launch_reporting() {
     var s3 = new AWS.S3({apiVersion: '2006-03-01'});
     var ses = new AWS.SES({apiVersion: '2010-12-01'});
 
+    for(var i = 0; i < sample_id.length; i++){
 
-    if(panel_choices.length != 0){
-        for(var i in panel_choices){
+        var panels = $("#"+sample_id[i]+"_select :selected").map((_, e) => e.value).get();
+
+        if(panels[0] == "low_coverage") {
+            var lc = "5x";
+            panels.splice(0, 1);
+        } else {
+            var lc = "30x";
+        }
+
+        url[sample_id[i]] = {};
+
+        if(panels.length != 0){
+            for(var j = 0; j < panels.length; j++){
+                var job_params = {
+                    jobDefinition: "var_class-ufl-germline:1", 
+                    jobName: sample_id[i]+'_'+panels[j], 
+                    jobQueue: "hakmonkey-var_class",
+                    containerOverrides: {
+                        'command': [
+                            'bash',
+                            '-c',
+                            'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz.tbi /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline/Reference/panels/'+panels[j]+' /; /varClass.py -v '+sample_id[i]+'_concat.vcf.gz -t 8 -s '+sample_id[i]+' -p '+panels[j]+' -c '+lc+'; /json_to_csv.py -j '+sample_id[i]+'_'+panels[j]+'_report.json; /g_ranges.py -j '+sample_id[i]+'_'+panels[j]+'_report.json -s '+sample_id[i]+'; /CNV_json_plot.R '+sample_id[i]+'; aws s3 cp '+sample_id[i]+'_'+panels[j]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/'+panels[j]+'/; aws s3 cp '+sample_id[i]+'_'+panels[j]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/'+panels[j]+'/; aws s3 cp '+sample_id[i]+'_cnv.pdf s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/'+panels[j]+'/'
+                        ]
+                    }
+                };
+
+                var json_url_params = { 
+                    Bucket: 'hakmonkey-genetics-lab',
+                    Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/'+panels[j]+'/'+sample_id[i]+'_'+panels[j]+'_report.json',
+                    Expires: 86400 // change to 86400 = 1 day
+                };
+                var xlsx_url_params = { 
+                    Bucket: 'hakmonkey-genetics-lab',
+                    Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/'+panels[j]+'/'+sample_id[i]+'_'+panels[j]+'_report.xlsx',
+                    Expires: 86400 // change to 86400 = 1 day
+                };
+                var cnv_url_params = { 
+                    Bucket: 'hakmonkey-genetics-lab',
+                    Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/'+panels[j]+'/'+sample_id[i]+'_cnv.pdf',
+                    Expires: 86400 // change to 86400 = 1 day
+                };
+                var json_link = s3.getSignedUrl('getObject', json_url_params);
+                var xlsx_link = s3.getSignedUrl('getObject', xlsx_url_params);
+                var cnv_link = s3.getSignedUrl('getObject', cnv_url_params);
+                
+                url[sample_id[i]][panels[j]] = [
+                    '<a href='+json_link+'>JSON Report</a>',
+                    '<a href='+xlsx_link+'>XLSX Report</a>',
+                    '<a href='+cnv_link+'>CNV Plot</a>'
+                ];
+
+                // batch.submitJob(job_params, function(err, data) {
+                //     if(err) {
+                //         console.log(err, err.stack);
+                //     } else {
+                //         $("#launch_img").show();
+                //         console.log(data);
+                //     }
+                // });
+            }
+        } else {
             var job_params = {
                 jobDefinition: "var_class-ufl-germline:1", 
-                jobName: sample_id+'_'+panel_choices[i], 
+                jobName: sample_id[i]+'_General_Report', 
                 jobQueue: "hakmonkey-var_class",
                 containerOverrides: {
                     'command': [
                         'bash',
                         '-c',
-                        'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/variants/'+sample_id+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/variants/'+sample_id+'_concat.vcf.gz.tbi /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline/Reference/panels/'+panel_choices[i]+' /; /varClass.py -v '+sample_id+'_concat.vcf.gz -t 8 -s '+sample_id+' -p '+panel_choices[i]+'; /json_to_csv.py -j '+sample_id+'_'+panel_choices[i]+'_report.json; /g_ranges.py -j '+sample_id+'_'+panel_choices[i]+'_report.json -s '+sample_id+'; /CNV_json_plot.R '+sample_id+'; aws s3 cp '+sample_id+'_'+panel_choices[i]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/'+panel_choices[i]+'/; aws s3 cp '+sample_id+'_'+panel_choices[i]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/'+panel_choices[i]+'/; aws s3 cp '+sample_id+'_cnv.pdf s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/'+panel_choices[i]+'/'
+                        'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz.tbi /; /varClass.py -v '+sample_id[i]+'_concat.vcf.gz -t 8 -s '+sample_id[i]+' -c '+lc+'; /json_to_csv.py -j '+sample_id[i]+'_report.json; /g_ranges.py -j '+sample_id[i]+'_report.json -s '+sample_id[i]+'; /CNV_json_plot.R '+sample_id[i]+'; aws s3 cp '+sample_id[i]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/; aws s3 cp '+sample_id[i]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/; aws s3 cp '+sample_id[i]+'_cnv.pdf s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/'
                     ]
                 }
             };
-
+            
             var json_url_params = { 
                 Bucket: 'hakmonkey-genetics-lab',
-                Key: 'Pipeline_Output/'+run_id+'/'+sample_id+'/'+panel_choices[i]+'/'+sample_id+'_'+panel_choices[i]+'_report.json',
+                Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/'+sample_id[i]+'_report.json',
                 Expires: 86400 // change to 86400 = 1 day
             };
             var xlsx_url_params = { 
                 Bucket: 'hakmonkey-genetics-lab',
-                Key: 'Pipeline_Output/'+run_id+'/'+sample_id+'/'+panel_choices[i]+'/'+sample_id+'_'+panel_choices[i]+'_report.xlsx',
+                Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/'+sample_id[i]+'_report.xlsx',
                 Expires: 86400 // change to 86400 = 1 day
             };
             var cnv_url_params = { 
                 Bucket: 'hakmonkey-genetics-lab',
-                Key: 'Pipeline_Output/'+run_id+'/'+sample_id+'/'+panel_choices[i]+'/'+sample_id+'_cnv.pdf',
+                Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/'+sample_id[i]+'_cnv.pdf',
                 Expires: 86400 // change to 86400 = 1 day
             };
             var json_link = s3.getSignedUrl('getObject', json_url_params);
             var xlsx_link = s3.getSignedUrl('getObject', xlsx_url_params);
             var cnv_link = s3.getSignedUrl('getObject', cnv_url_params);
-            
-            url[panel_choices[i]] = [
+
+            url[sample_id[i]]['General_Report'] = [
                 '<a href='+json_link+'>JSON Report</a>',
                 '<a href='+xlsx_link+'>XLSX Report</a>',
                 '<a href='+cnv_link+'>CNV Plot</a>'
@@ -85,61 +138,14 @@ function launch_reporting() {
             //         console.log(data);
             //     }
             // });
-            
         }
-    } else {
-        var job_params = {
-            jobDefinition: "var_class-ufl-germline:1", 
-            jobName: sample_id+'_'+panel_choices[i], 
-            jobQueue: "hakmonkey-var_class",
-            containerOverrides: {
-                'command': [
-                    'bash',
-                    '-c',
-                    'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/variants/'+sample_id+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/variants/'+sample_id+'_concat.vcf.gz.tbi /; /varClass.py -v '+sample_id+'_concat.vcf.gz -t 8 -s '+sample_id+'; /json_to_csv.py -j '+sample_id+'_report.json; /g_ranges.py -j '+sample_id+'_report.json -s '+sample_id+'; /CNV_json_plot.R '+sample_id+'; aws s3 cp '+sample_id+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/General_Report/; aws s3 cp '+sample_id+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/General_Report/; aws s3 cp '+sample_id+'_cnv.pdf s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id+'/General_Report/'
-                ]
-            }
-        };
-        
-        var json_url_params = { 
-            Bucket: 'hakmonkey-genetics-lab',
-            Key: 'Pipeline_Output/'+run_id+'/'+sample_id+'/General_Report/'+sample_id+'_report.json',
-            Expires: 86400 // change to 86400 = 1 day
-        };
-        var xlsx_url_params = { 
-            Bucket: 'hakmonkey-genetics-lab',
-            Key: 'Pipeline_Output/'+run_id+'/'+sample_id+'/General_Report/'+sample_id+'_report.xlsx',
-            Expires: 86400 // change to 86400 = 1 day
-        };
-        var cnv_url_params = { 
-            Bucket: 'hakmonkey-genetics-lab',
-            Key: 'Pipeline_Output/'+run_id+'/'+sample_id+'/General_Report/'+sample_id+'_cnv.pdf',
-            Expires: 86400 // change to 86400 = 1 day
-        };
-        var json_link = s3.getSignedUrl('getObject', json_url_params);
-        var xlsx_link = s3.getSignedUrl('getObject', xlsx_url_params);
-        var cnv_link = s3.getSignedUrl('getObject', cnv_url_params);
-
-        url['General_Report'] = [
-            '<a href='+json_link+'>JSON Report</a>',
-            '<a href='+xlsx_link+'>XLSX Report</a>',
-            '<a href='+cnv_link+'>CNV Plot</a>'
-        ];
-
-        // batch.submitJob(job_params, function(err, data) {
-        //     if(err) {
-        //         console.log(err, err.stack);
-        //     } else {
-        //         $("#launch_img").show();
-        //         console.log(data);
-        //     }
-        // });
-
     }
 
     console.log(email)
 
     var url_list = JSON.stringify(url, null, 4);
+
+    console.log(url_list);
 
     var email_params = {
         Destination: {
@@ -149,12 +155,12 @@ function launch_reporting() {
             Body: {
                 Html: {
                     Charset: "UTF-8", 
-                    Data: "The following is/are the link(s) for the requested report(s).The links should be valid for one day.<br/><br/>Please wait at least 10-15 min before checking for the reports.<br/><br/><pre>"+url_list+"</pre><br/><br/>Cheers,<br/>Johnny"
+                    Data: "The following is/are the link(s) for the requested report(s). The links should be valid for one day.<br/><br/>Please wait roughly 10 min before checking for the reports.<br/><br/><pre>"+url_list+"</pre><br/><br/>Cheers,<br/>Johnny"
                 }
             },
             Subject: {
                 Charset: "UTF-8",
-                Data: "Link for "+sample_id+" research report"
+                Data: "Link(s) for requested research report(s)"
             }
         },
         Source: "jonathan.bravo@neurology.ufl.edu"
@@ -164,8 +170,15 @@ function launch_reporting() {
         if (err) console.log(err, err.stack); // an error occurred
         else     console.log(data);           // successful response
     });
-    
-    
+
+    $("#loader").show();
+
+    await new Promise(r => setTimeout(r, 2000));
+
+    $("#loader").hide();
+
+    $("#menu").show();
+    location.reload();
 }
 
 function get_panels(div_id, in_id){
@@ -306,7 +319,7 @@ async function get_report_sample() {
         var choiceLabel = document.createElement('label');
 
         choiceSelection.setAttribute("type", "checkbox");
-        //choiceSelection.setAttribute("name", "sample_id");
+        choiceSelection.setAttribute("name", "sample_id");
         choiceSelection.setAttribute("id", filtered_samples[i]);
         choiceSelection.setAttribute("onchange", "get_panels('"+filtered_samples[i]+"_div','"+filtered_samples[i]+"')");
 
@@ -327,7 +340,6 @@ async function get_report_sample() {
     $('#launch_report_button').show();
 
 }
-
 
 async function get_report_runs() {
 
