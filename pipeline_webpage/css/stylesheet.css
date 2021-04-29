@@ -109,7 +109,7 @@ p {
     box-shadow: 0 8px 6px -6px #44475a;
 }
 
-[type="submit"]:hover {
+[type="submit"]:hover, [type="submit"]:active {
     background-color:#44475a;
     color: lightgrey;
 }
@@ -128,7 +128,7 @@ p {
     box-shadow: 0 8px 6px -6px #44475a;
 }
 
-[type="button"]:not([class=table-button]):hover {
+[type="button"]:not([class=table-button]):hover, [type="button"]:not([class=table-button]):active {
     background-color:#44475a;
     color: lightgrey;
 }
@@ -159,7 +159,7 @@ button:not([class=card]) {
     box-shadow: 0 8px 6px -6px #44475a;
 }
 
-button:not([class=card]):hover {
+button:not([class=card]):hover, button:not([class=card]):active {
     background-color:#44475a;
     color: lightgrey;
 }
@@ -252,7 +252,7 @@ body::after {
     flex: 1;
 }
 
-.nav-main a:hover {
+.nav-main a:hover, .nav-main a:active {
     box-shadow: inset 0 0 10px #000000;
     background-image: linear-gradient(to right, #E28F41, #0021A5);
     background-attachment: fixed;
@@ -320,7 +320,7 @@ body::after {
     display: none;
 }
 
-.card:hover {
+.card:hover, .card:active {
     height: 10vmax;
     margin: 0%;
     width: 100%;
@@ -333,7 +333,7 @@ body::after {
         0 100px 80px rgba(0, 0, 0, 0.12);
 }
 
-.card:hover span {
+.card:hover span, .card:active span {
     display: block;
     font-size: 1vmax;
 }
@@ -428,7 +428,7 @@ body::after {
     box-shadow: 0 8px 6px -6px #44475a;
 }
 
-.table-button:hover {
+.table-button:hover, .table-button:active {
     background-color:#44475a;
     color: lightgrey;
 }

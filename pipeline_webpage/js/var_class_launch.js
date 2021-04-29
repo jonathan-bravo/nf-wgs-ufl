@@ -42,6 +42,16 @@ async function launch_reporting() {
 
         url[sample_id[i]] = {};
 
+        var multiqc_url_params = { 
+            Bucket: 'hakmonkey-genetics-lab',
+            Key: 'Pipeline_Output/'+run_id+'/'+sample_id[i]+'/MultiQC/'+sample_id[i]+'.html',
+            Expires: 86400 // change to 86400 = 1 day
+        };
+
+        var multiqc_link = s3.getSignedUrl('getObject', multiqc_url_params);
+
+        url[sample_id[i]]['MultiQC'] = ['<a href='+multiqc_link+'>MultiQC Report</a>']
+
         if(panels.length != 0){
             for(var j = 0; j < panels.length; j++){
                 var job_params = {
