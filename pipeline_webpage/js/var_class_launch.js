@@ -1,6 +1,7 @@
 var run_id = '';
 var sample_id = '';
 var panel_choices = [];
+var filtered_panels = [];
 
 function distinct(value, index, self) {
     return self.indexOf(value) === index;
@@ -167,6 +168,53 @@ function launch_reporting() {
     
 }
 
+function get_panels(div_id, in_id){
+
+    var parent = document.getElementById(div_id);
+    var sample_box = document.getElementById(in_id);
+
+    if(sample_box.checked == true) {
+
+        var select_div = document.createElement("div");
+        select_div.setAttribute("class", "flex-child-child");
+        select_div.setAttribute("id", in_id+"_select-div");
+        var s = document.createElement("script");
+        var panels_select = document.createElement("select");
+
+        panels_select.setAttribute("multiple", "multiple");
+        panels_select.setAttribute("id", in_id+"_select")
+        s.setAttribute("type", "text/javascript");
+        s.setAttribute("id", in_id+"_my-script");
+        s.innerHTML = "$('#"+in_id+"_select').multiSelect();"
+
+        var low_coverage = document.createElement("option");
+        low_coverage.setAttribute("value", "low_coverage");
+        low_coverage.setAttribute("id", "low_coverage");
+        low_coverage.innerHTML = "LOW COVERAGE";
+        panels_select.appendChild(low_coverage);
+
+        for (const i in filtered_panels) {
+            var choiceSelection = document.createElement("option");
+
+            choiceSelection.setAttribute("value", filtered_panels[i]);
+            choiceSelection.setAttribute("id", "panel_"+i);
+
+            choiceSelection.innerHTML=filtered_panels[i];
+
+            panels_select.appendChild(choiceSelection);
+        }
+
+        select_div.appendChild(panels_select);
+        select_div.appendChild(s);
+
+        parent.appendChild(select_div);
+    } else {
+
+        var select_div = document.getElementById(in_id+"_select-div");
+
+        parent.removeChild(select_div);
+    }
+}
 
 async function get_report_sample() {
 
@@ -219,7 +267,7 @@ async function get_report_sample() {
     };
     
     var panels = [];
-    var filtered_panels = [];
+    filtered_panels = [];
 
     s3.listObjects(bucketParams, function(err, data) {
         if (err) {
@@ -245,43 +293,36 @@ async function get_report_sample() {
     await new Promise(r => setTimeout(r, 3000));
 
     var sample_list = document.getElementById('samples');
-    var panel_list = document.getElementById('panels');
 
     for (const i in filtered_samples) {
+        var sample_div = document.createElement('div');
+        sample_div.setAttribute("class", "flex-child");
+        sample_div.setAttribute("id", filtered_samples[i]+"_div");
+
+        var sample_child_div = document.createElement("div");
+        sample_child_div.setAttribute("class","flex-child-child");
+
         var choiceSelection = document.createElement('input');
         var choiceLabel = document.createElement('label');
 
-        choiceSelection.setAttribute('type', 'radio');
-        choiceSelection.setAttribute('name', 'sample_id');
-        choiceSelection.setAttribute('id', filtered_samples[i]);
+        choiceSelection.setAttribute("type", "checkbox");
+        //choiceSelection.setAttribute("name", "sample_id");
+        choiceSelection.setAttribute("id", filtered_samples[i]);
+        choiceSelection.setAttribute("onchange", "get_panels('"+filtered_samples[i]+"_div','"+filtered_samples[i]+"')");
 
-        choiceLabel.innerHTML=filtered_samples[i]+'<br/><br/>';
-        choiceLabel.setAttribute('for', 'sample_id');
+        choiceLabel.innerHTML=filtered_samples[i]+"<br/><br/>";
+        choiceLabel.setAttribute("for", "sample_id");
 
-        sample_list.appendChild(choiceSelection);
-        sample_list.appendChild(choiceLabel);
-    }
-
-    for (const i in filtered_panels) {
-        var choiceSelection = document.createElement('input');
-        var choiceLabel = document.createElement('label');
-
-        choiceSelection.setAttribute('type', 'checkbox');
-        choiceSelection.setAttribute('name', 'panel_name');
-        choiceSelection.setAttribute('id', filtered_panels[i]);
-
-        choiceLabel.innerHTML=filtered_panels[i]+'<br/>';
-        choiceLabel.setAttribute('for', 'panel_name');
-
-        panel_list.appendChild(choiceSelection);
-        panel_list.appendChild(choiceLabel);
+        sample_child_div.appendChild(choiceSelection);
+        sample_child_div.appendChild(choiceLabel);
+        sample_div.appendChild(sample_child_div);
+        sample_list.appendChild(sample_div);
     }
 
     $("#loader").hide();
     $("#report_selection_back").show();
     $('#report_selection').show();
     $('#report_sample_box').show();
-    $('#report_panel_box').show();
     $('#email').show();
     $('#launch_report_button').show();
 
@@ -322,7 +363,6 @@ async function get_report_runs() {
 
     await new Promise(r => setTimeout(r, 2000));
 
-    var runs_box = document.getElementById("report_runs_box");
     var runs_list = document.getElementById('report_runs_list');
 
     for (const i in filtered_samples) {

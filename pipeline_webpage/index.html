@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>UFL-GERMLINE</title>
+    <title>GatorGenome</title>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono:wght@600&display=swap">
     <link rel="stylesheet" href="css/stylesheet.css">
     <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.multi-select.js"></script>
     <script src="js/aws-sdk-2.888.0.min.js"></script>
     <script src="js/aws-cognito-sdk.min.js"></script>
     <script src="js/amazon-cognito-identity.min.js"></script>
@@ -48,7 +49,7 @@
 
             <div id="menu" class="menu" style="display:none">
 
-                <div class="menu-child" id="menu-child">
+                <div class="menu-child">
                     <button id="pipeline" class="card" onclick="switchToPipelineView()" onmouseover="dimmer()" onmouseout="brightner()">
                         Pipeline
                         <span>
@@ -58,7 +59,7 @@
                     </button>
                 </div>
 
-                <div class="menu-child" id="menu-child">
+                <div class="menu-child">
                     <button id="report" class="card" onclick="switchToReportView()" onmouseover="dimmer()" onmouseout="brightner()">
                         Reporting
                         <span>
@@ -68,12 +69,22 @@
                     </button>
                 </div>
                 
-                <div class="menu-child" id="menu-child">
+                <div class="menu-child">
                     <button id="documentation"  class="card" onclick="switchToDocumentationView()" onmouseover="dimmer()" onmouseout="brightner()">
                         Documentation
                         <span>
                             <br/>
                             Click here to view the documentation on the pipeline.
+                        </span>
+                    </button>
+                </div>
+
+                <div class="menu-child">
+                    <button id="test" class="card" onclick="testView()" onmouseover="dimmer()" onmouseout="brightner()">
+                        TEST
+                        <span>
+                            <br/>
+                            Click here to do a test
                         </span>
                     </button>
                 </div>
@@ -219,21 +230,16 @@
                 <button class="back" onclick="switchToLoggedInView()"></button>
                 <div class="text-box" id="report_runs_text">
                     <p class="statement" id="report_runs_statement"><b>Select the run to process in the pipeline.</b></p>
-                    <div class="choices" id="report_runs_list"></div>
+                    <div class="choices" id="report_runs_list"></div> 
                 </div>
                 <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
             </div>
 
             <button id="report_selection_back" class="back" onclick="switchToReportView()" style="display:none"></button>
-            <div id="report_selection" class="flex-container" style="display:none">
-                <div id="report_sample_box" class="flex-child" style="display:none">
-                    <p id="sample_title"><b>Sample Selection:</b></p>
-                    <div id="samples"></div>
-                </div>
-
-                <div id="report_panel_box" class="flex-child" style="display:none">
-                    <p id="panel_title"><b>Panel Selection:</b></p>
-                    <div id="panels"></div>
+            <div id="report_selection" class="centered question-container" style="display:none">
+                <div id="report_sample_box" class="text-box" style="display:none">
+                    <p id="sample_title">Sample/Panel Selection:</p>
+                    <div id="samples" class="flex-container"></div>
                 </div>
             </div>
 
@@ -252,11 +258,24 @@
                 <img src="img/launch.png">
             </div>
 
-            <div class="flex-container">
+            <div class="centered" id="test-env" style="display:none">
                 <div class="flex-child">
+                    <select multiple="multiple" id="my-select" name="my-select[]">
+                        <option value='elem_1'>elem 1</option>
+                        <option value='elem_2'>elem 2</option>
+                        <option value='elem_3'>elem 3</option>
+                        <option value='elem_4'>elem 4</option>
+                        <option value='elem_100'>elem 100</option>
+                    </select>
+                    <script type="text/javascript">$('#my-select').multiSelect()</script>
+                </div>
+            </div>
+
+            <div class="flex-img-container">
+                <div class="flex-img-child">
                     <img src="img/ClinicalTransScienceInst.png" id="uf_logo">
                 </div>
-                <div class="flex-child">
+                <div class="flex-img-child">
                     <img src="img/gator_good.png" id="gator_good">
                 </div>
             </div>
@@ -266,25 +285,21 @@
     <script type="text/javascript">getCurrentLoggedInSession();</script>
 
     <script type="text/javascript">
-        const c = document.getElementById("main-content");
-        const b = document.getElementById("banner");
-        const p = document.getElementById("pipeline");
-        const r = document.getElementById("report");
-        const d = document.getElementById("documentation");
+        const main_content = document.getElementById("main-content");
+        const banner = document.getElementById("banner");
+        const cards = document.getElementsByClassName("card");
 
         function dimmer() {
             document.body.style.backgroundColor = "black";
-            c.style.backgroundColor = "rgba(245,245,245,0.5)";
-            b.style.opacity = 0.5;
-            p.style.backgroundColor = "#0021A5";
-            r.style.backgroundColor = "#0021A5";
-            d.style.backgroundColor = "#0021A5";
+            main_content.style.backgroundColor = "rgba(245,245,245,0.5)";
+            banner.style.opacity = 0.5;
+            cards.backgroundColor = "#0021A5";
         }
 
         function brightner() {
             document.body.style.backgroundColor = "whitesmoke";
-            b.style.opacity = "0.8";
-            c.style.backgroundColor = "rgba(245,245,245,1)";
+            banner.style.opacity = "0.8";
+            main_content.style.backgroundColor = "rgba(245,245,245,1)";
         }
     </script>
 

@@ -35,7 +35,7 @@ p {
 }
 
 [type="checkbox"] {
-    vertical-align: middle;
+    /* vertical-align: middle; */
     margin-left: 7%;
     margin-bottom: 10px;
     transform: scale(1.5)
@@ -142,7 +142,7 @@ p {
     float: left;
     width: 7%;
     margin-left: 92.5%;
-    margin-top: -8.7vmax;
+    margin-top: -8.5vmax;
 }
 
 button:not([class=card]) {
@@ -185,34 +185,20 @@ button:not([class=card]):hover {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
-.flex-container {
+  
+.flex-img-container {
     display: flex;
     padding: 1rem;
     flex-direction: row;
     justify-content: center;
 }
 
-.flex-child {
+.flex-img-child {
     padding: 2rem 1rem;
     margin: 0.375rem;
     flex-grow: 0.30;
     justify-content: flex-start;
 }  
-
-
-#report_sample_box {
-    border: 3px solid #bdbdbd;
-    width: 20%;
-    border-radius: 25px;
-    font-size: 1vmax;
-}
-
-#report_panel_box {
-    border: 3px solid #bdbdbd;
-    border-radius: 25px;
-    font-size: 1vmax;
-}
 
 #samples_button {
     margin-left: 35%;
@@ -250,7 +236,7 @@ body::after {
     top: -5vmax;
     left: 10.5vmax;
     width: 80%;
-    /* border: solid 1px blue; */
+    height: 100%;
 }
 
 .nav-main a {
@@ -260,8 +246,9 @@ body::after {
     color: whitesmoke;
     text-align: center;
     font-size: 1.2vmax;
+    height: 100%;
+    box-sizing: border-box;
     padding-top: 1.75vmax;
-    padding-bottom: 1.75vmax;
     flex: 1;
 }
 
@@ -314,9 +301,12 @@ body::after {
     color: #f5f5f5;
     border-radius: 25px;
     text-align: center;
-    width: 75%;
+    width: 90%;
     height: 7.5vmax;
-    transition: ease-in-out .3s;
+    margin-left: 5%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    transition: linear 0.1s;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
@@ -331,7 +321,9 @@ body::after {
 }
 
 .card:hover {
-    padding: 0.5vmax;
+    height: 10vmax;
+    margin: 0%;
+    width: 100%;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
@@ -339,7 +331,6 @@ body::after {
         0 22.3px 17.9px rgba(0, 0, 0, 0.072),
         0 41.8px 33.4px rgba(0, 0, 0, 0.086),
         0 100px 80px rgba(0, 0, 0, 0.12);
-    text-align: justify;
 }
 
 .card:hover span {
@@ -350,16 +341,50 @@ body::after {
 .menu {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
-    margin-left: 1.5vw;
-    width: 100%;
-    padding: 20px;
+    align-items: center;
+    margin-left: 3.5vw;
+    width: 85%;
+    padding: 30px;
 }
 
 .menu-child {
-    /* padding: 2rem 1rem; */
-    margin: -1%;
-    flex-grow: 0.15;
+    flex: 1 0 33%;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 95%;
+    margin-left: 1.5%;
+    padding: 5px;
+}
+
+.flex-child {
+    /* flex-grow: 1; */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    border: solid 3px;
+    border-radius: 12px;
+    margin: 0.5%;
+}
+
+.flex-child:nth-child(odd) {
+    border-color: #0021A5;
+}
+
+.flex-child:nth-child(even) {
+    border-color: #E28F41;
+}
+
+.flex-child-child {
+    flex: 1;
+    font-size: 0.75vmax;
+    padding: 10px;
+    justify-content: flex-start;
 }
 
 .question-container {
@@ -434,4 +459,98 @@ th, tr, td {
 .body-div {
     height: 100%;
     width: 100%;
+}
+
+.ms-container{
+    background: transparent url('../img/switch.png') no-repeat 50% 50%;
+    width: 370px;
+}
+
+.ms-container:after{
+    content: ".";
+    display: block;
+    height: 0;
+    line-height: 0;
+    font-size: 0;
+    clear: both;
+    min-height: 0;
+    visibility: hidden;
+}
+
+.ms-container .ms-selectable, .ms-container .ms-selection{
+    background: #fff;
+    color: #555555;
+    float: left;
+    width: 45%;
+}
+.ms-container .ms-selection{
+    float: right;
+}
+
+.ms-container .ms-list{
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+    -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+    -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
+    -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+    transition: border linear 0.2s, box-shadow linear 0.2s;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    position: relative;
+    height: 200px;
+    padding: 0;
+    overflow-y: auto;
+}
+
+.ms-container .ms-list.ms-focus{
+    border-color: rgba(82, 168, 236, 0.8);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+    outline: 0;
+    outline: thin dotted \9;
+}
+
+.ms-container ul{
+    margin: 0;
+    list-style-type: none;
+    padding: 0;
+}
+
+.ms-container .ms-optgroup-container{
+    width: 100%;
+}
+
+.ms-container .ms-optgroup-label{
+    margin: 0;
+    padding: 5px 0px 0px 5px;
+    cursor: pointer;
+    color: #999;
+}
+
+.ms-container .ms-selectable li.ms-elem-selectable,
+.ms-container .ms-selection li.ms-elem-selection{
+    border-bottom: 1px #eee solid;
+    padding: 2px 10px;
+    color: #555;
+    font-size: 14px;
+}
+
+.ms-container .ms-selectable li.ms-hover,
+.ms-container .ms-selection li.ms-hover{
+    cursor: pointer;
+    color: #fff;
+    text-decoration: none;
+    background-color: #08c;
+}
+
+.ms-container .ms-selectable li.disabled,
+.ms-container .ms-selection li.disabled{
+    background-color: #eee;
+    color: #aaa;
+    cursor: text;
 }
