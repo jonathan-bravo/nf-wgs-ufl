@@ -1,6 +1,7 @@
 var run_id = '';
 var sample_id = [];
 var filtered_panels = [];
+var filtered_samples = [];
 
 function distinct(value, index, self) {
     return self.indexOf(value) === index;
@@ -191,6 +192,143 @@ async function launch_reporting() {
     location.reload();
 }
 
+function select_all_samples() {
+
+    for(var k = 0; k < filtered_samples.length; k++){
+        var sample_check = document.getElementById(String(filtered_samples[k]));
+        sample_check.checked = !sample_check.checked;
+
+        if ("createEvent" in document) {
+            var evt = document.createEvent("HTMLEvents");
+            evt.initEvent("change", false, true);
+            sample_check.dispatchEvent(evt);
+        } else {
+            sample_check.fireEvent("onchange");
+        }
+    }
+}
+
+function get_panels_parent(){
+
+    var ms_filtered_samples = [];
+
+    for(var i = 0; i < filtered_samples.length; i++){
+        ms_filtered_samples.push("'ms-"+filtered_samples[i]+"_select'");
+    }
+
+    var select_all_box = document.createElement("div");
+    select_all_box.setAttribute("class", "flex-child-child");
+    select_all_box.setAttribute("id", "select_all_box");
+
+    var select_all = document.createElement("button");
+    select_all.setAttribute("onclick", "select_all_samples()");
+    select_all.setAttribute("id", "select_all_button");
+    select_all.innerHTML = "Select All";
+
+    select_all_box.appendChild(select_all);
+
+    var parent_box = document.getElementById("parent_selector_box");
+    var child_box = document.getElementById("parent_selector_child_box");
+    var parent_selector = document.getElementById("parent_selector");
+
+    var low_coverage = document.createElement("option");
+    low_coverage.setAttribute("value", "5x WGS");
+    low_coverage.setAttribute("id", "low_coverage");
+    low_coverage.innerHTML = "5x WGS";
+    parent_selector.appendChild(low_coverage);
+
+    for (const i in filtered_panels) {
+        var choiceSelection = document.createElement("option");
+
+        choiceSelection.setAttribute("value", filtered_panels[i]);
+        choiceSelection.setAttribute("id", "panel_"+i);
+
+        choiceSelection.innerHTML=filtered_panels[i];
+
+        parent_selector.appendChild(choiceSelection);
+    }
+
+    var select_code = document.createElement("script");
+    select_code.setAttribute("type", "text/javascript");
+    select_code.setAttribute("id", "parent_selector_script");
+    select_code.innerHTML = `
+        $('#parent_selector').multiSelect({
+            selectableHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='panels to select'>",
+            selectionHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='selected panels'>",
+            afterInit: function(ms){
+                var that = this,
+                    $selectableSearch = that.$selectableUl.prev(),
+                    $selectionSearch = that.$selectionUl.prev(),
+                    selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)',
+                    selectionSearchString = '#'+that.$container.attr('id')+' .ms-elem-selection.ms-selected';
+
+                that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+                .on('keydown', function(e){
+                    if (e.which === 40){
+                        that.$selectableUl.focus();
+                        return false;
+                    }
+                });
+
+                that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
+                .on('keydown', function(e){
+                    if (e.which == 40){
+                        that.$selectionUl.focus();
+                        return false;
+                    }
+                });
+            },
+            afterSelect: function(ms){
+                this.qs1.cache();
+                this.qs2.cache();
+
+                var selectors = [${ms_filtered_samples}];
+
+                for(var j = 0; j < selectors.length; j++){
+                    var p = document.getElementById(String(selectors[j])).children; //selector
+                    var s = p[0].children[0]; // selectable list
+                    var sl = s.children; // listed elements
+                    var l = p[1].children[0];
+                    var ll = l.children;
+
+                    for(var i = 0; i< sl.length; i++) {
+                        var v = sl[i].children[0].innerHTML; // value
+                        if(v == ms[0]){
+                            sl[i].style = "display: none;";
+                            ll[i].className = "ms-elem-selection ms-selected";
+                            ll[i].style = "";
+                        }
+                    }
+                }
+            },
+            afterDeselect: function(ms){
+                this.qs1.cache();
+                this.qs2.cache();
+
+                var selectors = [${ms_filtered_samples}];
+
+                for(var j = 0; j < selectors.length; j++){
+                    var p = document.getElementById(String(selectors[j])).children; //selector
+                    var s = p[0].children[0]; // selectable list
+                    var sl = s.children; // listed elements
+                    var l = p[1].children[0];
+                    var ll = l.children;
+
+                    for(var i = 0; i< ll.length; i++) {
+                        var v = ll[i].children[0].innerHTML; // value
+                        if(v == ms[0]){
+                            ll[i].style = "display: none;";
+                            ll[i].className = "ms-elem-selection";
+                            sl[i].style = "";
+                        }
+                    }
+                }
+            }
+        })`;
+        child_box.appendChild(select_code);
+        parent_box.appendChild(select_all_box);
+}
+
 function get_panels(div_id, in_id){
 
     var parent = document.getElementById(div_id);
@@ -213,7 +351,7 @@ function get_panels(div_id, in_id){
         var low_coverage = document.createElement("option");
         low_coverage.setAttribute("value", "low_coverage");
         low_coverage.setAttribute("id", "low_coverage");
-        low_coverage.innerHTML = "LOW COVERAGE";
+        low_coverage.innerHTML = "5x WGS";
         panels_select.appendChild(low_coverage);
 
         for (const i in filtered_panels) {
@@ -262,7 +400,7 @@ async function get_report_sample() {
     };
     
     var samples = [];
-    var filtered_samples = [];
+    filtered_samples = [];
 
     s3.listObjects(bucketParams, function(err, data) {
         if (err) {
@@ -341,6 +479,8 @@ async function get_report_sample() {
         sample_div.appendChild(sample_child_div);
         sample_list.appendChild(sample_div);
     }
+
+    get_panels_parent();
 
     $("#loader").hide();
     $("#report_selection_back").show();

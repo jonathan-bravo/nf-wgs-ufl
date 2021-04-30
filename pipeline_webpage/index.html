@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono:wght@600&display=swap">
     <link rel="stylesheet" href="css/stylesheet.css">
     <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.quicksearch.js"></script>
     <script src="js/jquery.multi-select.js"></script>
     <script src="js/aws-sdk-2.888.0.min.js"></script>
     <script src="js/aws-cognito-sdk.min.js"></script>
@@ -13,6 +14,7 @@
     <script src="js/log_in.js"></script>
     <script src="js/pipeline_launch.js"></script>
     <script src="js/var_class_launch.js"></script>
+    <script src="js/file_request.js"></script>
     <script src="js/context.js"></script>
 </head>
 <body>
@@ -68,6 +70,16 @@
                         </span>
                     </button>
                 </div>
+
+                <div class="menu-child">
+                    <button id="request" class="card" onclick="switchToRequestView()" onmouseover="dimmer()" onmouseout="brightner()" ontouchstart="dimmer()" ontouchend="brightner()">
+                        Requests
+                        <span>
+                            <br/>
+                            Click here to request the raw VCF, MultiQC report on a run, or reports that have already been generated for a specific sample.
+                        </span>
+                    </button>
+                </div>
                 
                 <div class="menu-child">
                     <button id="documentation"  class="card" onclick="switchToDocumentationView()" onmouseover="dimmer()" onmouseout="brightner()" ontouchstart="dimmer()" ontouchend="brightner()">
@@ -84,7 +96,7 @@
                         TEST
                         <span>
                             <br/>
-                            Click here to do a test
+                            Click here to go to the test environment.
                         </span>
                     </button>
                 </div>
@@ -238,12 +250,18 @@
             <button id="report_selection_back" class="back" onclick="switchToReportView()" style="display:none"></button>
             <div id="report_selection" class="centered question-container" style="display:none">
                 <div id="report_sample_box" class="text-box" style="display:none">
-                    <p id="sample_title">Sample/Panel Selection:</p>
-                    <div id="samples" class="flex-container"></div>
+                    <p id="sample_title" class="statement">Sample/Panel Selection:</p>
+                    <div id="samples" class="flex-container">
+                        <div id="parent_selector_box" class="flex-child">
+                            <div id="parent_selector_child_box" class="flex-child-child">
+                                <select multiple="multiple" id="parent_selector"></select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="centered">
+            <div id="report_email_box" class="centered">
                 <form id="email" onsubmit="return false;" style="display:none">
                     <div class="centered">
                         <label id="user_email_label" for="user_email">Email: </label>
@@ -254,20 +272,152 @@
                 </form>
             </div>
 
+            <div id="request_runs_box" class="centered question-container" style="display:none;">
+                <button class="back" onclick="switchToLoggedInView()"></button>
+                <div class="text-box" id="request_runs_text">
+                    <p class="statement" id="request_runs_statement">Select the correct run for your report(s).</p>
+                    <div class="choices" id="request_runs_list"></div>
+                </div>
+                <button onclick="switch_to_contexts()" id="">Submit</button>
+            </div>
+
+            <div id="request_run_or_sample_box" class="centered question-container" style="display:none;">
+                <button class="back" onclick="switchToRequestView()"></button>
+                <div class="text-box" id="request_run_or_sample_text">
+                    <p class="statement" id="request_run_or_sample_statement">Would you like a sample report or the MultiQC report for a run?</p>
+                    <input type="radio" class="choices" name="r_or_s" id="sample"> Report for a sample
+                    <br/><br/>
+                    <input type="radio" class="choices" name="r_or_s" id="run"> MultiQC report for run
+                    <br/><br/>
+                </div>
+                <button onclick="r_or_s()" id="request_r_or_s_button">Submit</button>
+            </div>
+
+            <div id="request_samples_box" class="centered question-container" style="display:none;">
+                <button class="back" onclick="switchToRunOrSampleView()"></button>
+                <div class="text-box" id="request_samples_text">
+                    <p class="statement" id="request_samples_statement">Select your sample.</p>
+                    <div class="choices" id="request_samples"></div>
+                </div>
+                <button onclick="get_chosen_request_sample()" id="request_samples_button">Submit</button>
+            </div>
+
+            <div id="request_reports_box" class="centered question-container" style="display:none;">
+                <button class="back" onclick="switchToRequestSamplesView()"></button>
+                <div class="text-box" id="request_reports_text">
+                    <p class="statement" id="request_reports_statement">Select the report/ file you would like.</p>
+                    <div class="choices" id="request_reports"></div>
+                </div>
+                <button onclick="get_request_email()" id="request_reports_button">Submit</button>
+            </div>
+
+            <div id="request_email_box" class="centered question-container" style="display:none;">
+                <button class="back" onclick="switchToRequestReportsView()"></button>
+                <div class="text-box" id="request_email_text">
+                    <p class="statement" id="request_email_statement">Please enter your email.</p>
+                    <form id="email" onsubmit="return false;">
+                        <div class="centered">
+                            <label id="request_user_email_label" for="request_user_email">Email: </label>
+                            <input type="email" id="request_user_email" name="User_Email" placeholder="gator@ufl.edu">
+                            <br/><br/>
+                            <input type="submit" onclick="retrieve_report()" id="launch_report_button" value="Get Research Report">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="centered" id="launch_img" style="display:none">
                 <img src="img/launch.png">
             </div>
 
-            <div class="centered" id="test-env" style="display:none">
+            <div class="flex-container" id="test-env" style="display:none">
+                <div class="flex-child">
+                    <select multiple="multiple" id="my-select-parent" name="my-select[]">
+                        <option value='elem_1'>elem_1</option>
+                        <option value='elem_2'>elem_2</option>
+                        <option value='elem_3'>elem_3</option>
+                        <option value='elem_4'>elem_4</option>
+                        <option value='elem_100'>elem_100</option>
+                    </select>
+                    <script type="text/javascript">
+                        $('#my-select-parent').multiSelect({
+                            selectableHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='panels to select'>",
+                            selectionHeader: "<input type='text' class='search-input' autocomplete='off' placeholder='selected panels'>",
+                            afterInit: function(ms){
+                                var that = this,
+                                    $selectableSearch = that.$selectableUl.prev(),
+                                    $selectionSearch = that.$selectionUl.prev(),
+                                    selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)',
+                                    selectionSearchString = '#'+that.$container.attr('id')+' .ms-elem-selection.ms-selected';
+
+                                that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+                                .on('keydown', function(e){
+                                    if (e.which === 40){
+                                        that.$selectableUl.focus();
+                                        return false;
+                                    }
+                                });
+
+                                that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
+                                .on('keydown', function(e){
+                                    if (e.which == 40){
+                                        that.$selectionUl.focus();
+                                        return false;
+                                    }
+                                });
+                            },
+                            afterSelect: function(ms){
+                                this.qs1.cache();
+                                this.qs2.cache();
+                                console.log(ms);
+                                var p = document.getElementById("ms-my-select").children; //selector
+                                var s = p[0].children[0]; // selectable list
+                                var sl = s.children; // listed elements
+                                var l = p[1].children[0];
+                                var ll = l.children;
+
+                                for(var i = 0; i< sl.length; i++) {
+                                    var v = sl[i].children[0].innerHTML; // value
+                                    if(v == ms[0]){
+                                        sl[i].style = "display:none;";
+                                        ll[i].className = "ms-elem-selection ms-selected";
+                                        ll[i].style = "";
+                                    }
+                                }
+                            },
+                            afterDeselect: function(ms){
+                                this.qs1.cache();
+                                this.qs2.cache();
+
+                                var p = document.getElementById("ms-my-select").children; //selector
+                                var s = p[0].children[0]; // selectable list
+                                var sl = s.children; // listed elements
+                                var l = p[1].children[0];
+                                var ll = l.children;
+
+                                for(var i = 0; i< ll.length; i++) {
+                                    var v = ll[i].children[0].innerHTML; // value
+                                    if(v == ms[0]){
+                                        ll[i].style = "display: none;";
+                                        ll[i].className = "ms-elem-selection";
+                                        sl[i].style = "";
+                                    }
+                                }
+                            }
+                        });
+                    </script>
+                </div>
                 <div class="flex-child">
                     <select multiple="multiple" id="my-select" name="my-select[]">
-                        <option value='elem_1'>elem 1</option>
-                        <option value='elem_2'>elem 2</option>
-                        <option value='elem_3'>elem 3</option>
-                        <option value='elem_4'>elem 4</option>
-                        <option value='elem_100'>elem 100</option>
+                        <option value='elem_1'>elem_1</option>
+                        <option value='elem_2'>elem_2</option>
+                        <option value='elem_3'>elem_3</option>
+                        <option value='elem_4'>elem_4</option>
+                        <option value='elem_100'>elem_100</option>
                     </select>
-                    <script type="text/javascript">$('#my-select').multiSelect()</script>
+                    <script type="text/javascript">
+                        $('#my-select').multiSelect();
+                    </script>
                 </div>
             </div>
 
