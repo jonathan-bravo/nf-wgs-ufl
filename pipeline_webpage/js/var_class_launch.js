@@ -447,8 +447,6 @@ async function get_report_sample() {
         }
     });
 
-
-
     $("#loader").show();
 
     await new Promise(r => setTimeout(r, 3000));
@@ -471,10 +469,9 @@ async function get_report_sample() {
         choiceSelection.setAttribute("id", filtered_samples[i]);
         choiceSelection.setAttribute("onchange", "get_panels('"+filtered_samples[i]+"_div','"+filtered_samples[i]+"')");
 
-        choiceLabel.innerHTML=filtered_samples[i]+"<br/><br/>";
-        choiceLabel.setAttribute("for", "sample_id");
+        choiceLabel.appendChild(choiceSelection);
+        choiceLabel.innerHTML += '\t'+filtered_samples[i]+"<br/><br/>";
 
-        sample_child_div.appendChild(choiceSelection);
         sample_child_div.appendChild(choiceLabel);
         sample_div.appendChild(sample_child_div);
         sample_list.appendChild(sample_div);
@@ -535,10 +532,9 @@ async function get_report_runs() {
         choiceSelection.setAttribute('name', 'run_id');
         choiceSelection.setAttribute('id', filtered_samples[i]);
 
-        choiceLabel.innerHTML=filtered_samples[i]+'<br/><br/>';
-        choiceLabel.setAttribute('for', 'run_id');
+        choiceLabel.appendChild(choiceSelection);
+        choiceLabel.innerHTML += '\t'+filtered_samples[i]+'<br/><br/>';
 
-        runs_list.appendChild(choiceSelection);
         runs_list.appendChild(choiceLabel);
     }
 

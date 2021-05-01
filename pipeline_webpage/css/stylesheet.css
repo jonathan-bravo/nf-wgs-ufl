@@ -1,32 +1,13 @@
 * {
     font-family: 'Roboto', sans-serif;
     font-family: 'Roboto Mono', monospace;
+    outline: 0;
+    outline-style: none;
     outline-width: 0;
-}
-
-label {
-    margin-left: 15px;
 }
 
 img {
     max-width: 100%;
-}
-
-#uf_health_logo {
-    margin-left: 1%;
-    max-width: 10%;
-    margin-top: 0.5%;
-    padding-bottom: 5px;
-}
-
-#uf_logo {
-    max-width: 50%;
-    opacity: 0.65;
-}
-
-#gator_good {
-    margin-left: 13%;
-    opacity: 0.65;
 }
 
 p {
@@ -35,7 +16,6 @@ p {
 }
 
 [type="checkbox"] {
-    /* vertical-align: middle; */
     margin-left: 7%;
     margin-bottom: 10px;
     transform: scale(1.5)
@@ -45,6 +25,10 @@ p {
     color: black;
     transform: scale(1.5);
     margin-right: 0;
+}
+
+[type="radio"]:checked {
+    border: solid 1px #4062F6;
 }
 
 [type="text"] {
@@ -97,7 +81,7 @@ p {
     height: 2vmax;
     font-size: 1vmax;
     border-radius: 12px;
-    border-color: #44475a;
+    border: solid 1px #44475a;
     margin-top: 20px;
     margin-left: 30%;
     width: 40%;
@@ -105,28 +89,10 @@ p {
     box-shadow: 0 8px 6px -6px #44475a;
 }
 
-[type="submit"]:hover, [type="submit"]:active {
+[type="submit"]:active {
     background-color:#44475a;
     color: lightgrey;
-}
-
-[type="button"]:not([class=table-button]) {
-    background-color: lightgrey;
-    color: #44475a;
-    height: 2vmax;
-    font-size: 1vmax;
-    border-radius: 12px;
-    border-color: #44475a;
-    margin-top: 20px;
-    margin-left: 30%;
-    width: 40%;
-    text-align: center;
-    box-shadow: 0 8px 6px -6px #44475a;
-}
-
-[type="button"]:not([class=table-button]):hover, [type="button"]:not([class=table-button]):active {
-    background-color:#44475a;
-    color: lightgrey;
+    transform: scale(0.95);
 }
 
 #logInButton {
@@ -134,30 +100,25 @@ p {
     width: 20%;
 }
 
-#log_out_button {
-    float: left;
-    width: 7%;
-    margin-left: 92.5%;
-    margin-top: -8.5vmax;
-}
-
 button:not([class=card]) {
     background-color: lightgrey;
     color: #44475a;
     height: 2vmax;
     font-size: 1vmax;
+    border: 0;
     border-radius: 12px;
-    border-color: #44475a;
     margin-top: 20px;
     margin-left: 37.5%;
     width: 25%;
     text-align: center;
     box-shadow: 0 8px 6px -6px #44475a;
+    transition: 0.1s;
 }
 
-button:not([class=card]):hover, button:not([class=card]):active {
+button:not([class=card]):active {
     background-color:#44475a;
     color: lightgrey;
+    transform: scale(0.95);
 }
 
 .centered {
@@ -167,125 +128,186 @@ button:not([class=card]):hover, button:not([class=card]):active {
 }
 
 .loader {
-    border: 16px solid #0021A5;
-    border-top: 16px solid #E28F41;
-    border-radius: 50%;
-    width: 4vmax;
-    height: 4vmax;
-    margin-left: 45%;
     margin-top: 0;
-    animation: spin 2s linear infinite;
+    display: flex;
+    justify-content: center;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.dot {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    margin: 1.2rem;
+}
+
+.dot:nth-child(odd) {
+    animation: up 1s cubic-bezier(1,0,0,1) alternate-reverse infinite;
+}
+
+.dot:nth-child(even) {
+    animation: down 1s cubic-bezier(1,0,0,1) alternate-reverse infinite;
+}
+
+@keyframes up {
+    0% {
+        transform: translateY(100px);
+        background-color: #0021A5;
+    }
+    100% {
+        transform: translateY(50px);
+        background-color: #E28F41;
+    }
+}
+
+@keyframes down {
+    0% {
+        transform: translateY(50px);
+        background-color: #E28F41;
+    }
+    100% {
+        transform: translateY(100px);
+        background-color: #0021A5;
+    }
 }
   
 .flex-img-container {
     display: flex;
-    padding: 1rem;
+    /* padding: 1rem; */
     flex-direction: row;
     justify-content: center;
+    border: solid 1px red;
 }
 
 .flex-img-child {
-    padding: 2rem 1rem;
-    margin: 0.375rem;
-    flex-grow: 0.30;
-    justify-content: flex-start;
-}  
+    /* padding: 2rem 1rem; */
+    /* margin: 0.375rem; */
+    flex: 1;
+    justify-content: center;
+    border: solid 1px blue;
+}
+
+#uf_logo {
+    position: relative;
+    opacity: 0.65;
+
+}
+
+#gator_good {
+    position: relative;
+    opacity: 0.65;
+}
 
 #samples_button {
     margin-left: 35%;
 }
 
-body::after {
-    background-color: whitesmoke;
+body {
+    background-color: #36454f;
+}
+
+.body-img {
     content: "";
     background: url(../img/UF_Treatment_Overlay.png) center;
     background-repeat: no-repeat;
     background-size: cover;
-    opacity: 0.5;
+    opacity: 0.8;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
     position: fixed;
     z-index: -1;
-  }
+}
 
 .banner {
-    background-image: linear-gradient(to right, #6C9AC3 , #E28F41);
-    width: 99.5%;
+    display: flex;
     padding: 5px;
-    opacity: 0.8;
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px #000000;
     height: 5vmax;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.banner-img {
+    position:absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0.9;
+    background-image: linear-gradient(to right, #6C9AC3 , #E28F41);
+    box-shadow: inset 0 0 10px #000000;
+    z-index: -1;
 }
 
 .nav-main {
     display: flex;
     flex-direction: row;
-    position: relative;
-    top: -5vmax;
-    left: 10.5vmax;
-    width: 80%;
+    position: absolute;
+    top: 0;
+    left: 16%;
+    width: 75%;
     height: 100%;
 }
 
 .nav-main a {
-    transition: 0.3s;
-    width: 2.5vmax; /*4.75*/
-    text-decoration: none; /* Remove underline */
+    transition: 0.15s;
+    text-decoration: none;
     color: whitesmoke;
     text-align: center;
     font-size: 1.2vmax;
-    height: 100%;
-    box-sizing: border-box;
-    padding-top: 1.75vmax;
-    flex: 1;
+    top: 0;
+    padding-top: 2.5%;
+    flex-grow: 0.05;
 }
 
-.nav-main a:hover, .nav-main a:active {
+.nav-main a:active {
     box-shadow: inset 0 0 10px #000000;
     background-image: linear-gradient(to right, #E28F41, #0021A5);
     background-attachment: fixed;
     background-position: center;
 }
 
-.ctsi { left: 250px; }
-.lnn  { left: 350px; }
-.test1 {left: 450px}
-.test2 {left: 550px}
-.test3 {left: 650px}
-.test4 {left: 750px}
-.test5 {left: 850px}
-.test6 {left: 950px}
-.test7 {left: 1050px}
-.test8 {left: 1150px}
-.test9 {left: 1250px}
-.test10 {left: 1350px}
-.test11 {left: 1450px}
-.test12 {left: 1550px}
-.test13 {left: 1650px}
+#log_out_button {
+    position: absolute;
+    width: 7%;
+    margin-left: 91.5%;
+    margin-top: 1.35%;
+}
+
+#uf_health_logo {
+    margin-left: 1%;
+    max-width: 15%;
+    margin-top: 0.5%;
+    padding-bottom: 5px;
+}
 
 .content {
-    background-color: rgba(245,245,245,1.0);
     width: 75%;
-    border-radius: 25px;
     margin: auto;
-    margin-top: 150px;
-    margin-bottom: 150px;
-    padding-top: 2vmax;
+    margin-top: 250px;
+    padding-top: 1vmax;
+    position: relative;
+}
+
+.content-bg {
+    position:absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(245,245,245,1.0);
+    border: 0;
+    border-radius: 25px;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
         0 12.5px 10px rgba(0, 0, 0, 0.06),
         0 22.3px 17.9px rgba(0, 0, 0, 0.072),
         0 41.8px 33.4px rgba(0, 0, 0, 0.086),
-        0 100px 80px rgba(0, 0, 0, 0.12); 
+        0 100px 80px rgba(0, 0, 0, 0.12);
+    z-index: -1;
 }
 
 .card {
@@ -293,16 +315,17 @@ body::after {
     background-image: linear-gradient(100deg, #0021A5, #E28F41);
     background-attachment: fixed;
     background-position: center;
-    border: solid 1px rgba(27,27,27, 1);
     color: #f5f5f5;
-    border-radius: 25px;
+    border: 0;
+    border-radius: 10px;
     text-align: center;
     width: 90%;
     height: 7.5vmax;
     margin-left: 5%;
     margin-top: 5%;
     margin-bottom: 5%;
-    transition: linear 0.1s;
+    animation: out 0.2s cubic-bezier(1,0,0,1);
+    overflow: hidden;
     box-shadow: 
         0 2.8px 2.2px rgba(0, 0, 0, 0.034),
         0 6.7px 5.3px rgba(0, 0, 0, 0.048),
@@ -316,33 +339,61 @@ body::after {
     display: none;
 }
 
-.card:hover, .card:active {
-    height: 10vmax;
-    margin: 0%;
-    width: 100%;
-    box-shadow: 
-        0 2.8px 2.2px rgba(0, 0, 0, 0.034),
-        0 6.7px 5.3px rgba(0, 0, 0, 0.048),
-        0 12.5px 10px rgba(0, 0, 0, 0.06),
-        0 22.3px 17.9px rgba(0, 0, 0, 0.072),
-        0 41.8px 33.4px rgba(0, 0, 0, 0.086),
-        0 100px 80px rgba(0, 0, 0, 0.12);
+.card:hover {
+    font-size: 0.9vmax;
+    animation: in 1.5s cubic-bezier(0.5,0.5,0,1.5);
+    animation-fill-mode: forwards;
+    animation-delay: 500ms;
 }
 
-.card:hover span, .card:active span {
+.card:hover span {
     display: block;
-    font-size: 1vmax;
+    font-size: 0.7vmax;
+    animation: slide_in 2s cubic-bezier(0.5,0.5,0,1);
+}
+
+.blur {
+    filter: blur(3px);
+    z-index: -1;
+}
+
+@keyframes in {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.5);
+    }
+}
+
+@keyframes out {
+    from {
+        transform: scale(1.5);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes slide_in {
+    0% {
+        opacity: 0;
+        transform: translateY(200px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0px);
+    }
 }
 
 .menu {
+    position: relative;
+    top: 3vh;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    margin-left: 3.5vw;
-    width: 85%;
-    padding: 30px;
 }
 
 .menu-child {
@@ -359,7 +410,6 @@ body::after {
 }
 
 .flex-child {
-    /* flex-grow: 1; */
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -419,14 +469,15 @@ body::after {
     height: 2vmax;
     font-size: 1vmax;
     border-radius: 8px;
-    border-color: #44475a;
+    border: solid 1px #44475a;
     text-align: center;
     box-shadow: 0 8px 6px -6px #44475a;
 }
 
-.table-button:hover, .table-button:active {
+.table-button:active {
     background-color:#44475a;
     color: lightgrey;
+    transform: scale(0.95);
 }
 
 #match_cell {

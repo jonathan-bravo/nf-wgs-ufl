@@ -215,10 +215,11 @@ async function get_runs() {
         choiceSelection.setAttribute('name', 'run_id');
         choiceSelection.setAttribute('id', filtered_samples[i]);
 
-        choiceLabel.innerHTML=filtered_samples[i]+'<br/><br/>';
-        choiceLabel.setAttribute('for', 'run_id');
+        choiceLabel.appendChild(choiceSelection);
+        choiceLabel.innerHTML += '\t'+filtered_samples[i]+'<br/><br/>';
+        //choiceLabel.setAttribute('for', 'run_id');
 
-        runs_list.appendChild(choiceSelection);
+        //runs_list.appendChild(choiceSelection);
         runs_list.appendChild(choiceLabel);
     }
 
