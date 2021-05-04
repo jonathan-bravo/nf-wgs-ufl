@@ -52,7 +52,7 @@ then
     aws ec2 start-instances --instance-ids i-0a21f1098dcb1575a;
     echo "Starting...";
     wait_running;
-    ssh -i "~/Documents/j.bravo.pem" ubuntu@${DNC};
+    ssh -i "~/Documents/j.bravo.pem" ubuntu@${DNS};
     aws ec2 stop-instances --instance-ids i-0a21f1098dcb1575a;
 elif [[ ${STATUS} == "stopping" ]];
 then
@@ -61,10 +61,10 @@ then
     aws ec2 start-instances --instance-ids i-0a21f1098dcb1575a;
     echo "Starting...";
     wait_running;
-    ssh -i "~/Documents/j.bravo.pem" ubuntu@${DNC};
+    ssh -i "~/Documents/j.bravo.pem" ubuntu@${DNS};
     aws ec2 stop-instances --instance-ids i-0a21f1098dcb1575a;
 else
     echo "Already on";
-    ssh -i "~/Documents/j.bravo.pem" ubuntu@${DNC};
+    ssh -i "~/Documents/j.bravo.pem" ubuntu@${DNS};
     aws ec2 stop-instances --instance-ids i-0a21f1098dcb1575a;
 fi
