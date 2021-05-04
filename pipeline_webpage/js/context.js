@@ -1,5 +1,62 @@
+function show_login() {
+    $('.log-in-box-shadow').css('opacity', '1');
+    $('.log-in-box-shadow').removeClass('inactive');
+    $('.log-in-box-shadow').addClass('active');
+    $('.log-in-box-shadow').css('zIndex','-1');
+    setTimeout(function() {
+        $('.log-in-box').css('opacity', '1');
+        $('.log-in-box').css('zIndex','1');
+        $('.log-in-box').css('box-shadow', '10px 10px 5px rgba(0, 0, 0, 0.1)');
+        $('.log-in-box').removeClass('inactive');
+        $('.log-in-box').addClass('active');
+    }, 300);
+
+    $('.request-access-box').removeClass('active');
+    $('.request-access-box').addClass('inactive');
+    setTimeout(function(){
+        $('.request-access-box-shadow').removeClass('active');
+        $('.request-access-box-shadow').addClass('inactive');
+    }, 300);
+    setTimeout(function(){
+        $('.request-access-box-shadow').css('opacity', '0');
+        $('.request-access-box-shadow').css('zIndex', '-1');
+        $('.request-access-box').css('opacity', '0');
+        $('.request-access-box').css('box-shadow', 'none');
+        $('.request-access-box').css('zIndex', '-1');
+    }, 1500);
+}
+
+function show_request_access() {
+
+    $('.request-access-box-shadow').css('opacity', '1');
+    $('.request-access-box-shadow').removeClass('inactive');
+    $('.request-access-box-shadow').addClass('active');
+    $('.request-access-box-shadow').css('zIndex','-1');
+    setTimeout(function() {
+        $('.request-access-box').css('opacity', '1');
+        $('.request-access-box').css('zIndex', '1');
+        $('.request-access-box').css('box-shadow', '10px 10px 5px rgba(0, 0, 0, 0.1)');
+        $('.request-access-box').removeClass('inactive');
+        $('.request-access-box').addClass('active');
+    }, 300);
+
+    $('.log-in-box').removeClass('active');
+    $('.log-in-box').addClass('inactive');
+    setTimeout(function(){
+        $('.log-in-box-shadow').removeClass('active');
+        $('.log-in-box-shadow').addClass('inactive');
+    }, 300);
+    setTimeout(function(){
+        $('.log-in-box-shadow').css('opacity', '0');
+        $('.log-in-box-shadow').css('zIndex','-1');
+        $('.log-in-box').css('opacity', '0');
+        $('.log-in-box').css('box-shadow', 'none');
+        $('.log-in-box').css('zIndex','-1');
+    }, 1500);
+}
+
 function testView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#log_out_button").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -22,7 +79,7 @@ function testView(){
 function switchToLogInView(){
     $("#userNameInput").val('');
     $("#passwordInput").val('');
-    $("#log_in_box").show();
+    $("#intro").show();
     $("#log_out_button").hide();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -42,7 +99,7 @@ function switchToLogInView(){
 }
 
 function switchToLoggedInView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#menu").show();
     $("#log_out_button").show();
     $("#workflow_question_box").hide();
@@ -62,7 +119,7 @@ function switchToLoggedInView(){
 }
 
 function switchToPipelineView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#logOutButton").show();
     $("#menu").hide();
     $("#workflow_question_box").show();
@@ -84,7 +141,7 @@ function switchToPipelineView(){
 }
 
 function switchToTypeView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#logOutButton").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -106,7 +163,7 @@ function switchToTypeView(){
 }
 
 function switchToRunIdView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#logOutButton").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -126,7 +183,7 @@ function switchToRunIdView(){
 }
 
 function switchToLaneView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#logOutButton").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -146,7 +203,7 @@ function switchToLaneView(){
 }
 
 function switchToMatchView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#logOutButton").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -166,7 +223,7 @@ function switchToMatchView(){
 }
 
 function switchToReportView(){
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#log_out_button").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -188,7 +245,7 @@ function switchToReportView(){
 }
 
 function switchToRequestView() {
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#log_out_button").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -208,7 +265,7 @@ function switchToRequestView() {
 }
 
 function switchToRunOrSampleView() {
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#log_out_button").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -228,7 +285,7 @@ function switchToRunOrSampleView() {
 }
 
 function switchToRequestSamplesView() {
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#log_out_button").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();
@@ -250,7 +307,7 @@ function switchToRequestSamplesView() {
 }
 
 function switchToRequestReportsView() {
-    $("#log_in_box").hide();
+    $("#intro").hide();
     $("#log_out_button").show();
     $("#menu").hide();
     $("#workflow_question_box").hide();

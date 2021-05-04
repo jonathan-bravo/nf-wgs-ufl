@@ -25,27 +25,60 @@
         <div class="banner" id="banner">
 
             <div class="banner-img"></div>
-
-            <img src="img/uf_health_logo.png" id="uf_health_logo">
+            <div class="uf-health-logo">
+                <img src="img/uf_health_logo.png" id="uf_health_logo">
+            </div>
             <div class="nav-main">
                 <a class="ctsi" href="https://www.ctsi.ufl.edu/">CTSI</a>
                 <a class="lnn" href="https://neurology.ufl.edu/divisions/lnn/">LNN</a>
-                <a class="test1">TEST</a>
-                <a class="test2">TEST</a>
-                <a class="test3">TEST</a>
-                <a class="test4">TEST</a>
             </div>
-            <button id="log_out_button" onclick="logOut()" style="display:none;">Log Out</button>
+            <div class="logout-button">
+                <button id="log_out_button" onclick="logOut()" style="display:none;">Log Out</button>
+            </div>
         </div>
 
         <div class="content" id="main-content">
 
             <div class="content-bg"></div>
 
-            <div id="log_in_box" class="centered">
-                <input id="userNameInput" type="text" placeholder="Username"/></br>
-                <input id="passwordInput" type="password" placeholder="Password"/></br>
-                <button id="logInButton" value="Log In" onclick="logIn()">Log In</button>
+            <div id="intro" class="intro">
+                <div class="intro-title">
+                    <h1>GatorGenome</h1>
+                </div>
+                <div class="intro-text">
+                    <p>
+                        Welcome to GatorGenome. This pipeline is a compilation of many open source tools. Created by Johnny Bravo, the bioinformatician in the Laboratory of Neurogenetics and Neuroscience (LNN). If you already have access please sign in. If you need access to launch the pipline and/ or any of the tertiary analysis tools, please request access.
+                    </p>
+                </div>
+                <div class="intro-buttons">
+                    <div class="sign-in">
+                        <div class="sign-in-button">
+                            <button onclick="show_login()">Sign In</button>
+                        </div>
+                        <div class="log-in-container">
+                            <div class="log-in-box-shadow"></div>
+                            <div id="log_in_box" class="log-in-box">
+                                <input id="userNameInput" type="text" placeholder="Username"/><br/>
+                                <input id="passwordInput" type="password" placeholder="Password"/><br/>
+                                <button id="logInButton" value="Log In" onclick="logIn()">Log In</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="request-access">
+                        <div class="request-access-button">
+                            <button onclick="show_request_access()">Request Access</button>
+                        </div>
+                        <div class="request-access-container">
+                            <div class="request-access-box-shadow"></div>
+                            <div id="request_access_box" class="request-access-box">
+                                <input type="text" placeholder="Username"/><br/>
+                                <input type="password" placeholder="Password"/><br/>
+                                <input type="email" placeholder="gator@ufl.edu"/><br/>
+                                <button>Request</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="menu" class="menu" style="display:none">
@@ -364,11 +397,12 @@
                 </div>
             </div>
 
-            <div class="flex-img-container" style="display: none;">
-                <div class="flex-img-child">
+            <div class="flex-img-container">
+                <div class="uf-ctsi">
                     <img src="img/ClinicalTransScienceInst.png" id="uf_logo">
                 </div>
-                <div class="flex-img-child">
+                <div class="spacer"></div>
+                <div class="gator-good">
                     <img src="img/gator_good.png" id="gator_good">
                 </div>
             </div>
@@ -378,128 +412,97 @@
     <script type="text/javascript">getCurrentLoggedInSession();</script>
 
     <script id="blur_unfocused_elements" type="text/javascript">
+        var timesClicked = 0;
+        function addBlur(event) {
+            $('.body-img').addClass('blur');
+            $('.banner').addClass('blur');
+            $('.content-bg').addClass('blur');
+            $('.flex-img-container').addClass('blur');
+            $('.menu-child').addClass('blur');
+            $(event).parent().removeClass('blur');
+        }
+        function removeBlur() {
+            $('.body-img').removeClass('blur');
+            $('.banner').removeClass('blur');
+            $('.content-bg').removeClass('blur');
+            $('.flex-img-container').removeClass('blur');
+            $('.menu-child').removeClass('blur');
+        }
         $(function() {
-            var timesClicked = 0;
             if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
-                $('.body-div').on('click tap', function() {
-                    if(timesClicked > 0) {
-                        console.log('body greater');
-                        console.log(timesClicked);
-                        $('.body-img').removeClass('blur');
-                        $('.banner').removeClass('blur');
-                        $('.content-bg').removeClass('blur');
-                        $('.flex-img-container').removeClass('blur');
-                        $('.menu-child').removeClass('blur');
+                $('body').on('click tap', function(e) {
+                    if ($(e.target).hasClass('card')) {
+                        console.log($(e.target).hasClass('card'));
+                        if(timesClicked == 0){
+                            addBlur(e.target);
+                            timesClicked++;
+                        } else {
+                            removeBlur();
+                            timesClicked--;
+                        }
+                    } else if(timesClicked>0){
+                        removeBlur();
                         timesClicked--;
-                        return;
-                    } else {
-                        $('.body-div .card').on('click tap', function() {
-                            if(timesClicked == 0) {
-                                console.log('equal zero');
-                                console.log(timesClicked);
-                                $('.body-img').addClass('blur');
-                                $('.banner').addClass('blur');
-                                $('.content-bg').addClass('blur');
-                                $('.flex-img-container').addClass('blur');
-                                $('.menu-child').addClass('blur');
-                                $(this).parent().removeClass('blur');
-                                timesClicked++;
-                                return;
-                            }
-                        });
                     }
                 });
             } else {
                 $('.body-div .card').hover(function() {
-                    $('.body-img').addClass('blur');
-                    $('.banner').addClass('blur');
-                    $('.content-bg').addClass('blur');
-                    $('.flex-img-container').addClass('blur');
-                    $('.menu-child').addClass('blur');
-                    $(this).parent().removeClass('blur');
+                    addBlur(this);
                 }, function() {
-                    $('.body-img').removeClass('blur');
-                    $('.banner').removeClass('blur');
-                    $('.content-bg').removeClass('blur');
-                    $('.flex-img-container').removeClass('blur');
-                    $('.menu-child').removeClass('blur');
+                    removeBlur();
                 });
             }
         });
     </script>
 
-    <script id="mobile_pipeline_card_interaction" type="text/javascript">
+    <script id="mobile_card_hover" type="text/javascript">
+        function removeBlur() {
+            $('.body-img').removeClass('blur');
+            $('.banner').removeClass('blur');
+            $('.content-bg').removeClass('blur');
+            $('.flex-img-container').removeClass('blur');
+            $('.menu-child').removeClass('blur');
+        }
+
+        function dynamicListener(card_var, card_onclick) {
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                card_var++;
+                if (card_var>1) {
+                    card_onclick();
+                }
+                return card_var;
+            } else {
+                card_onclick();
+                removeBlur();
+            }
+        }
+
         var pipelineTimesClicked = 0;
-        $("#pipeline_card").click(function() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                setTimeout(function() {pipelineTimesClicked = 0;}, 4000);
-                pipelineTimesClicked++;
-                if (pipelineTimesClicked>1) {
-                    switchToPipelineView();
-                }
-            } else {
-                switchToPipelineView();
-            }
-        });
-    </script>
-
-    <script id="mobile_report_card_interaction" type="text/javascript">
         var reportTimesClicked = 0;
-        $("#report_card").click(function() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                setTimeout(function() {reportTimesClicked = 0;}, 4000);
-                reportTimesClicked++;
-                if (reportTimesClicked>1) {
-                    switchToReportView();
-                }
-            } else {
-                switchToReportView();
-            }
-        });
-    </script>
-
-    <script id="mobile_request_card_interaction" type="text/javascript">
         var requestTimesClicked = 0;
-        $("#request_card").click(function() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                setTimeout(function() {requestTimesClicked = 0;}, 4000);
-                requestTimesClicked++;
-                if (requestTimesClicked>1) {
-                    switchToRequestView();
-                }
-            } else {
-                switchToRequestView();
-            }
-        });
-    </script>
-
-    <script id="mobile_documentation_card_interaction" type="text/javascript">
         var documentationTimesClicked = 0;
-        $("#documentation_card").click(function() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                documentationTimesClicked++;
-                setTimeout(function() {documentationTimesClicked = 0;}, 4000);
-                if (documentationTimesClicked>1) {
-                    switchToDocumentationView();
-                }
-            } else {
-                switchToDocumentationView();
-            }
-        });
-    </script>
-
-    <script id="mobile_test_card_interaction" type="text/javascript">
         var testTimesClicked = 0;
+
+        $("#pipeline_card").click(function(){
+            setTimeout(function() {pipelineTimesClicked = 0;}, 4000);
+            pipelineTimesClicked = dynamicListener(pipelineTimesClicked, switchToPipelineView)
+        });
+
+        $("#report_card").click(function() {
+            setTimeout(function() {reportTimesClicked = 0;}, 4000);
+            reportTimesClicked = dynamicListener(reportTimesClicked, switchToReportView);
+        });
+        $("#request_card").click(function() {
+            setTimeout(function() {requestTimesClicked = 0;}, 4000);
+            requestTimesClicked = dynamicListener(requestTimesClicked, switchToRequestView);
+        });
+        $("#documentation_card").click(function() {
+            setTimeout(function() {documentationTimesClicked = 0;}, 4000);
+            documentationTimesClicked = dynamicListener(documentationTimesClicked, switchToDocumentationView);
+        });
         $("#test_card").click(function() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                setTimeout(function() {testTimesClicked = 0;}, 4000);
-                testTimesClicked++;
-                if (testTimesClicked>1) {
-                    testView();
-                }
-            } else {
-                testView();
-            }
+            setTimeout(function() {testTimesClicked = 0;}, 4000);
+            testTimesClicked = dynamicListener(testTimesClicked, testView);
         });
     </script>
 

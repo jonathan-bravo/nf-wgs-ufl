@@ -6,12 +6,8 @@
     outline-width: 0;
 }
 
-img {
-    max-width: 100%;
-}
-
 p {
-    font-size: 1vmax;
+    font-size: 1.2em;
     color: black;
 }
 
@@ -29,38 +25,6 @@ p {
 
 [type="radio"]:checked {
     border: solid 1px #4062F6;
-}
-
-[type="text"] {
-    margin-top: 20px;
-    width: 40%;
-    height: 2vmax;
-    margin-left: 30%;
-    text-align: center;
-    font-size: 1vmax;
-    border: 1px solid black;
-    border-radius: 25px;
-}
-
-[type="password"] {
-    margin-top: 20px;
-    width: 40%;
-    height: 2vmax;
-    margin-left: 30%;
-    text-align: center;
-    font-size: 1vmax;
-    border: 1px solid black;
-    border-radius: 25px;
-}
-
-[type="email"] {
-    margin-top: 20px;
-    width: 40%;
-    height: 2vmax;
-    border: 1px solid black;
-    border-radius: 25px;
-    text-align: center;
-    font-size: 0.8vmax;
 }
 
 #user_email_label {
@@ -95,11 +59,6 @@ p {
     transform: scale(0.95);
 }
 
-#logInButton {
-    margin-left: 40%;
-    width: 20%;
-}
-
 button:not([class=card]) {
     background-color: lightgrey;
     color: #44475a;
@@ -107,9 +66,6 @@ button:not([class=card]) {
     font-size: 1vmax;
     border: 0;
     border-radius: 12px;
-    margin-top: 20px;
-    margin-left: 37.5%;
-    width: 25%;
     text-align: center;
     box-shadow: 0 8px 6px -6px #44475a;
     transition: 0.1s;
@@ -169,33 +125,6 @@ button:not([class=card]):active {
         background-color: #0021A5;
     }
 }
-  
-.flex-img-container {
-    display: flex;
-    /* padding: 1rem; */
-    flex-direction: row;
-    justify-content: center;
-    border: solid 1px red;
-}
-
-.flex-img-child {
-    /* padding: 2rem 1rem; */
-    /* margin: 0.375rem; */
-    flex: 1;
-    justify-content: center;
-    border: solid 1px blue;
-}
-
-#uf_logo {
-    position: relative;
-    opacity: 0.65;
-
-}
-
-#gator_good {
-    position: relative;
-    opacity: 0.65;
-}
 
 #samples_button {
     margin-left: 35%;
@@ -241,13 +170,21 @@ body {
     z-index: -1;
 }
 
+.uf-health-logo {
+    flex: 0.75;
+}
+
+#uf_health_logo {
+    max-height: 100%;
+    min-width: 100%;
+    object-fit: contain;
+}
+
 .nav-main {
+    flex: 3;
     display: flex;
     flex-direction: row;
-    position: absolute;
     top: 0;
-    left: 16%;
-    width: 75%;
     height: 100%;
 }
 
@@ -258,8 +195,8 @@ body {
     text-align: center;
     font-size: 1.2vmax;
     top: 0;
-    padding-top: 2.5%;
-    flex-grow: 0.05;
+    padding-top: 1.5em;
+    flex-grow: 0.5;
 }
 
 .nav-main a:active {
@@ -269,18 +206,15 @@ body {
     background-position: center;
 }
 
-#log_out_button {
-    position: absolute;
-    width: 7%;
-    margin-left: 91.5%;
-    margin-top: 1.35%;
+.logout-button {
+    flex: 0.5;
+    justify-content:flex-end;
 }
 
-#uf_health_logo {
-    margin-left: 1%;
-    max-width: 15%;
-    margin-top: 0.5%;
-    padding-bottom: 5px;
+#log_out_button {
+    width: 5em;
+    margin-left: 3.5em;
+    margin-top: 1.5em;
 }
 
 .content {
@@ -308,6 +242,189 @@ body {
         0 41.8px 33.4px rgba(0, 0, 0, 0.086),
         0 100px 80px rgba(0, 0, 0, 0.12);
     z-index: -1;
+}
+
+.intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.intro-title {
+    flex: 1;
+    font-size: 2.9em;
+    background-image: linear-gradient(to right, #0021A5, #E28F41);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    -webkit-text-fill-color: transparent; 
+    -moz-text-fill-color: transparent;
+    width: 41%;
+    margin: auto;
+    /* border: solid 1px red; */
+}
+
+.intro-title h1 {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.intro-text {
+    flex: 1;
+    width: 50%;
+    margin: auto;
+    padding-left: 6em;
+    padding-right: 6em;
+    border: solid 3px #bdbdbd;
+    border-radius: 25px;
+}
+
+.intro-buttons {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    padding: 1em;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.sign-in {
+    display: flex;
+    flex-direction: column;
+}
+
+.sign-in-button {
+    margin: auto;
+    margin-top: 5%;
+    margin-bottom: 10%;
+}
+
+.log-in-container {
+    position: relative;
+}
+
+.log-in-box-shadow {
+    opacity: 0;
+    background-color: #44475a;
+    border-radius: 18px;
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    position: absolute;
+}
+
+.log-in-box {
+    padding: 2em;
+    border-radius: 18px;
+    background-image: linear-gradient(100deg, #6C9AC3, #E28F41);
+    opacity: 0;
+    z-index: -1;
+}
+
+.log-in-box button {
+    margin-top: 0.5vmax;
+    width: 40%;
+    margin-left: 30%;
+}
+
+.request-access {
+    display: flex;
+    flex-direction: column;
+}
+
+.request-access-button {
+    margin: auto;
+    margin-top: 5%;
+    margin-bottom: 10%;
+}
+
+.request-access-container {
+    position: relative;
+}
+
+.request-access-box-shadow {
+    opacity: 0;
+    background-color: #44475a;
+    border-radius: 18px;
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    position: absolute;
+}
+
+.request-access-box {
+    padding: 2em;
+    border-radius: 18px;
+    background-image: linear-gradient(100deg, #6C9AC3, #E28F41);
+    opacity: 0;
+    z-index: -1;
+}
+
+.request-access-box button {
+    margin-top: 0.5vmax;
+    width: 50%;
+    margin-left: 25%;
+}
+
+.active {
+    animation: activate 2s cubic-bezier(0.5,0.5,0,1);
+	z-index: 5;
+}
+
+.inactive {
+    animation: inactivate 2s cubic-bezier(0.5,0.5,0,1);
+	z-index: 5;
+}
+
+@keyframes activate {
+    0%{
+        transform: translateY(-700px);
+    }
+    100%{
+        transform: translateY(0px);
+    }
+}
+
+@keyframes inactivate {
+    0%{
+        transform: translateY(0px);
+    }
+    100%{
+        transform: translateY(-700px);
+    }
+}
+
+[type="text"] {
+    text-align: center;
+    font-size: 1vmax;
+    border: 1px solid black;
+    border-radius: 12px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 2em;
+}
+
+[type="password"] {
+    text-align: center;
+    font-size: 1vmax;
+    border: 1px solid black;
+    border-radius: 12px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 2em;
+}
+
+[type="email"] {
+    text-align: center;
+    font-size: 1vmax;
+    border: 1px solid black;
+    border-radius: 12px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 2em;
+    /* font-size: 0.8vmax; */
 }
 
 .card {
@@ -362,13 +479,13 @@ body {
         transform: scale(1);
     }
     to {
-        transform: scale(1.5);
+        transform: scale(1.75);
     }
 }
 
 @keyframes out {
     from {
-        transform: scale(1.5);
+        transform: scale(1.75);
     }
     to {
         transform: scale(1);
@@ -394,10 +511,52 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    margin-bottom: 3%;
 }
 
 .menu-child {
     flex: 1 0 33%;
+}
+
+.flex-img-container {
+    position: relative;
+    bottom:0;
+    left:0;
+    right:0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 5vmax;
+    padding-bottom: 0.3vmax;
+}
+
+.spacer {
+    flex: 3;
+}
+
+.uf-ctsi {
+    flex: 1.5;
+    padding: 20px;
+}
+
+#uf_logo {
+    opacity: 0.65;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.gator-good {
+    flex: 1;
+    padding: 20px;
+}
+
+#gator_good {
+    opacity: 0.65;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 .flex-container {
