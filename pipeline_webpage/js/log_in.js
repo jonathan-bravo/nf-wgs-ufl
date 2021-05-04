@@ -123,3 +123,25 @@ function getCurrentLoggedInSession(){
     }
 
 }
+
+function request_login() {
+    var request_user = $('#request_user').val();
+    var request_email = $('#request_email').val();
+    window.open(`
+        mailto:jonathan.bravo@neurology.ufl.edu
+        ?subject=GatorGenome Request Access
+        &Content-Type=text/html
+        &body=Hello,
+        %0D%0A
+        %0D%0A Please set up an account to GatorGenome for me!
+        %0D%0A
+        %0D%0A Username:   ${request_user}
+        %0D%0A Password:   
+        %0D%0A Email:   ${request_email}
+        %0D%0A
+        %0D%0A |--!!!--|     If you have a specific password request,
+        %0D%0A |--!!!--|     please add it and it will be set for you.
+        %0D%0A |--!!!--|     Otherwise a password will be set for you.
+        %0D%0A
+    `);
+}
