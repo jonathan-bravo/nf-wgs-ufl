@@ -11,6 +11,7 @@ usage () {
     -h -- to call this help function
     -r -- [REQUIRED] is the run id 'NQ-##-##'
     -b -- [REQUIRED] the destination s3 bucket
+    -n -- [REQUIRED] the number of the file
     -s -- indicates that there are spaces in the desired file names
     -e -- indicates that the desired files are exome sequences
 
@@ -32,6 +33,9 @@ while getopts "hser:b:" opt; do
         b)
             BUCKET="s3://"$OPTARG
             ;;
+        n)
+            NUM=$OPTARG
+            ;;
         s)
             SPACED="SPACED"
             ;;
@@ -49,11 +53,16 @@ then
     printf "    Missing required argument\n";
     usage;
     exit 1;
+elif [[ ${SPACED} == "SPACED" && ${NUM} == '' ]];
+then
+    printf "    Missing required argument\n";
+    usage;
+    exit 1;
 fi
 
 case ${TYPE}" "${SPACED} in
     "WGS SPACED")
-        for f in ~/BaseSpace/Projects/WGS/Samples/${RUN}*\ \(2\)/Files/;
+        for f in ~/BaseSpace/Projects/WGS/Samples/${RUN}*\ \(${NUM}\)/Files/;
         do
             aws s3 sync "${f}" ${BUCKET}/Fastqs/;
         done
@@ -65,7 +74,7 @@ case ${TYPE}" "${SPACED} in
         done
         ;;
     "WES SPACED")
-        for f in ~/BaseSpace/Projects/WES/Samples/${RUN}*\ \(2\)/Files/;
+        for f in ~/BaseSpace/Projects/WES/Samples/${RUN}*\ \(${NUM}\)/Files/;
         do
             aws s3 sync "${f}" ${BUCKET}/Exome_Fastqs/;
         done
