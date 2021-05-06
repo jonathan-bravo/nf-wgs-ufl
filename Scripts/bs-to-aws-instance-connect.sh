@@ -29,6 +29,14 @@ wait_running () {
         echo "Status is "${STATUS}"...";
         sleep 10s;
     done
+    sleep 10;
+    DNS=$(
+        dns_list=$(
+            aws ec2 describe-instances --instance-ids i-0a21f1098dcb1575a --query 'Reservations[].Instances[].PublicDnsName'
+        )
+        echo ${dns_list} | 
+        cut -c4-$(expr ${#dns_list} - 7)
+    );
 }
 
 wait_stopped () {
