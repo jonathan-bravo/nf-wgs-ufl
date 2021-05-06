@@ -196,14 +196,17 @@ function select_all_samples() {
 
     for(var k = 0; k < filtered_samples.length; k++){
         var sample_check = document.getElementById(String(filtered_samples[k]));
-        sample_check.checked = !sample_check.checked;
+        // sample_check.checked = !sample_check.checked;
+        if (sample_check.checked == false) {
+            sample_check.checked = true;
 
-        if ("createEvent" in document) {
-            var evt = document.createEvent("HTMLEvents");
-            evt.initEvent("change", false, true);
-            sample_check.dispatchEvent(evt);
-        } else {
-            sample_check.fireEvent("onchange");
+            if ("createEvent" in document) {
+                var evt = document.createEvent("HTMLEvents");
+                evt.initEvent("change", false, true);
+                sample_check.dispatchEvent(evt);
+            } else {
+                sample_check.fireEvent("onchange");
+            }
         }
     }
 }
@@ -461,18 +464,62 @@ async function get_report_sample() {
         var sample_child_div = document.createElement("div");
         sample_child_div.setAttribute("class","flex-child-child");
 
-        var choiceSelection = document.createElement('input');
-        var choiceLabel = document.createElement('label');
+        //var choiceSelection = document.createElement('input');
+        //var choiceLabel = document.createElement('label');
 
+        //choiceSelection.setAttribute("type", "checkbox");
+        //choiceSelection.setAttribute("name", "sample_id");
+        //choiceSelection.setAttribute("id", filtered_samples[i]);
+        //choiceSelection.setAttribute("onchange", "get_panels('"+filtered_samples[i]+"_div','"+filtered_samples[i]+"')");
+
+        //choiceLabel.appendChild(choiceSelection);
+        //choiceLabel.innerHTML += '\t'+filtered_samples[i]+"<br/><br/>";
+
+        // sample_child_div.appendChild(choiceLabel);
+        // sample_div.appendChild(sample_child_div);
+        // sample_list.appendChild(sample_div);
+
+        var checkboxClass = document.createElement('label');
+        checkboxClass.setAttribute('class', 'checkbox');
+
+        var checkboxInput = document.createElement('span');
+        checkboxInput.setAttribute('class', 'checkbox__input');
+
+        var choiceSelection = document.createElement('input');
         choiceSelection.setAttribute("type", "checkbox");
         choiceSelection.setAttribute("name", "sample_id");
         choiceSelection.setAttribute("id", filtered_samples[i]);
         choiceSelection.setAttribute("onchange", "get_panels('"+filtered_samples[i]+"_div','"+filtered_samples[i]+"')");
 
-        choiceLabel.appendChild(choiceSelection);
-        choiceLabel.innerHTML += '\t'+filtered_samples[i]+"<br/><br/>";
+        var checkboxControl = document.createElement('span');
+        checkboxControl.setAttribute('class', 'checkbox__control');
 
-        sample_child_div.appendChild(choiceLabel);
+        var checkboxSvg = document.createElement('svg');
+        checkboxSvg.setAttribute('xmls', 'http://www.w3.org/2000/svg');
+        checkboxSvg.setAttribute('viewBox', '0 0 24 24');
+        checkboxSvg.setAttribute('aria-hidden', 'true');
+        checkboxSvg.setAttribute('focusable', 'false');
+
+        var checkboxPath = document.createElement('path');
+        checkboxPath.setAttribute('fill', 'none');
+        checkboxPath.setAttribute('stroke', 'currentColor');
+        checkboxPath.setAttribute('stroke-width', '3');
+        checkboxPath.setAttribute('d', 'M1.73 12.91l6.37 6.37L22.79 4.59');
+
+        var checkboxLabel = document.createElement('span');
+        checkboxLabel.setAttribute('class', 'radio__label');
+        checkboxLabel.innerHTML += '\t'+filtered_samples[i];
+
+        checkboxSvg.appendChild(checkboxPath);
+        checkboxControl.appendChild(checkboxSvg);
+
+        checkboxInput.appendChild(choiceSelection);
+        checkboxInput.appendChild(checkboxControl);
+
+        checkboxClass.appendChild(checkboxInput);
+        checkboxClass.appendChild(checkboxLabel);
+
+        sample_child_div.appendChild(checkboxClass);
         sample_div.appendChild(sample_child_div);
         sample_list.appendChild(sample_div);
     }
@@ -525,17 +572,30 @@ async function get_report_runs() {
     var runs_list = document.getElementById('report_runs_list');
 
     for (const i in filtered_samples) {
+        var radioClass = document.createElement('label');
+        var radioInput = document.createElement('span');
         var choiceSelection = document.createElement('input');
-        var choiceLabel = document.createElement('label');
+        var radioControl = document.createElement('span');
+        var radioLabel = document.createElement('span');
+
+        radioClass.setAttribute('class', 'radio');
+        radioInput.setAttribute('class', 'radio__input');
+        radioControl.setAttribute('class', 'radio__control');
+        radioLabel.setAttribute('class', 'radio__label');
 
         choiceSelection.setAttribute('type', 'radio');
         choiceSelection.setAttribute('name', 'run_id');
         choiceSelection.setAttribute('id', filtered_samples[i]);
 
-        choiceLabel.appendChild(choiceSelection);
-        choiceLabel.innerHTML += '\t'+filtered_samples[i]+'<br/><br/>';
+        radioLabel.innerHTML += '\t'+filtered_samples[i];
 
-        runs_list.appendChild(choiceLabel);
+        radioInput.appendChild(choiceSelection);
+        radioInput.appendChild(radioControl);
+
+        radioClass.appendChild(radioInput);
+        radioClass.appendChild(radioLabel);
+
+        runs_list.appendChild(radioClass); 
     }
 
     $("#loader").hide();

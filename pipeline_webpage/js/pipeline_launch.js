@@ -208,27 +208,41 @@ async function get_runs() {
     var runs_list = document.getElementById('runs_list');
 
     for (const i in filtered_samples) {
+        var radioClass = document.createElement('label');
+        var radioInput = document.createElement('span');
         var choiceSelection = document.createElement('input');
-        var choiceLabel = document.createElement('label');
+        var radioControl = document.createElement('span');
+        var radioLabel = document.createElement('span');
+
+        radioClass.setAttribute('class', 'radio');
+        radioInput.setAttribute('class', 'radio__input');
+        radioControl.setAttribute('class', 'radio__control');
+        radioLabel.setAttribute('class', 'radio__label');
 
         choiceSelection.setAttribute('type', 'radio');
         choiceSelection.setAttribute('name', 'run_id');
         choiceSelection.setAttribute('id', filtered_samples[i]);
 
-        choiceLabel.appendChild(choiceSelection);
-        choiceLabel.innerHTML += '\t'+filtered_samples[i]+'<br/><br/>';
-        //choiceLabel.setAttribute('for', 'run_id');
+        radioLabel.innerHTML += '\t'+filtered_samples[i];
 
-        //runs_list.appendChild(choiceSelection);
-        runs_list.appendChild(choiceLabel);
+        radioInput.appendChild(choiceSelection);
+        radioInput.appendChild(radioControl);
+
+        radioClass.appendChild(radioInput);
+        radioClass.appendChild(radioLabel);
+
+        runs_list.appendChild(radioClass);
     }
 
     $("#loader").hide();
     $("#runs_box").show();
 
     var back_button = document.getElementById("run_box_back");
+    var buttonClass = document.createElement('div');
     var run_button = document.createElement('button');
     var button_label = document.createTextNode('Submit');
+
+    buttonClass.setAttribute('class', 'question-button');
 
     if(workflow != 'multiqc') {
         run_button.setAttribute("onclick", "lanes()");
@@ -240,9 +254,8 @@ async function get_runs() {
 
     run_button.setAttribute('id', 'run_button');
     run_button.appendChild(button_label);
-    runs_box.appendChild(run_button);
-
-    
+    buttonClass.appendChild(run_button);
+    runs_box.appendChild(buttonClass);
 }
 
 

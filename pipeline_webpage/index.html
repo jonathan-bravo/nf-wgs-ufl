@@ -26,7 +26,9 @@
 
             <div class="banner-img"></div>
             <div class="uf-health-logo">
-                <img src="img/uf_health_logo.png" id="uf_health_logo">
+                <a href="https://ufhealth.org/">
+                    <img src="img/uf_health_logo.png">
+                </a>
             </div>
             <div class="nav-main">
                 <a class="ctsi" href="https://www.ctsi.ufl.edu/">CTSI</a>
@@ -43,7 +45,7 @@
 
             <div id="intro" class="intro">
                 <div class="intro-title">
-                    <h1>GatorGenome</h1>
+                    <h1><span class="gator">Gator</span><span class="genome">Genome</span></h1>
                 </div>
                 <div class="intro-text">
                     <p>
@@ -146,33 +148,53 @@
                 <button class="back" onclick="switchToLoggedInView()"></button>
                 <div class="text-box" id="workflow_text">
                     <p class="statement" id="workflow_statement">Is this a germline run or a multiqc run?</p>
-                    <label>
-                        <input type="radio" class="choices" name="workflow" id="germline"> GERMLINE pipeline
-                        <br/><br/>
+
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="workflow" id="germline"/>
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">GERMLINE pipeline</span>
                     </label>
-                    <label>
-                        <input type="radio" class="choices" name="workflow" id="multiqc"> MULTIQC for run
-                        <br/><br/>
+
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="workflow" id="multiqc">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">MULTIQC for run</span>
                     </label>
+
                 </div>
-                <button onclick="get_workflow()" id="workflow_button">Get Runs</button>
+                <div class="question-button">
+                    <button class="padded-button" onclick="get_workflow()" id="workflow_button">Get Runs</button>
+                </div>
             </div>
 
             <div id="exome_question_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToPipelineView()"></button>
                 <div class="text-box" id="exome_text">
                     <p class="statement" id="exome_statement">Is this an exome run or a whole genome run?</p>
-                    <label>
-                        <input type="radio" class="choices" name="exome" id="WGS"> WGS [genome]
-                        <br/><br/>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="exome" id="WGS">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">WGS [genome]</span>
                     </label>
-                    <label>
-                        <input type="radio" class="choices" name="exome" id="WES"> WES [exome]
-                        <br/><br/>
+
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="exome" id="WES">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">WES [exome]</span>
                     </label>
                     
                 </div>
-                <button onclick="get_type()" id="exome_button">Submit</button>
+                <div class="question-button">
+                    <button onclick="get_type()" id="exome_button">Submit</button>
+                </div>
             </div>
 
             <div id="runs_box" class="centered question-container" style="display:none">
@@ -187,35 +209,52 @@
                 <button class="back" onclick="switchToRunIdView()"></button>
                 <div class="text-box" id="lane_text">
                     <p class="statement" id="lane_statement">Is this run single-lane or multi-lane run?</p>
-                    <label>
-                        <input type="radio" class="choices" name="lanes" id="single"> NextSeq [Single Lane]
-                        <br/><br/>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="lanes" id="single">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">NextSeq [Single Lane]</span>
                     </label>
-                    <label>
-                        <input type="radio" class="choices" name="lanes" id="multi"> NovaSeq [Multi Lane]
-                        <br/><br/>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="lanes" id="multi">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">NovaSeq [Multi Lane]</span>
                     </label>
                 </div>
-                <button onclick="get_match()" id="lane_button">Submit</button>
+                <div class="question-button">
+                   <button onclick="get_match()" id="lane_button">Submit</button> 
+                </div>
             </div>
 
             <div id="match_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToLaneView()"></button>
                 <div class="text-box" id="match_text">
                     <p class="statement" id="match_statement">Select the correct matching pattern.</p>
-                    <label>
-                        <input type="radio" class="choices" name="match" id="match_one"> Illumina: [_{R1,R2}_001.fastq.gz]
-                        <br/><br/>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="match" id="match_one">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">Illumina: [_{R1,R2}_001.fastq.gz]</span>
                     </label>
-                    <label>
-                        <input type="radio" class="choices" name="match" id="match_two"> Other: [_{1,2}.fq.gz]
-                        <br/>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="match" id="match_two"> 
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">Other: [_{1,2}.fq.gz]</span>
                     </label>
-                    <label class="choices" id="other_match_label" for="other_match">Custom: </label>
-                    <input type="text" name="match" id="other_match" placeholder="_{x,y}.fq/fastq.gz"/>
-                    <br/><br/>
+                    <label class="custom-match" id="other_match_label" for="other_match">
+                        Custom: 
+                        <input type="text" name="match" id="other_match" placeholder="_{x,y}.fq/fastq.gz"/>
+                    </label>
                 </div>
-                <button onclick="set_match()" id="match_button">Submit</button>
+                <div class="question-button">
+                   <button onclick="set_match()" id="match_button">Submit</button> 
+                </div>                
             </div>
 
             <div id="command_box" class="centered question-container" style="display:none">
@@ -299,7 +338,9 @@
                     <p class="statement" id="report_runs_statement">Select the run to process in the pipeline.</p>
                     <div class="choices" id="report_runs_list"></div> 
                 </div>
-                <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
+                <div class="question-button">
+                    <button onclick="get_report_sample()" id="samples_button">Get Samples</button>
+                </div>
             </div>
 
             <button id="report_selection_back" class="back" onclick="switchToReportView()" style="display:none"></button>
@@ -333,7 +374,9 @@
                     <p class="statement" id="request_runs_statement">Select the correct run for your report(s).</p>
                     <div class="choices" id="request_runs_list"></div>
                 </div>
-                <button onclick="switch_to_contexts()" id="">Submit</button>
+                <div class="question-button">
+                    <button onclick="switch_to_contexts()" id="">Submit</button>
+                </div>
             </div>
 
             <div id="request_run_or_sample_box" class="centered question-container" style="display:none;">
@@ -349,7 +392,9 @@
                         <br/><br/>
                     </label>
                 </div>
-                <button onclick="r_or_s()" id="request_r_or_s_button">Submit</button>
+                <div class="question-button">
+                    <button onclick="r_or_s()" id="request_r_or_s_button">Submit</button>
+                </div>
             </div>
 
             <div id="request_samples_box" class="centered question-container" style="display:none;">
@@ -358,7 +403,9 @@
                     <p class="statement" id="request_samples_statement">Select your sample.</p>
                     <div class="choices" id="request_samples"></div>
                 </div>
-                <button onclick="get_chosen_request_sample()" id="request_samples_button">Submit</button>
+                <div class="question-button">
+                    <button onclick="get_chosen_request_sample()" id="request_samples_button">Submit</button>
+                </div>
             </div>
 
             <div id="request_reports_box" class="centered question-container" style="display:none;">
@@ -367,7 +414,9 @@
                     <p class="statement" id="request_reports_statement">Select the report/ file you would like.</p>
                     <div class="choices" id="request_reports"></div>
                 </div>
-                <button onclick="get_request_email()" id="request_reports_button">Submit</button>
+                <div class="question-button">
+                    <button onclick="get_request_email()" id="request_reports_button">Submit</button>
+                </div>
             </div>
 
             <div id="request_email_box" class="centered question-container" style="display:none;">
@@ -385,8 +434,13 @@
                 </div>
             </div>
 
-            <div class="centered" id="launch_img" style="display:none">
-                <img src="img/launch.png">
+            <div class="centered" id="launch_img" style="display: none;">
+                <!-- <img src="img/launch.png"> -->
+                <div class="scene">
+                    <div class="rocket">
+                        <img src="img/rocket.png">
+                    </div>
+                </div>
             </div>
 
             <div class="centered" id="test-env" style="display:none">
@@ -401,8 +455,10 @@
                     <img src="img/ClinicalTransScienceInst.png" id="uf_logo">
                 </div>
                 <div class="spacer"></div>
-                <div class="gator-good">
-                    <img src="img/gator_good.png" id="gator_good">
+                <div class="powered-by-aws">
+                    <a href="https://aws.amazon.com/what-is-cloud-computing">
+                        <img id="powered_by_aws" src="https://d0.awsstatic.com/logos/powered-by-aws.png" alt="Powered by AWS Cloud Computing">
+                    </a>
                 </div>
             </div>
         </div>
@@ -428,6 +484,7 @@
             $('.menu-child').removeClass('blur');
         }
         $(function() {
+            //$('.card').show();
             if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
                 $('body').on('click tap', function(e) {
                     if ($(e.target).hasClass('card')) {
@@ -504,6 +561,30 @@
             testTimesClicked = dynamicListener(testTimesClicked, testView);
         });
     </script>
+
+<script type="text/javascript">
+    function stars() {
+        let count = 50;
+        let scene = document.querySelector('.scene');
+        let g = 0;
+        while(g < count){
+            let star = document.createElement('g');
+            let x = Math.floor(Math.random() * window.innerWidth);
+
+            let duration = Math.random() * 1;
+            let h = Math.random() * 100;
+
+            star.style.left = x + 'px';
+            star.style.width = 1 + 'px';
+            star.style.height = 50 + h + 'px';
+            star.style.animationDuration = duration + 's';
+
+            scene.appendChild(star);
+            g++
+        }
+    }
+    stars();
+</script>
 
 </body>
 </html>
