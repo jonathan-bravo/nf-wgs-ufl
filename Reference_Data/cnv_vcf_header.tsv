@@ -1,7 +1,7 @@
 ##fileformat=VCFv4.1
 ##fileDate=
-##source=panelcn.MOPS
-##source_version=1.8.0
+##source=cn.MOPS
+##source_version=1.36.0
 ##reference=hg19.fa
 ##contig=<ID=chr1,length=249250621>
 ##contig=<ID=chr2,length=243199373>
@@ -27,18 +27,13 @@
 ##contig=<ID=chr22,length=51304566>
 ##contig=<ID=chrX,length=155270560>
 ##contig=<ID=chrY,length=59373566>
-##contig=<ID=chrM,length=16571>
-##content=panelcn.MOPS cnv calls
+##content=cn.MOPS cnv calls
 ##ALT=<ID=DEL,Description="Deletion relative to the reference">
 ##ALT=<ID=DUP,Description="Region of elevated copy number relative to the reference">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
 ##INFO=<ID=CNCLASS,Number=1,Type=String,Description="Class given to the I vector value">
-##INFO=<ID=CYTO,Number=1,Type=String,Description="The cytoband the CNV is present in">
 ##INFO=<ID=GENE,Number=1,Type=String,Description="The target gene(s)">
-##FILTER=<ID=lowQual,Description="ROIs labeled as low quality">
-##FORMAT=<ID=RC,Number=1,Type=Float,Description="RC: read count of the countWindow">
-##FORMAT=<ID=MRC,Number=1,Type=Float,Description="medRC: median read count across all samples">
-##FORMAT=<ID=RCN,Number=1,Type=Float,Description="RC.norm: normalized sample read count">
-##FORMAT=<ID=MRCN,Number=1,Type=Float,Description="medRC.norm: normalized median read count">
+##FORMAT=<ID=MED,Number=1,Type=Float,Description="MED: median individual call for the copy number segment">
+##FORMAT=<ID=MEAN,Number=1,Type=Float,Description="MEAN: individual call for the copy number segment">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE1
