@@ -1,57 +1,25 @@
 #!/usr/bin/env Rscript
 
+library(cn.mops)
+load(file = "wgs_cnv_controls.RData")
+
 args = commandArgs(trailingOnly = TRUE)
 sample_id = args[1]
-male_control_data = args[2]
-female_control_data = args[3]
 
-library(panelcn.mops)
+bam <- paste(sample_id, "-sort.bam", sep = '')
 
-m_or_f <- paste(sample_id, "_m_or_f.txt", sep = '')
-sample_sex <- read.table(m_or_f, header = FALSE, sep = "\n")
+bamDataRanges <- getReadCountsFromBAM(bam, parallel = 6)
 
-if(sample_sex[1, 1] == "Female"){
-    sex <- "female"
-    load(file = female_control_data)
-} else {
-    sex <- "male"
-    load(file = male_control_data)
-}
-
-testBam <- paste(sample_id, "-sort.bam", sep = '')
-
-test <- countBamListInGRanges(
-    countWindows = countWindows,
-    bam.files    = testBam,
-    read.width   = 150
-)
-
-XandCB <- test
+XandCB <- bamDataRanges
 elementMetadata(XandCB) <- cbind(
     elementMetadata(XandCB),
-    elementMetadata(control)
+    elementMetadata(controls)
 )
 
-resultsList <- runPanelcnMops(
-    XandCB,
-    testiv        = 1:ncol(elementMetadata(test)),
-    countWindows  = countWindows,
-    selectedGenes = NULL,
-    maxControls   = 25,
-    sex           = sex
-)
+result <- calcIntegerCopyNumbers(cn.mops(XandCB[1:length(XandCB)-1]))
 
-sampleNames <- colnames(elementMetadata(test))
-resulttable <- createResultTable(
-    resultlist    = resultsList,
-    XandCB        = XandCB,
-    countWindows  = countWindows,
-    selectedGenes = NULL,
-    sampleNames   = sampleNames
-)
+segm <- as.data.frame(segmentation(result))
+sampleSEGM <- subset(segm, sampleName == bam)
 
-write.table(
-    resulttable[[1]],
-    paste(sample_id, '_cnv_table.csv', sep = ''),
-    append = TRUE
-)
+outFile <- paste(sample_id, "_cnvs.csv", sep = '')
+write.csv(sampleSEGM, file = outFile)
