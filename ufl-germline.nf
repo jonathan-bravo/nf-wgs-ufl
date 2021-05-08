@@ -19,8 +19,6 @@ include { CALL_EH                    } from './modules/expansion_hunter/call_eh'
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_GVCF                 } from './modules/bcftools_tabix/merge_gvcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF               } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { DETERMINE_SEX              } from './modules/ubuntu_python3/determine_sex'  addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CNV_CONTIGS                } from './modules/ubuntu_python3/cnv_contigs'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MULTIQC_SAMPLE             } from './modules/multiqc/multiqc_sample'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CAT_LANES                  } from './modules/ubuntu_python3/cat_lanes'
 include { ALIGN_TRIMMED_READS        } from './modules/bwa/align_trimmed_reads'
@@ -112,11 +110,6 @@ workflow GERMLINE {
         SAMTOOLS_SORT.out.sort_bam
     )
 
-    DETERMINE_SEX(
-        SAMTOOLS_SORT.out.sort_bam,
-        SAMTOOLS_INDEX.out.index_sort_bam
-    )
-
     if (params.exome == "YES"){
         PICARD_COLLECT_HS_METRICS(
             params.reference,
@@ -165,16 +158,10 @@ workflow GERMLINE {
     }
 
     CALL_CNV(
-        params.male_cnv_control,
-        params.female_cnv_control,
+        params.cnv_control,
         params.cnv_vcf_header,
-        DETERMINE_SEX.out.sex,
         SAMTOOLS_SORT.out.sort_bam,
         SAMTOOLS_INDEX.out.index_sort_bam
-    )
-
-    CNV_CONTIGS(
-        CALL_CNV.out.cnv_vcf
     )
 
     CALL_EH(
