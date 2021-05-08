@@ -16,6 +16,15 @@ cnclass <- scan(
     sep = "\n"
 )
 
+for(i in 1:length(cnclass)){
+    if(cnclass[i] <= 2){
+        cnclass[i] <- 0
+    }
+    else if(cnclass[i] > 2){
+        cnclass[i] <- 4
+    }
+}
+
 cn.data <- toGRanges(calls)
 cn.data$CopyNumberInteger <- cnclass
 cn.data$LossHetero <- cn.data$CopyNumberInteger<2
@@ -26,14 +35,14 @@ plotCopyNumberCalls(
     plotKaryotype(
         genome = "hg19",
         chromosomes= c(
-            "chr1","chr2","chr3","chr4","chr5","chr6",
-            "chr7","chr8","chr9","chr10","chr11","chr12",
-            "chr13","chr14","chr15","chr16","chr17","chr18",
-            "chr19","chr20","chr21","chr22","chrX","chrY"
+            seqlevels(cn.data)
         )
     ),
     cn.calls = cn.calls,
     labels = sample_id,
     label.cex = 0.5
 )
+cn.cols <- getCopyNumberColors()[1]
+cn.cols <- c(cn.cols, getCopyNumberColors()[5])
+legend("bottomright", legend=c('DEL', 'DUP'), fill = cn.cols, ncol=length(cn.cols), cex=0.75)
 dev.off()
