@@ -17,8 +17,8 @@ params.bwa_bwt             = "${params.reference}.bwt"
 params.bwa_pac             = "${params.reference}.pac"
 params.bwa_sa              = "${params.reference}.sa"
 params.ref_fai             = "${params.reference}.fai"
-params.male_cnv_control    = "${params.ref_dir}/cnv/male_sim_control.RData"
-params.female_cnv_control  = "${params.ref_dir}/cnv/female_sim_control.RData"
+params.hg19_genes          = "${params.ref_dir}/hg19/hg19_genes.bed"
+params.cnv_control         = "${params.ref_dir}/cnv/wgs_cnv_controls.RData"
 params.cnv_vcf_header      = "${params.ref_dir}/cnv/cnv_vcf_header.tsv"
 params.bait                = "${params.ref_dir}/exome_targets/bait.interval_list"
 params.target              = "${params.ref_dir}/exome_targets/target.interval_list"
@@ -43,8 +43,8 @@ germline_params = [
     "bwa_pac"             : params.bwa_pac,
     "bwa_sa"              : params.bwa_sa,
     "ref_fai"             : params.ref_fai,
-    "male_cnv_control"    : params.male_cnv_control,
-    "female_cnv_control"  : params.female_cnv_control,
+    "hg19_genes"          : params.hg19_genes,
+    "cnv_control"         : params.cnv_control,
     "cnv_vcf_header"      : params.cnv_vcf_header,
     "bait"                : params.bait,
     "target"              : params.target,
