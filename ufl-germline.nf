@@ -128,6 +128,10 @@ workflow GERMLINE {
         )
 
         ANNOTATE_VCF(
+            params.clinvar,
+            params.clinvar_tbi,
+            params.gnomAD,
+            params.gnomAD_tbi,
             params.dbnsfp,
             params.dbnsfp_tbi,
             params.dbnsfp_dt,
@@ -150,6 +154,10 @@ workflow GERMLINE {
         )
 
         ANNOTATE_VCF(
+            params.clinvar,
+            params.clinvar_tbi,
+            params.gnomAD,
+            params.gnomAD_tbi,
             params.dbnsfp,
             params.dbnsfp_tbi,
             params.dbnsfp_dt,
