@@ -4,3 +4,4 @@ timeline*
 trace*
 **/.DS_Store
 *.gz
+*.gz.tbi
