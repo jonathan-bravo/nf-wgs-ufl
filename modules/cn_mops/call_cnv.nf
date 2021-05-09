@@ -10,6 +10,7 @@ process CALL_CNV {
     label 'medium_process'
 
     input:
+    path hg19_genes
     path cnv_control
     path header
     tuple val(sample_id), file("${sample_id}-sort.bam")

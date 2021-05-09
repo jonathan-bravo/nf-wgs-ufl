@@ -166,6 +166,7 @@ workflow GERMLINE {
     }
 
     CALL_CNV(
+        params.hg19_genes,
         params.cnv_control,
         params.cnv_vcf_header,
         SAMTOOLS_SORT.out.sort_bam,
