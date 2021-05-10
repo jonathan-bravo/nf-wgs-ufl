@@ -32,8 +32,9 @@
 ##ALT=<ID=DUP,Description="Region of elevated copy number relative to the reference">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=LENGTH,Number=1,Type=Integer,Description="The length of the called copy number variant">
 ##INFO=<ID=CNCLASS,Number=1,Type=String,Description="Class given to the I vector value">
-##INFO=<ID=GENE,Number=1,Type=String,Description="The target gene(s)">
+##INFO=<ID=GENES,Number=1,Type=String,Description="The target gene(s)">
 ##FORMAT=<ID=MED,Number=1,Type=Float,Description="MED: median individual call for the copy number segment">
 ##FORMAT=<ID=MEAN,Number=1,Type=Float,Description="MEAN: individual call for the copy number segment">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE1
