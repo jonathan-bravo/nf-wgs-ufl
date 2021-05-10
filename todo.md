@@ -1,6 +1,6 @@
-# TO DD LIST
+# To Do List
 
-## DOCUMENT
+## Documentation
 
 - TODO Fill out SNP scoring table
 - TODO Need data on CNV detection
@@ -14,25 +14,55 @@
 - What about DeepVariant? DeepVariant is bound to be better and is part of the plan for v2
 - TODO Document the CNV results generated
 
-## PIPELINE
+## General Pipeline
 
 - TODO Get files to automatically upload from NovaSeq to AWS
 - TODO Put SNPID into pipeline
-  - TODO Pull specific SNPS from GVCF (using PGX bed files)
-  - TODO Make sure that GENE information is included in the pulled SNPs
-  - TODO Build nextflow module for pulling the SNPID
-- TODO Make sure that `classify_vcf.py` is run in AWS (runnabel image)
-  - We want all data to remain in AWS, the less files that have to come down the better
-  - Output file will be 'sample_id_panel_report.json'
-- TODO add varClass to website
-  - TODO allow users to select multiple panels
-  - TODO send files to user
+    - TODO Pull specific SNPS from GVCF (using PGX bed files)
+    - TODO Make sure that GENE information is included in the pulled SNPs
+    - TODO Build nextflow module for pulling the SNPID
 - TODO Create clinical bucket/ environment
 - TODO Database the correct output from the pipeline
-  - Frequency of variant startified by ethnicity
-  - Position of variant
-  - Zygosity of variant
-  - Counts of the variants (tied into frequency?)
-  - Affected vs Unaffected
+    - Frequency of variant startified by ethnicity
+    - Position of variant
+    - Zygosity of variant
+    - Counts of the variants (tied into frequency?)
+    - Affected vs Unaffected
 - TODO Create cloud launch/ public version of pipeline
-- TODO Request an increase of the vcpu limit to 2500 so that we don't encounter an upper limit when we expand
+
+## Website
+
+- TODO Check reporting module multiselect
+    - When samples above others aren't checked then the parent selector doesn't work
+- TODO Animate radio and check boxes
+    - Checkbox check isn't showing up
+- TODO Fix names in 'Reporting' module
+    - The names of things in the 'Request' module have the last letter cut off
+- TODO Fix back buttons for 'Request' module
+- Potentialy add a VCF browser?
+- Potentially add a GVCF database browser?
+- TODO Finish the 'Request' module
+  - [ ] make 'variants' file read as 'VCF'
+- TODO Make login session expire after ~ 15 min of inactivity
+- TODO Fix multi-lane back button
+- TODO Grab Cgnito role from JWT Token
+- TODO Look at pagify (JS) for all s3 queried lists
+
+# varClass.py
+
+- TODO Change the 'CNV Interactions' tab name to 'Compund Variants'
+- TODO Make the 'Compound Variants' tab always have the SNP, SV, EXP, and CNV columns
+- TODO Fix 'Supporting Lit' tab name spelling error
+- TODO Include additional items in the 'metadata.tools' part of the report
+    - [ ] Include clinvar version
+    - [ ] Include genome build
+    - [ ] Include Nextflow version
+    - [ ] Include gnomAD version
+    - [ ] All database versions included in current version of dbNSFP?
+- TODO Update Expansions tab
+    - [ ] Include ref allele from expansion hunter
+    - [ ] Alt:Ref -> Ref Length
+    - [ ] Include "Depths"
+- TODO Include gnomAD SV frequencies in variant determination and report
+- TODO Include clinvar data in variant determination and report
+- TODO Make all titles start with a cap
