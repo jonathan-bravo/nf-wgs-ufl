@@ -202,18 +202,18 @@ def assign_section3_points(gene_number, cnv_type):
     """
     number_points = 0.0
     if cnv_type.upper() == 'DEL':
-        if gene_number < 2:
+        if gene_number < 25:
             number_points = 0.0
-        elif gene_number < 3:
+        elif gene_number < 35:
             number_points = 0.45
-        elif gene_number > 3:
+        elif gene_number > 34:
             number_points = 0.9
     elif cnv_type.upper() == 'DUP':
-        if gene_number < 2:
+        if gene_number < 35:
             number_points = 0.0
-        elif gene_number < 3:
+        elif gene_number < 50:
             number_points = 0.45
-        elif gene_number > 3:
+        elif gene_number > 49:
             number_points = 0.9
     return number_points
 
