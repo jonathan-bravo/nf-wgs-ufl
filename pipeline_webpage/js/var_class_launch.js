@@ -495,7 +495,7 @@ async function get_report_sample() {
         checkboxControl.setAttribute('class', 'checkbox__control');
 
         var checkboxSvg = document.createElement('svg');
-        checkboxSvg.setAttribute('xmls', 'http://www.w3.org/2000/svg');
+        checkboxSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
         checkboxSvg.setAttribute('viewBox', '0 0 24 24');
         checkboxSvg.setAttribute('aria-hidden', 'true');
         checkboxSvg.setAttribute('focusable', 'false');
