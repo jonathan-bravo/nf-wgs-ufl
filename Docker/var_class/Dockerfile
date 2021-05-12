@@ -13,7 +13,8 @@ r-base \
 wget \
 libxml2-dev \
 libxmlsec1-dev \
-bedtools
+bedtools \
+bcftools
 
 RUN pip3 install \
 awscli \
@@ -39,5 +40,7 @@ COPY PMC-ids.csv.gz /
 COPY CNV_json_plot.R /
 COPY g_ranges.py /
 COPY json_to_csv.py /
+COPY clinvar.vcf.gz /
+COPY clinvar.vcf.gz.tbi /
 
 RUN gunzip PMC-ids.csv.gz

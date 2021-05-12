@@ -29,6 +29,13 @@ def parse_args():
         required = True
     )
     parser.add_argument(
+        '-s',
+        metavar = '--SAMPLE_ID',
+        type = str,
+        help = 'sample id to be included in report name',
+        required = True
+    )
+    parser.add_argument(
         '-p',
         metavar = '--GENE_PANEL',
         type = str,
@@ -130,23 +137,25 @@ def get_cnv_determination(sample_id):
     return cnvs
 
 
-def get_clinvar_hits(variant):
+def get_clinvar_hits(variant, sample_id):
     """
     """
-    clinvar = VariantFile('clinvar_in_PEDS002-01/0000.vcf.gz')
+    clinvar = VariantFile(f'clinvar_in_{sample_id}/0000.vcf.gz')
     for hit in clinvar.fetch():
         if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
             if 'CLNSIG' in hit.info.keys(): variant.info['CLNSIG'] = hit.info['CLNSIG']
             else: variant.info['CLNSIG'] = "."
             if 'AF_EXAC' in hit.info.keys(): variant.info['AF_EXAC'] = str(hit.info['AF_EXAC'])
             else: variant.info['AF_EXAC'] = "."
+            if 'ALLELEID' in hit.info.keys(): variant.info['ALLELEID'] = str(hit.info['ALLELEID'])
             return variant
     variant.info['CLNSIG'] = "."
     variant.info['AF_EXAC'] = "."
+    variant.info['ALLELEID'] = "."
     return variant
 
 
-def filter_vcf(vcf, panel, coverage):
+def filter_vcf(vcf, panel, coverage, sample_id):
     """This function parses the input VCF file.
 
     This functions takes a CNV VCF file that has been filtered to only
@@ -294,11 +303,7 @@ def filter_vcf(vcf, panel, coverage):
                 nm = ann[6]
                 codon = ann[9]
                 protein = ann[10]
-                if n_score >= 0.87: variant = get_clinvar_hits(variant)
-                if 'CLNSIG' in variant.info.keys(): clinvar = variant.info['CLNSIG']
-                else: clinvar = '.'
-                if 'AF_EXAC' in variant.info.keys(): clinvar_af = variant.info['AF_EXAC']
-                else: clinvar_af = '.'
+                if n_score >= 0.87: variant = get_clinvar_hits(variant, sample_id)
                 if n_score >= 0.87: snp_list.append((
                     variant.contig,
                     variant.start,
@@ -317,8 +322,9 @@ def filter_vcf(vcf, panel, coverage):
                     gnomad,
                     gp3,
                     n_score,
-                    clinvar,
-                    clinvar_af
+                    variant.info['CLNSIG'],
+                    variant.info['AF_EXAC'],
+                    variant.info['ALLELEID']
                 ))
             elif sv and '30x' in coverage:
                 sv_score = 0.0
@@ -345,11 +351,7 @@ def filter_vcf(vcf, panel, coverage):
                 nm = ann[6]
                 codon = ann[9]
                 protein = ann[10]
-                if sv_score >= 1.0: variant = get_clinvar_hits(variant)
-                if 'CLNSIG' in variant.info.keys(): clinvar = variant.info['CLNSIG']
-                else: clinvar = '.'
-                if 'AF_EXAC' in variant.info.keys(): clinvar_af = variant.info['AF_EXAC']
-                else: clinvar_af = '.'
+                if sv_score >= 1.0: variant = get_clinvar_hits(variant, sample_id)
                 if sv_score >= 1.0: sv_list.append((
                     variant.contig,
                     variant.start,
@@ -365,8 +367,9 @@ def filter_vcf(vcf, panel, coverage):
                     genotype,
                     fr,
                     sv_score,
-                    clinvar,
-                    clinvar_af
+                    variant.info['CLNSIG'],
+                    variant.info['AF_EXAC'],
+                    variant.info['ALLELEID']
                 ))
             elif cnv or cnv_multi_gene:
                 cnv_list.append((
@@ -514,7 +517,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'Stop': sv[2],
                     'Ref Allele': sv[3],
                     'Alt Allele': sv[4],
-                    'gene': sv[5],
+                    'Gene': sv[5],
                     'NCBI Reference Sequence': sv[6],
                     'Nucleotide': sv[7],
                     'Protein': sv[8],
@@ -953,6 +956,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         else: lof = '.'
         if snp[10] != '.': nmd = snp[10].split('|')[0] + " " + snp[10].split('|')[3]
         else: nmd = '.'
+        if snp[19] != '.': link = f"http://www.ncbi.nlm.nih.gov/clinvar/?term={snp[19]}[alleleid]"
+        else: link = "."
         snp_dict = {
             'Chrom': snp[0],
             'Start': snp[1],
@@ -971,7 +976,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'ExAC Freq': snp[14],
             '1000 Genomes Freq': snp[15],
             'ClinVar Significance': snp[17],
-            'ClinVar ExAC Freq': snp[18]
+            'ClinVar ExAC Freq': snp[18],
+            'ClinVar Link': link
 
         }
         if float(snp[16]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
@@ -982,13 +988,15 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         else: lof = '.'
         if sv[10] != '.': nmd = sv[10].split('|')[0] + " " + sv[10].split('|')[3]
         else: nmd = '.'
+        if sv[16] != '.': link = f"http://www.ncbi.nlm.nih.gov/clinvar/?term={sv[16]}[alleleid]"
+        else: link = "."
         sv_dict = {
             'Chrom': sv[0],
             'Start': sv[1],
             'Stop': sv[2],
             'Ref Allele': sv[3],
             'Alt Allele': sv[4],
-            'gene': sv[5],
+            'Gene': sv[5],
             'NCBI Reference Sequence': sv[6],
             'Nucleotide': sv[7],
             'Protein': sv[8],
@@ -997,7 +1005,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'Genotype': sv[11],
             'F:R_ref_F:R_alt': sv[12],
             'ClinVar Significance': sv[14],
-            'ClinVar ExAC Freq': sv[15]
+            'ClinVar ExAC Freq': sv[15],
+            'ClinVar Link': link
         }
         if float(sv[13]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
         else: data['sv']['likely_pathogenic_sv'].append(sv_dict)
@@ -1036,6 +1045,13 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             dump(data, outfile, indent = 4)
 
 
+def get_clinvar_in_sample(cpus, sample_id, vcf):
+    """
+    """
+    launch = f'bcftools isec --threads  {cpus} -p clinvar_in_{sample_id} -w1 -n=2 clinvar.vcf.gz {vcf}'
+    system(launch)
+
+
 def main():
     """
     """
@@ -1045,10 +1061,12 @@ def main():
     vcf = VariantFile(args.v)
     vcf.header.info.add("CLNSIG",".","String","Clinical significance for this single variant")
     vcf.header.info.add("AF_EXAC","1","String","allele frequencies from ExAC")
-    sample_id = args.v.split('_')[0] + "_" + args.v.split('_')[1]
+    vcf.header.info.add("ALLELEID","1","String","the ClinVar Allele ID")
+    sample_id = args.s
     cpus = args.t
     if cpus == None: cpus = 1
-    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.c)
+    get_clinvar_in_sample(cpus, sample_id, args.v)
+    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.c, sample_id)
     cnv_bed(cnv_list, sample_id)
     call_classify_cnv(cpus, sample_id)
     cnv_determinations = get_cnv_determination(sample_id)
