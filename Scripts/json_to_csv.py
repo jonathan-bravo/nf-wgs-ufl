@@ -71,40 +71,40 @@ def parse_cnv_interactions(json):
     if json['cnv_interactions']['all_interactions'] != []:
         for interaction in json['cnv_interactions']['all_interactions']:
             cnv = str((
-                interaction['cnv']['chrom'],
-                interaction['cnv']['start'],
-                interaction['cnv']['stop'],
-                interaction['cnv']['alt']
+                interaction['CNV']['Chrom'],
+                interaction['CNV']['Start'],
+                interaction['CNV']['Stop'],
+                interaction['CNV']['Alt']
             ))
-            snps = interaction['snps']
+            snps = interaction['SNPs']
             for snp in snps:
                 current_snp = str((
-                    snp['chrom'],
-                    snp['start'],
-                    snp['stop'],
-                    snp['gene']
+                    snp['Chrom'],
+                    snp['Start'],
+                    snp['Stop'],
+                    snp['Gene']
                 ))
-                interactions.append(pd.DataFrame({'CNV': cnv, 'snp': current_snp}, index = [index]))
+                interactions.append(pd.DataFrame({'CNV': cnv, 'SNP': current_snp}, index = [index]))
                 index += 1
-            svs = interaction['svs']
+            svs = interaction['SVs']
             for sv in svs:
                 current_sv = str((
-                    sv['chrom'],
-                    sv['start'],
-                    sv['stop'],
-                    sv['gene']
+                    sv['Chrom'],
+                    sv['Start'],
+                    sv['Stop'],
+                    sv['Gene']
                 ))
-                interactions.append(pd.DataFrame({'CNV': cnv, 'sv': current_sv}, index = [index]))
+                interactions.append(pd.DataFrame({'CNV': cnv, 'SV': current_sv}, index = [index]))
                 index += 1
-            exps = interaction['exps']
+            exps = interaction['EXPs']
             for exp in exps:
                 current_exp = str((
-                    exp['chrom'],
-                    exp['start'],
-                    exp['stop'],
-                    exp['gene']
+                    exp['Chrom'],
+                    exp['Start'],
+                    exp['Stop'],
+                    exp['Gene']
                 ))
-                interactions.append(pd.DataFrame({'CNV': cnv, 'exp': current_exp}, index = [index]))
+                interactions.append(pd.DataFrame({'CNV': cnv, 'EXP': current_exp}, index = [index]))
                 index += 1
         return pd.concat(interactions)
     else: return pd.DataFrame()
@@ -134,9 +134,9 @@ def write_xlsx(data, file_name):
         data[1].to_excel(writer, sheet_name = 'SVs', index = False)
         data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
         data[3].to_excel(writer, sheet_name = 'Expansions', index = False)
-        data[4].to_excel(writer, sheet_name = 'CNV Interactions', index = False)
+        data[4].to_excel(writer, sheet_name = 'Compound Variants', index = False)
         data[5].to_excel(writer, sheet_name = 'Genes in Panel', index = False)
-        data[6].to_excel(writer, sheet_name = 'Supprting Literature', index = False)
+        data[6].to_excel(writer, sheet_name = 'Supporting Literature', index = False)
         data[7].to_excel(writer, sheet_name = 'Tools in Pipeline', index = False)
         data[8].to_excel(writer, sheet_name = 'QC', index = False)
 
