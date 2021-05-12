@@ -43,13 +43,6 @@ def parse_args():
         required = False
     )
     parser.add_argument(
-        '-s',
-        metavar = '--SAMPLE_ID',
-        type = str,
-        help = 'sample id to be included in report name',
-        required = True
-    )
-    parser.add_argument(
         '-c',
         metavar = '--coverage',
         type = str,
@@ -103,80 +96,13 @@ def decision_tree(info, result_list):
     return score
 
 
-def check_overlap(first, second):
-    """
-    """
-    if second.info['CYTO'] == first.info['CYTO']:
-        if second.alts[0] == first.alts[0]:
-            if second.start < first.stop + 4500:
-                return (True, second.info['GENE'])
-    return (False, None)
-
-
-def contig(start_index, cnv_list):
-    """
-    """
-    contig = []
-    genes = []
-    rcn = 0
-    mrcn = 0
-    genes.append(cnv_list[start_index].info['GENE'])
-    contig.append(cnv_list[start_index].contig)
-    contig.append(cnv_list[start_index].info['CYTO'])
-    contig.append(cnv_list[start_index].alts[0])
-    contig.append(cnv_list[start_index].start+1)
-    rcn += cnv_list[start_index].samples['SAMPLE1'].get('RCN')
-    mrcn += cnv_list[start_index].samples['SAMPLE1'].get('MRCN')
-    for i in range(start_index, len(cnv_list)):
-        end_index = i
-        if cnv_list[i] == cnv_list[-1]:
-            contig.append(cnv_list[i].stop)
-            end_index += 1
-            break
-        else:
-            success, gene_list = check_overlap(cnv_list[i], cnv_list[i+1])
-            if success:
-                genes.append(gene_list)
-                rcn += cnv_list[start_index].samples['SAMPLE1'].get('RCN')
-                mrcn += cnv_list[start_index].samples['SAMPLE1'].get('MRCN')
-                continue
-            else:
-                contig.append(cnv_list[i].stop)
-                end_index += 1
-                break
-    genes_tmp = []
-    for gene in genes:
-        if isinstance(gene, tuple):
-            for x in gene:
-                genes_tmp.append(x)
-        else:
-            genes_tmp.append(gene)
-    genes_final = []
-    [genes_final.append(x) for x in genes_tmp if x not in genes_final]
-    contig.append(genes_final)
-    contig.append(rcn)
-    contig.append(mrcn)
-    return contig, end_index
-
-
-def check_entries(cnv_list):
-    """
-    """
-    cnvs = []
-    index = 0
-    while index < len(cnv_list):
-        cnv, index = contig(index, cnv_list)
-        cnvs.append(cnv)
-    return cnvs
-
-
-def cnv_bed(contigs, sample_id):
+def cnv_bed(cnvs, sample_id):
     """
     """
     file_name = f'{sample_id}_cnv.bed'
     f = open(file_name, "w")
-    for contig in contigs:
-        f.write(f'{contig[0]}\t{contig[3]}\t{contig[4]}\t{contig[2]}\n')
+    for cnv in cnvs:
+        f.write(f'{cnv[0]}\t{cnv[1]}\t{cnv[2]}\t{cnv[3]}\n')
     f.close()
 
 
@@ -187,8 +113,6 @@ def call_classify_cnv(cpus, sample_id):
     outfile = f'{sample_id}_ClassifyCNV_out'
     launch = f'/ClassifyCNV.py --infile {infile} --GenomeBuild hg19 --cores {cpus} --outdir {outfile} --precise'
     system(launch)
-    clean = f'rm {infile}; rm -rf {outfile}/Intermediate_files'
-    system(clean)
 
 
 def get_cnv_determination(sample_id):
@@ -199,11 +123,27 @@ def get_cnv_determination(sample_id):
     with open(infile) as f:
         for line in f:
             entry = line.split('\t')
-            if entry[5] == 'Pathogenic':
-                cnvs.append((entry[1], entry[2], entry[3], entry[6]))
+            if entry[5] == 'Pathogenic' or entry[5] == 'Likely pathogenic':
+                cnvs.append((entry[1], entry[2], entry[3], entry[5]))
     clean = f'rm -rf {sample_id}_ClassifyCNV_out'
     system(clean)
     return cnvs
+
+
+def get_clinvar_hits(variant):
+    """
+    """
+    clinvar = VariantFile('clinvar_in_PEDS002-01/0000.vcf.gz')
+    for hit in clinvar.fetch():
+        if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
+            if 'CLNSIG' in hit.info.keys(): variant.info['CLNSIG'] = hit.info['CLNSIG']
+            else: variant.info['CLNSIG'] = "."
+            if 'AF_EXAC' in hit.info.keys(): variant.info['AF_EXAC'] = str(hit.info['AF_EXAC'])
+            else: variant.info['AF_EXAC'] = "."
+            return variant
+    variant.info['CLNSIG'] = "."
+    variant.info['AF_EXAC'] = "."
+    return variant
 
 
 def filter_vcf(vcf, panel, coverage):
@@ -239,12 +179,12 @@ def filter_vcf(vcf, panel, coverage):
             )
             cnv = (
                 'CNCLASS' in variant.info.keys()
-                and variant.info['GENE'] in panel
+                and variant.info['GENES'] in panel
             )
             cnv_multi_gene = (
                 'CNCLASS' in variant.info.keys()
-                and isinstance(variant.info['GENE'], tuple)
-                and any(item in variant.info['GENE'] for item in panel)
+                and isinstance(variant.info['GENES'], tuple)
+                and any(item in variant.info['GENES'] for item in panel)
             )
             exp = (
                 'VARID' in variant.info.keys()
@@ -354,6 +294,11 @@ def filter_vcf(vcf, panel, coverage):
                 nm = ann[6]
                 codon = ann[9]
                 protein = ann[10]
+                if n_score >= 0.87: variant = get_clinvar_hits(variant)
+                if 'CLNSIG' in variant.info.keys(): clinvar = variant.info['CLNSIG']
+                else: clinvar = '.'
+                if 'AF_EXAC' in variant.info.keys(): clinvar_af = variant.info['AF_EXAC']
+                else: clinvar_af = '.'
                 if n_score >= 0.87: snp_list.append((
                     variant.contig,
                     variant.start,
@@ -371,7 +316,9 @@ def filter_vcf(vcf, panel, coverage):
                     round(cadd, 3),
                     gnomad,
                     gp3,
-                    n_score
+                    n_score,
+                    clinvar,
+                    clinvar_af
                 ))
             elif sv and '30x' in coverage:
                 sv_score = 0.0
@@ -398,6 +345,11 @@ def filter_vcf(vcf, panel, coverage):
                 nm = ann[6]
                 codon = ann[9]
                 protein = ann[10]
+                if sv_score >= 1.0: variant = get_clinvar_hits(variant)
+                if 'CLNSIG' in variant.info.keys(): clinvar = variant.info['CLNSIG']
+                else: clinvar = '.'
+                if 'AF_EXAC' in variant.info.keys(): clinvar_af = variant.info['AF_EXAC']
+                else: clinvar_af = '.'
                 if sv_score >= 1.0: sv_list.append((
                     variant.contig,
                     variant.start,
@@ -412,56 +364,71 @@ def filter_vcf(vcf, panel, coverage):
                     nmd,
                     genotype,
                     fr,
-                    sv_score
+                    sv_score,
+                    clinvar,
+                    clinvar_af
                 ))
             elif cnv or cnv_multi_gene:
-                cnv_list.append(variant)
+                cnv_list.append((
+                    variant.contig,
+                    variant.start,
+                    variant.stop,
+                    variant.alts[0],
+                    variant.info['LENGTH'],
+                    variant.info['GENES']
+                ))
             elif exp:
-                # alt_length = []
-                # for alt in variant.alts:
-                #     length = int(alt.strip('<STR').strip('>'))
-                #     alt_length.append(length)
-                # if any(x >= 70 for x in alt_length):
                 gt = variant.samples['SAMPLE1'].get('GT')
                 if gt != None and len(gt) > 1:
                     if gt[0] == gt[1]: genotype = 'homozygous'
                     elif gt[0] != gt[1]: genotype = 'heterozygous'
                 else: genotype == 'None'
-                repcn = variant.samples['SAMPLE1'].get('REPCN').split('/')
+                loc_coverage = variant.samples['SAMPLE1'].get('LC')
+                if genotype == 'homozygous':
+                    if len(variant.alts) == 1:
+                        allele1 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
+                        allele2 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
+                elif genotype == 'heterozygous':
+                    if len(variant.alts) == 2:
+                        allele1 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
+                        allele2 = f"{variant.info['RU'][0]}*{variant.alts[1][4:-1]}"
+                    else:
+                        allele1 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
+                        allele2 = f"{variant.info['RU'][0]}*{variant.info['REF']}"
+                alleles = f"{allele1} / {allele2}"
+                reference = f"{variant.info['RU'][0]}*{variant.info['REF']}"
                 exp_list.append((
                     variant.contig,
-                    variant.start,
+                    variant.start + 1,
                     variant.stop,
-                    variant.alts,
+                    reference,
+                    alleles,
                     variant.info['VARID'],
                     genotype,
-                    repcn
-                    #alt_length
+                    loc_coverage
                 ))
     return (snp_list, sv_list, cnv_list, exp_list)
 
 
-def filter_cnv(cnv_contigs, cnv_contig_determinations):
+def filter_cnv(cnvs, cnv_determinations):
     """
     """
     path_cnvs = []
-    for contig in cnv_contigs:
-        for determination in cnv_contig_determinations:
+    for cnv in cnvs:
+        for determination in cnv_determinations:
             match = (
-                determination[0] in contig[0]
-                and contig[3] == int(determination[1])
-                and contig[4] == int(determination[2])
+                determination[0] in cnv[0]
+                and cnv[1] == int(determination[1])
+                and cnv[2] == int(determination[2])
             )
             if match:
                 path_cnvs.append((
-                    contig[0],
-                    contig[1],
-                    contig[2],
-                    contig[3],
-                    contig[4],
-                    contig[5],
-                    contig[6],
-                    contig[7],
+                    cnv[0],
+                    cnv[1],
+                    cnv[2],
+                    cnv[3],
+                    cnv[4],
+                    cnv[5],
                     determination[3]
                 ))
     return path_cnvs
@@ -482,7 +449,7 @@ def get_literature(panel, genes):
     with open('/PMC-ids.csv') as f:
         for line in f:
             pub = line.split(',') # 7 = DOI, 9 = PMID
-            if pub[9] in lit: lit_list.append(f'{pub[8]}: {pub[7]}')
+            if pub[9] in lit: lit_list.append(f'{pub[8]}: https://doi.org/{pub[7]}')
     return lit_list
 
 
@@ -492,79 +459,91 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
     overlaps = []
     for cnv in path_cnvs:
         cnv_dict = {
-            'chrom': cnv[0],
-            'cyto': cnv[1],
-            'start': cnv[3],
-            'stop': cnv[4],
-            'alt': cnv[2],
-            'genes': cnv[5],
-            'RCN:MRCN': f'{cnv[6]}:{cnv[7]}'
+            'Chrom': cnv[0],
+            'Start': cnv[1],
+            'Stop': cnv[2],
+            'Alt': cnv[3],
+            'Length': cnv[4],
+            'Genes': cnv[5]
         }
         overlap = {
-            'cnv': cnv_dict,
-            'snps': [],
-            'svs': [],
-            'exps': []
+            'CNV': cnv_dict,
+            'SNPs': [],
+            'SVs': [],
+            'EXPs': []
         }
-        cnv_range = range(cnv[3], cnv[4]+1)
+        cnv_range = range(cnv[1], cnv[2]+1)
         for snp in snp_list:
             snp_overlap = (snp[0] == cnv[0] and snp[1] in cnv_range)
             if snp_overlap:
+                if snp[9] != '.': lof = snp[9][0] + " " + snp[9][3]
+                else: lof = '.'
+                if snp[10] != '.': nmd = snp[10].split('|')[0] + " " + snp[10].split('|')[3]
+                else: nmd = '.'
                 snp_dict = snp_dict = {
-                    'chrom': snp[0],
-                    'start': snp[1],
-                    'stop': snp[2],
-                    'ref': snp[3],
-                    'alt': snp[4],
-                    'gene': snp[5],
-                    'nm': snp[6],
-                    'c': snp[7],
-                    'p': snp[8],
-                    'lof': snp[9],
-                    'nmd': snp[10],
-                    'genotype': snp[11],
+                    'Chrom': snp[0],
+                    'Start': snp[1],
+                    'Stop': snp[2],
+                    'Ref Allele': snp[3],
+                    'Alt Allele': snp[4],
+                    'Gene': snp[5],
+                    'NCBI Reference Sequence': snp[6],
+                    'Nucleotide': snp[7],
+                    'Protein': snp[8],
+                    'Loss of Function': lof,
+                    'Nonsense Mediated Decay Effect': nmd,
+                    'Genotype': snp[11],
                     'F:R_ref_F:R_alt': snp[12],
-                    'cadd': snp[13],
-                    'gnomad_freq': snp[14],
-                    '1000_genomes_freq': snp[15]
+                    'CADD': snp[13],
+                    'ExAC Freq': snp[14],
+                    '1000 Genomes Freq': snp[15],
+                    'ClinVar Significance': snp[17],
+                    'ClinVar ExAC Freq': snp[18]
                 }
-                overlap['snps'].append(snp_dict)
+                overlap['SNPs'].append(snp_dict)
         for sv in sv_list:
             sv_overlap = (sv[0] == cnv[0] and sv[1] in cnv_range)
             if sv_overlap:
+                if sv[9] != '.': lof = sv[9][0] + " " + sv[9][3]
+                else: lof = '.'
+                if sv[10] != '.': nmd = sv[10].split('|')[0] + " " + sv[10].split('|')[3]
+                else: nmd = '.'
                 sv_dict = {
-                    'chrom': sv[0],
-                    'start': sv[1],
-                    'stop': sv[2],
-                    'ref': sv[3],
-                    'alt': sv[4],
+                    'Chrom': sv[0],
+                    'Start': sv[1],
+                    'Stop': sv[2],
+                    'Ref Allele': sv[3],
+                    'Alt Allele': sv[4],
                     'gene': sv[5],
-                    'nm': sv[6],
-                    'c': sv[7],
-                    'p': sv[8],
-                    'lof': sv[9],
-                    'nmd': sv[10],
-                    'genotype': sv[11],
-                    'F:R_ref_F:R_alt': sv[12]
+                    'NCBI Reference Sequence': sv[6],
+                    'Nucleotide': sv[7],
+                    'Protein': sv[8],
+                    'Loss of Function': lof,
+                    'Nonsense Mediated Decay Effect': nmd,
+                    'Genotype': sv[11],
+                    'F:R_ref_F:R_alt': sv[12],
+                    'ClinVar Significance': sv[14],
+                    'ClinVar ExAC Freq': sv[15]
                 }
-                overlap['svs'].append(sv_dict)
+                overlap['SVs'].append(sv_dict)
         for exp in exp_list:
             exp_overlap = (exp[0] == cnv[0] and exp[1] in cnv_range)
             if exp_overlap:
                 exp_dict = {
-                    'chrom': exp[0],
-                    'start': exp[1],
-                    'stop' : exp[2],
-                    'alt' : exp[3],
-                    'gene': exp[4],
-                    'genotype': exp[5],
-                    'Alt:Ref': f'{exp[6][1]}:{exp[6][0]}'
+                    'Chrom': exp[0],
+                    'Start': exp[1],
+                    'Stop' : exp[2],
+                    'Ref Allele': exp[3],
+                    'Alt Allele' : exp[4],
+                    'Gene': exp[5],
+                    'Genotype': exp[6],
+                    'Locus Coverage': round(exp[7])
                 }
-                overlap['exps'].append(exp_dict)
+                overlap['EXPs'].append(exp_dict)
         empty = (
-            not overlap['snps']
-            and not overlap['svs']
-            and not overlap['exps']
+            not overlap['SNPs']
+            and not overlap['SVs']
+            and not overlap['EXPs']
         )
         if not empty: overlaps.append(overlap)
     return overlaps
@@ -874,49 +853,49 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
                 'name': 'TrimmomaticPE',
                 'version': '0.39',
                 'purpose': 'trim reads',
-                'citation': '10.1093/bioinformatics/btu170'
+                'citation': 'https://doi.org/10.1093/bioinformatics/btu170'
             },
             {
                 'name': 'BWA MEM',
                 'version': '0.7.17-r1188',
                 'purpose': 'paired read alignment',
-                'citation': ' 10.1093/bioinformatics/btp324'
+                'citation': 'https://doi.org/10.1093/bioinformatics/btp324'
             },
             {
                 'name': 'Samtools',
                 'version': '1.10',
                 'purpose': 'SAM to BAM, sorting BAM, and indexing BAM',
-                'citation': '10.1093/gigascience/giab008'
+                'citation': 'https://doi.org/10.1093/gigascience/giab008'
             },
             {
                 'name': 'Strelka2',
                 'version': '2.9.10',
                 'purpose': 'detection of SNPs and SVs',
-                'citation': '10.1038/s41592-018-0051-x'
+                'citation': 'https://doi.org/10.1038/s41592-018-0051-x'
             },
             {
-                'name': 'Panelcn.MOPS',
-                'version': '1.8.0',
-                'purpose': 'detection of CNVs within specified windows',
-                'citation': '10.1002/humu/23237'
+                'name': 'cn.MOPS',
+                'version': '1.36.0',
+                'purpose': 'detection of CNVs for WGS data',
+                'citation': 'https://doi.org/10.1093/nar/gks003'
             },
             {
                 'name': 'ExpansionHunter',
                 'version': '4.0.2',
                 'purpose': 'detection of repeat expansions',
-                'citation': '10.1186/s13059-020-02017-z'
+                'citation': 'https://doi.org/10.1186/s13059-020-02017-z'
             },
             {
                 'name': 'snpEff',
                 'version': '5.0c',
                 'purpose': 'snp annotation',
-                'citation': '10.4161/fly.19695'
+                'citation': 'https://doi.org/10.4161/fly.19695'
             },
             {
                 'name': 'Bcftools',
                 'version': '1.10.2',
                 'purpose': 'merging and indexing vcf files',
-                'citation': '10.1093/gigascience/giab008'
+                'citation': 'https://doi.org/10.1093/gigascience/giab008'
             },
             {
                 'name': 'Picard',
@@ -934,78 +913,119 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
                 'name': 'MultiQC',
                 'version': '1.9',
                 'purpose': 'creating merged qc page',
-                'citation': '10.1093/bioinformatics/btw354'
+                'citation': 'https://doi.org/10.1093/bioinformatics/btw354'
+            },
+            {
+                'name': 'Nextflow',
+                'version': '20.10',
+                'purpose': 'workflow language for pipeline',
+                'citation': 'https://doi.org/10.1038/nbt.3820'
+            },
+            {
+                'name': 'Genome Build',
+                'version': 'hg19',
+                'purpose': 'reference genome',
+                'citation': 'http://genome.ucsc.edu/cite.html'
+            },
+            {
+                'name': 'dbNSFP',
+                'version': '4.1a',
+                'purpose': 'variant annotation',
+                'citation': 'https://doi.org/10.1186/s13073-020-00803-9'
+            },
+            {
+                'name': 'gnomAD SV Frequencies',
+                'version': '2.1.1',
+                'purpose': 'variant annotation',
+                'citation': 'https://doi.org/10.1038/s41586-020-2308-7'
+            },
+            {
+                'name': 'ClinVar',
+                'version': 'GRcH37_2021-04-18',
+                'purpose': '',
+                'citation': 'https://doi.org/10.1093/nar/gkx1153'
             }
         ]
     }
     for snp in snp_list:
         genes.append(snp[5])
+        if snp[9] != '.': lof = snp[9].split('|')[0] + " " + snp[9].split('|')[3]
+        else: lof = '.'
+        if snp[10] != '.': nmd = snp[10].split('|')[0] + " " + snp[10].split('|')[3]
+        else: nmd = '.'
         snp_dict = {
-            'chrom': snp[0],
-            'start': snp[1],
-            'stop': snp[2],
-            'ref': snp[3],
-            'alt': snp[4],
-            'gene': snp[5],
-            'nm': snp[6],
-            'c': snp[7],
-            'p': snp[8],
-            'lof': snp[9],
-            'nmd': snp[10],
-            'genotype': snp[11],
+            'Chrom': snp[0],
+            'Start': snp[1],
+            'Stop': snp[2],
+            'Ref Allele': snp[3],
+            'Alt Allele': snp[4],
+            'Gene': snp[5],
+            'NCBI Reference Sequence': snp[6],
+            'Nucleotide': snp[7],
+            'Protein': snp[8],
+            'Loss of Function': lof,
+            'Nonsense Mediated Decay Effect': nmd,
+            'Genotype': snp[11],
             'F:R_ref_F:R_alt': snp[12],
-            'cadd': snp[13],
-            'gnomad_freq': snp[14],
-            '1000_genomes_freq': snp[15]
+            'CADD': snp[13],
+            'ExAC Freq': snp[14],
+            '1000 Genomes Freq': snp[15],
+            'ClinVar Significance': snp[17],
+            'ClinVar ExAC Freq': snp[18]
+
         }
         if float(snp[16]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
         else: data['snp']['likely_pathogenic_snp'].append(snp_dict)
     for sv in sv_list:
         genes.append(sv[5])
+        if sv[9] != '.': lof = sv[9].split('|')[0] + " " + sv[9].split('|')[3]
+        else: lof = '.'
+        if sv[10] != '.': nmd = sv[10].split('|')[0] + " " + sv[10].split('|')[3]
+        else: nmd = '.'
         sv_dict = {
-            'chrom': sv[0],
-            'start': sv[1],
-            'stop': sv[2],
-            'ref': sv[3],
-            'alt': sv[4],
+            'Chrom': sv[0],
+            'Start': sv[1],
+            'Stop': sv[2],
+            'Ref Allele': sv[3],
+            'Alt Allele': sv[4],
             'gene': sv[5],
-            'nm': sv[6],
-            'c': sv[7],
-            'p': sv[8],
-            'lof': sv[9],
-            'nmd': sv[10],
-            'genotype': sv[11],
-            'F:R_ref_F:R_alt': sv[12]
+            'NCBI Reference Sequence': sv[6],
+            'Nucleotide': sv[7],
+            'Protein': sv[8],
+            'Loss of Function': lof,
+            'Nonsense Mediated Decay Effect': nmd,
+            'Genotype': sv[11],
+            'F:R_ref_F:R_alt': sv[12],
+            'ClinVar Significance': sv[14],
+            'ClinVar ExAC Freq': sv[15]
         }
         if float(sv[13]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
         else: data['sv']['likely_pathogenic_sv'].append(sv_dict)
     for cnv in path_cnvs:
         genes.append(cnv[5])
         cnv_dict = {
-            'chrom': cnv[0],
-            'cyto': cnv[1],
-            'start': cnv[3],
-            'stop': cnv[4],
-            'alt': cnv[2],
-            'genes': cnv[5],
-            'RCN:MRCN': f'{cnv[6]}:{cnv[7]}'
+            'Chrom': cnv[0],
+            'Start': cnv[1],
+            'Stop': cnv[2],
+            'Alt Allele': cnv[3],
+            'Length': cnv[4],
+            'Genes': cnv[5]
         }
-        if float(cnv[8]) > 1.0: data['cnv']['pathogenic_cnv'].append(cnv_dict)
+        if cnv[6] == 'Pathogenic': data['cnv']['pathogenic_cnv'].append(cnv_dict)
         else: data['cnv']['likely_pathogenic_cnv'].append(cnv_dict)
     for exp in exp_list:
         genes.append(exp[4])
         exp_dict = {
-            'chrom': exp[0],
-            'start': exp[1],
-            'stop' : exp[2],
-            'alt' : exp[3],
-            'gene': exp[4],
-            'genotype': exp[5],
-            'Alt:Ref': f'{exp[6][1]}:{exp[6][0]}'
+            'Chrom': exp[0],
+            'Start': exp[1],
+            'Stop' : exp[2],
+            'Ref Allele': exp[3],
+            'Alt Allele' : exp[4],
+            'Gene': exp[5],
+            'Genotype': exp[6],
+            'Locus Coverage': round(exp[7])
         }
         data['exp']['all_expansions'].append(exp_dict)
-        # if any(x >= 115 for x in exp[5]): data['exp']['pathogenic_exp'].append(exp_dict)
-        # else: data['exp']['likely_pathogenic_exp'].append(exp_dict)
     if panel != None:
         data['metadata']['supporting_literature'] = get_literature(panel, genes)
         with open(f'{sample_id}_{panel}_report.json', 'w') as outfile:
@@ -1023,15 +1043,16 @@ def main():
     if args.p != None: panel = get_panel(args.p)
     else: panel = None
     vcf = VariantFile(args.v)
-    sample_id = args.s
+    vcf.header.info.add("CLNSIG",".","String","Clinical significance for this single variant")
+    vcf.header.info.add("AF_EXAC","1","String","allele frequencies from ExAC")
+    sample_id = args.v.split('_')[0] + "_" + args.v.split('_')[1]
     cpus = args.t
     if cpus == None: cpus = 1
     snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.c)
-    cnv_contigs = check_entries(cnv_list)
-    cnv_bed(cnv_contigs, sample_id)
+    cnv_bed(cnv_list, sample_id)
     call_classify_cnv(cpus, sample_id)
-    cnv_contig_determinations = get_cnv_determination(sample_id)
-    path_cnvs = filter_cnv(cnv_contigs, cnv_contig_determinations)
+    cnv_determinations = get_cnv_determination(sample_id)
+    path_cnvs = filter_cnv(cnv_list, cnv_determinations)
     interactions = check_interactions(path_cnvs, snp_list, sv_list, exp_list)
     make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions)
 
