@@ -22,10 +22,6 @@ params.cnv_control    = "${params.ref_dir}/cnv/wgs_cnv_controls.RData"
 params.cnv_vcf_header = "${params.ref_dir}/cnv/cnv_vcf_header.tsv"
 params.bait           = "${params.ref_dir}/exome_targets/bait.interval_list"
 params.target         = "${params.ref_dir}/exome_targets/target.interval_list"
-params.clinvar        = "${params.ref_dir}/clinvar/clinvar.vcf.gz"
-params.clinvar_tbi    = "${params.clinvar}.tbi"
-params.gnomAD         = "${params.ref_dir}/gnomAD/gnomad_v2.1_sv.sites.vcf.gz"
-params.gnomAD_tbi     = "${params.gnomAD}.tbi"
 params.dbnsfp         = "${params.ref_dir}/dbnsfp/dbNSFP4.1a.txt.gz"
 params.dbnsfp_tbi     = "${params.dbnsfp}.tbi"
 params.dbnsfp_dt      = "${params.dbnsfp}.data_types"
@@ -52,10 +48,6 @@ germline_params = [
     "cnv_vcf_header" : params.cnv_vcf_header,
     "bait"           : params.bait,
     "target"         : params.target,
-    "clinvar"        : params.clinvar,
-    "clinvar_tbi"    : params.clinvar_tbi,
-    "gnomAD"         : params.gnomAD,
-    "gnomAD_tbi"     : params.gnomAD_tbi,
     "dbnsfp"         : params.dbnsfp,
     "dbnsfp_tbi"     : params.dbnsfp_tbi,
     "dbnsfp_dt"      : params.dbnsfp_dt,

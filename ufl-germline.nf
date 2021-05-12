@@ -15,6 +15,8 @@ include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics
 include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_CNV                   } from './modules/cn_mops/call_cnv'              addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { INDEX_CNV                  } from './modules/bcftool_tabix/index_cnv'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { ANNOTATE_CNV               } from './modules/ubuntu_python3/annotate_cnv'   addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_GVCF                 } from './modules/bcftools_tabix/merge_gvcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
@@ -128,10 +130,6 @@ workflow GERMLINE {
         )
 
         ANNOTATE_VCF(
-            params.clinvar,
-            params.clinvar_tbi,
-            params.gnomAD,
-            params.gnomAD_tbi,
             params.dbnsfp,
             params.dbnsfp_tbi,
             params.dbnsfp_dt,
@@ -154,10 +152,6 @@ workflow GERMLINE {
         )
 
         ANNOTATE_VCF(
-            params.clinvar,
-            params.clinvar_tbi,
-            params.gnomAD,
-            params.gnomAD_tbi,
             params.dbnsfp,
             params.dbnsfp_tbi,
             params.dbnsfp_dt,
@@ -166,11 +160,19 @@ workflow GERMLINE {
     }
 
     CALL_CNV(
-        params.hg19_genes,
         params.cnv_control,
         params.cnv_vcf_header,
         SAMTOOLS_SORT.out.sort_bam,
         SAMTOOLS_INDEX.out.index_sort_bam
+    )
+
+    INDEX_CNV(
+        CALL_CNV.out.cnv_vcf
+    )
+
+    ANNOTATE_CNV(
+        params.hg19_genes,
+        INDEX_CNV.out.cnv_index
     )
 
     CALL_EH(
@@ -182,7 +184,7 @@ workflow GERMLINE {
 
     MERGE_VCF(
         ANNOTATE_VCF.out.sift_vcf,
-        CALL_CNV.out.cnv_vcf,
+        ANNOTATE_CNV.out.cnv_ann,
         CALL_EH.out.eh_vcf
     )
 

@@ -10,10 +10,6 @@ process ANNOTATE_VCF {
     label 'high_mem'
 
     input:
-    path clinvar
-    path clinvar_tbi
-    path gnomAD
-    path gnomAD_tbi
     path dbNSFP
     path dbNSFP_tbi
     path dbNSFP_data_types
@@ -37,24 +33,8 @@ process ANNOTATE_VCF {
     tabix ${sample_id}_snpeff.vcf.gz
 
     java -jar /snpEff/SnpSift.jar \
-    annotate ${gnomAD} \
-    ${sample_id}_snpeff.vcf.gz \
-    > ${sample_id}_gnomAD.vcf
-
-    bgzip -@ ${task.cpus} ${sample_id}_gnomAD.vcf
-    tabix ${sample_id}_gnomAD.vcf.gz
-
-    java -jar /snpEff/SnpSift.jar \
-    annotate ${clinvar} \
-    ${sample_id}_gnomAD.vcf.gz \
-    > ${sample_id}_clinvar.vcf
-
-    bgzip -@ ${task.cpus} ${sample_id}_clinvar.vcf
-    tabix ${sample_id}_clinvar.vcf.gz
-
-    java -jar /snpEff/SnpSift.jar \
     dbnsfp -v -db ${dbNSFP} \
-    ${sample_id}_clinvar.vcf.gz \
+    ${sample_id}_snpeff.vcf.gz \
     > ${sample_id}_snpsift.vcf
     
     bgzip -@ ${task.cpus} ${sample_id}_snpsift.vcf

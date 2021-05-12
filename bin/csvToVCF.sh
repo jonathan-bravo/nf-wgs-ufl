@@ -22,15 +22,11 @@ awk -F',' 'NR>1 {
     if ($7 ~ "CN0" || $7 ~ "CN1") printf "DEL\t";
     else if ($7 ~ "CN3" || $7 ~ "CN4" || $7 ~ "CN5" || $7 ~ "CN6" || $7 ~ "CN7" || $7 ~ "CN8") printf "DUP\t";
     else printf ".\t";
-    printf ".\tPASS\t";
-    printf "SVTYPE=CNV;END="$3";LENGTH="$4";CNCLASS="$7";GENES=";
-    for(i = 8; i <= NF; i++){printf $i","};
-    printf "\tMED:MEAN\t"$5":"$6"\n";
+    printf ".\tPASS\tSVTYPE=CNV;END="$3";LENGTH="$4";CNCLASS="$7";GENES=.\tMED:MEAN\t"$5":"$6"\n";
 }' >> ${sample_id}.tmp
 
 sed -i 's/",//g' ${sample_id}.tmp
 sed -i 's/"//g' ${sample_id}.tmp
-sed -i 's/GENES=\t/GENES=.\t/g' ${sample_id}.tmp
 
 cat ${sample_id}.head ${sample_id}.tmp > ${sample_id}_cnv.vcf
 

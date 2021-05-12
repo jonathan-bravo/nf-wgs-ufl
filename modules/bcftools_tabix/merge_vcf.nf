@@ -11,7 +11,7 @@ process MERGE_VCF {
 
     input:
     tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz")
-    tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf")
+    tuple val(sample_id), file("${sample_id}_filtered_cnv_ann.vcf")
     tuple val(sample_id), file("${sample_id}_filtered_eh.vcf")
 
     output:
@@ -19,21 +19,21 @@ process MERGE_VCF {
 
     script:
     """
-    bgzip -@ ${task.cpus} ${sample_id}_filtered_cnv.vcf
+    bgzip -@ ${task.cpus} ${sample_id}_filtered_cnv_ann.vcf
     bgzip -@ ${task.cpus} ${sample_id}_filtered_eh.vcf
 
     bcftools index --threads ${task.cpus} --tbi \
     ${sample_id}_snpsift.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_filtered_cnv.vcf.gz
+    ${sample_id}_filtered_cnv_ann.vcf.gz
 
     bcftools index --threads ${task.cpus} --tbi \
     ${sample_id}_filtered_eh.vcf.gz
 
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.vcf \
-    ${sample_id}_filtered_cnv.vcf.gz \
+    ${sample_id}_filtered_cnv_ann.vcf.gz \
     ${sample_id}_snpsift.vcf.gz \
     ${sample_id}_filtered_eh.vcf.gz
 
