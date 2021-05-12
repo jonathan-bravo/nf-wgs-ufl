@@ -360,10 +360,10 @@
             <div id="report_email_box" class="centered">
                 <form id="email" onsubmit="return false;" style="display:none">
                     <div class="centered">
-                        <label id="user_email_label" for="user_email">Email: </label>
+                        <label class="email-label" id="user_email_label" for="user_email">Email: </label>
                         <input type="email" id="user_email" name="User_Email" placeholder="gator@ufl.edu">
                         <br/><br/>
-                        <input type="submit" onclick="launch_reporting()" id="launch_report_button" value="Get Research Report">
+                        <input class="email" type="submit" onclick="launch_reporting()" id="launch_report_button" value="Get Research Report">
                     </div>
                 </form>
             </div>
@@ -382,14 +382,20 @@
             <div id="request_run_or_sample_box" class="centered question-container" style="display:none;">
                 <button class="back" onclick="switchToRequestView()"></button>
                 <div class="text-box" id="request_run_or_sample_text">
-                    <p class="statement" id="request_run_or_sample_statement">Would you like a sample report or the MultiQC report for a run?</p>
-                    <label>
-                        <input type="radio" class="choices" name="r_or_s" id="sample"> Report for a sample
-                        <br/><br/>
+                    <p class="statement" id="request_run_or_sample_statement">Request a sample report, or the MultiQC report</p>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="r_or_s" id="sample">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">Report for a sample</span>
                     </label>
-                    <label>
-                        <input type="radio" class="choices" name="r_or_s" id="run"> MultiQC report for run
-                        <br/><br/>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="r_or_s" id="run">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">MultiQC report for run</span>
                     </label>
                 </div>
                 <div class="question-button">
@@ -425,7 +431,7 @@
                     <p class="statement" id="request_email_statement">Please enter your email.</p>
                     <form id="email" onsubmit="return false;">
                         <div class="centered">
-                            <label id="request_user_email_label" for="request_user_email">Email: </label>
+                            <label class="email-label" id="request_user_email_label" for="request_user_email">Email: </label>
                             <input type="email" id="request_user_email" name="User_Email" placeholder="gator@ufl.edu">
                             <br/><br/>
                             <input type="submit" onclick="retrieve_report()" id="launch_report_button" value="Get Research Report">
@@ -435,7 +441,6 @@
             </div>
 
             <div class="centered" id="launch_img" style="display: none;">
-                <!-- <img src="img/launch.png"> -->
                 <div class="scene">
                     <div class="rocket">
                         <img src="img/rocket.png">
@@ -562,29 +567,29 @@
         });
     </script>
 
-<script type="text/javascript">
-    function stars() {
-        let count = 50;
-        let scene = document.querySelector('.scene');
-        let g = 0;
-        while(g < count){
-            let star = document.createElement('g');
-            let x = Math.floor(Math.random() * window.innerWidth);
+    <script type="text/javascript">
+        function stars() {
+            let count = 50;
+            let scene = document.querySelector('.scene');
+            let g = 0;
+            while(g < count){
+                let star = document.createElement('g');
+                let x = Math.floor(Math.random() * window.innerWidth);
 
-            let duration = Math.random() * 1;
-            let h = Math.random() * 100;
+                let duration = Math.random() * 1;
+                let h = Math.random() * 100;
 
-            star.style.left = x + 'px';
-            star.style.width = 1 + 'px';
-            star.style.height = 50 + h + 'px';
-            star.style.animationDuration = duration + 's';
+                star.style.left = x + 'px';
+                star.style.width = 1 + 'px';
+                star.style.height = 50 + h + 'px';
+                star.style.animationDuration = duration + 's';
 
-            scene.appendChild(star);
-            g++
+                scene.appendChild(star);
+                g++
+            }
         }
-    }
-    stars();
-</script>
+        stars();
+    </script>
 
 </body>
 </html>

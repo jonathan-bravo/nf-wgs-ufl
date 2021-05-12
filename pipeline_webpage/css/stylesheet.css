@@ -63,6 +63,7 @@ p {
     flex: 0.5;
     display: flex;
     transform: translateY(0.05rem);
+    padding-right: 1.2%;
 }
 
 .radio__input input {
@@ -104,6 +105,7 @@ p {
     transition: 180ms all ease-in-out;
     opacity: 0.8;
     color: var(--uf-dark-blue);
+    word-break: break-word;
 }
 
 .checkbox {
@@ -151,12 +153,8 @@ p {
     box-shadow: 0 0 0 0.05em #fff, 0 0 0.15em 0.1em currentColor;
 }
 
-#user_email_label {
-    margin-left: 26%;
-}
-
-#sample_title {
-    margin-left: 27.5%;
+.email-label {
+    margin-left: 25%;
 }
 
 [type="submit"] {

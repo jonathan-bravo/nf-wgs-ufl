@@ -335,17 +335,35 @@ async function get_chosen_request_sample() {
     var reports_list = document.getElementById('request_reports');
 
     for (var i = 0; i < available_reports.length; i++) {
+
+        var radioClass = document.createElement('label');
+        var radioInput = document.createElement('span');
         var choiceSelection = document.createElement('input');
-        var choiceLabel = document.createElement('label');
+        var radioControl = document.createElement('span');
+        var radioLabel = document.createElement('span');
 
-        choiceSelection.setAttribute("type", "radio");
-        choiceSelection.setAttribute("name", "report_name");
-        choiceSelection.setAttribute("id", available_reports[i]);
+        radioClass.setAttribute('class', 'radio');
+        radioInput.setAttribute('class', 'radio__input');
+        radioControl.setAttribute('class', 'radio__control');
+        radioLabel.setAttribute('class', 'radio__label');
 
-        choiceLabel.appendChild(choiceSelection);
-        choiceLabel.innerHTML += '\t'+available_reports[i]+"<br/><br/>";
+        choiceSelection.setAttribute('type', 'radio');
+        choiceSelection.setAttribute('name', 'report_name');
+        choiceSelection.setAttribute('id', available_reports[i]);
 
-        reports_list.appendChild(choiceLabel);
+        if (available_reports[i] == 'variant') {
+            radioLabel.innerHTML += '\tVCF';
+        } else {
+            radioLabel.innerHTML += '\t'+available_reports[i];
+        }
+
+        radioInput.appendChild(choiceSelection);
+        radioInput.appendChild(radioControl);
+
+        radioClass.appendChild(radioInput);
+        radioClass.appendChild(radioLabel);
+
+        reports_list.appendChild(radioClass); 
     }
 
 
@@ -393,17 +411,31 @@ async function get_request_sample() {
     var samples_list = document.getElementById('request_samples');
 
     for (var i = 0; i < filtered_samples.length; i++) {
+
+        var radioClass = document.createElement('label');
+        var radioInput = document.createElement('span');
         var choiceSelection = document.createElement('input');
-        var choiceLabel = document.createElement('label');
+        var radioControl = document.createElement('span');
+        var radioLabel = document.createElement('span');
 
-        choiceSelection.setAttribute("type", "radio");
-        choiceSelection.setAttribute("name", "sample_id");
-        choiceSelection.setAttribute("id", filtered_samples[i]);
+        radioClass.setAttribute('class', 'radio');
+        radioInput.setAttribute('class', 'radio__input');
+        radioControl.setAttribute('class', 'radio__control');
+        radioLabel.setAttribute('class', 'radio__label');
 
-        choiceLabel.appendChild(choiceSelection);
-        choiceLabel.innerHTML += "\t"+filtered_samples[i]+"<br/><br/>";
+        choiceSelection.setAttribute('type', 'radio');
+        choiceSelection.setAttribute('name', 'sample_id');
+        choiceSelection.setAttribute('id', filtered_samples[i]);
 
-        samples_list.appendChild(choiceLabel);
+        radioLabel.innerHTML += '\t'+filtered_samples[i];
+
+        radioInput.appendChild(choiceSelection);
+        radioInput.appendChild(radioControl);
+
+        radioClass.appendChild(radioInput);
+        radioClass.appendChild(radioLabel);
+
+        samples_list.appendChild(radioClass); 
     }
 
     $("#loader").hide();
@@ -483,17 +515,31 @@ async function get_request_runs() {
     var runs_list = document.getElementById("request_runs_list");
 
     for (const i in filtered_samples) {
-        var choiceSelection = document.createElement("input");
-        var choiceLabel = document.createElement("label");
 
-        choiceSelection.setAttribute("type", "radio");
-        choiceSelection.setAttribute("name", "run_id");
-        choiceSelection.setAttribute("id", filtered_samples[i]);
+        var radioClass = document.createElement('label');
+        var radioInput = document.createElement('span');
+        var choiceSelection = document.createElement('input');
+        var radioControl = document.createElement('span');
+        var radioLabel = document.createElement('span');
 
-        choiceLabel.appendChild(choiceSelection);
-        choiceLabel.innerHTML += "\t"+filtered_samples[i]+"<br/><br/>";
+        radioClass.setAttribute('class', 'radio');
+        radioInput.setAttribute('class', 'radio__input');
+        radioControl.setAttribute('class', 'radio__control');
+        radioLabel.setAttribute('class', 'radio__label');
 
-        runs_list.appendChild(choiceLabel);
+        choiceSelection.setAttribute('type', 'radio');
+        choiceSelection.setAttribute('name', 'run_id');
+        choiceSelection.setAttribute('id', filtered_samples[i]);
+
+        radioLabel.innerHTML += '\t'+filtered_samples[i];
+
+        radioInput.appendChild(choiceSelection);
+        radioInput.appendChild(radioControl);
+
+        radioClass.appendChild(radioInput);
+        radioClass.appendChild(radioLabel);
+
+        runs_list.appendChild(radioClass); 
     }
 
     $("#loader").hide();
