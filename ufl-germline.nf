@@ -15,7 +15,7 @@ include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics
 include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_CNV                   } from './modules/cn_mops/call_cnv'              addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { INDEX_CNV                  } from './modules/bcftool_tabix/index_cnv'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { INDEX_CNV                  } from './modules/bcftools_tabix/index_cnv'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_CNV               } from './modules/ubuntu_python3/annotate_cnv'   addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
