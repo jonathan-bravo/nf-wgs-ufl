@@ -10,9 +10,7 @@ process MERGE_VCF {
     label 'small_process'
 
     input:
-    tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz")
-    tuple val(sample_id), file("${sample_id}_filtered_cnv_ann.vcf")
-    tuple val(sample_id), file("${sample_id}_filtered_eh.vcf")
+    tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz"), file("${sample_id}_filtered_cnv_ann.vcf"), file("${sample_id}_filtered_eh.vcf")
 
     output:
     tuple val(sample_id), file("${sample_id}_concat.vcf.gz"), file("${sample_id}_concat.vcf.gz.tbi"), emit: vcf

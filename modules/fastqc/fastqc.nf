@@ -13,7 +13,7 @@ process FASTQC {
     tuple val(sample_id), file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz")
 
     output:
-    path "fastqc_${sample_id}_logs", emit: qc
+    tuple val(sample_id), path("fastqc_${sample_id}_logs"), emit: qc
 
     script:
     """

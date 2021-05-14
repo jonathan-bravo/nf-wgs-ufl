@@ -10,12 +10,10 @@ process MERGE_GVCF {
     label 'small_process'
 
     input:
-    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf.gz")
-    tuple val(sample_id), file("${sample_id}_cnv.vcf")
-    tuple val(sample_id), file("${sample_id}_eh.vcf")
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf.gz"), file("${sample_id}_cnv.vcf"), file("${sample_id}_eh.vcf")
 
     output:
-    tuple val(sample_id), file("${sample_id}_concat.gvcf.gz"), file("${sample_id}_concat.gvcf.gz.tbi"), emit: vcf
+    tuple val(sample_id), file("${sample_id}_concat.gvcf.gz"), file("${sample_id}_concat.gvcf.gz.tbi"), emit: gvcf
 
     script:
     """

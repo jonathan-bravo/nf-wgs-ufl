@@ -13,7 +13,7 @@ process FASTQC_SINGLE {
     tuple val(sample_id), path(reads)
 
     output:
-    path "fastqc_${sample_id}_logs", emit: qc
+    tuple val(sample_id), path("fastqc_${sample_id}_logs"), emit: qc
 
     script:
     """

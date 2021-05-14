@@ -15,7 +15,7 @@ include { PICARD_COLLECT_HS_METRICS  } from './modules/picard/collect_hs_metrics
 include { CALL_SNV_WGS               } from './modules/strelka2/call_snv_wgs'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WES               } from './modules/strelka2/call_snv_wes'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_CNV                   } from './modules/cn_mops/call_cnv'              addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { INDEX_CNV                  } from './modules/bcftools_tabix/index_cnv'       addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { INDEX_CNV                  } from './modules/bcftools_tabix/index_cnv'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_CNV               } from './modules/ubuntu_python3/annotate_cnv'   addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_EH                    } from './modules/expansion_hunter/call_eh'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MERGE_VCF                  } from './modules/bcftools_tabix/merge_vcf'      addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
@@ -182,26 +182,37 @@ workflow GERMLINE {
         SAMTOOLS_INDEX.out.index_sort_bam
     )
 
-    MERGE_VCF(
+    vcf_concat_ch = Channel.from(
         ANNOTATE_VCF.out.sift_vcf,
         ANNOTATE_CNV.out.cnv_ann,
         CALL_EH.out.eh_vcf
     )
+    .groupTuple(size: 3)
+
+    MERGE_VCF(
+        vcf_concat_ch
+    )
 
     if (params.exome == "YES"){
-        MERGE_GVCF(
+        gvcf_concat_ch = Channel.from(
             CALL_SNV_WES.out.snv_gvcf,
             CALL_CNV.out.cnv_gvcf,
             CALL_EH.out.eh_gvcf
         )
+        .groupTuple(size: 3)
     }
     else {
-        MERGE_GVCF(
+        gvcf_concat_ch = Channel.from(
             CALL_SNV_WGS.out.snv_gvcf,
             CALL_CNV.out.cnv_gvcf,
             CALL_EH.out.eh_gvcf
         )
+        .groupTuple(size: 3)
     }
+
+    MERGE_GVCF(
+        gvcf_concat_ch
+    )
         
     if (params.exome == "YES"){ picard = PICARD_COLLECT_HS_METRICS.out.hs_metrics}
     else {picard = PICARD_COLLECT_WGS_METRICS.out.wgs_metrics}
@@ -215,10 +226,15 @@ workflow GERMLINE {
     }
     snpeff = ANNOTATE_VCF.out.snpeff_stats
 
-    MULTIQC_SAMPLE(
+    qc_out_ch = Channel.from(
         snpeff,
         picard,
         trim,
         fastqc
+    )
+    .groupTuple(size: 4)
+
+    MULTIQC_SAMPLE(
+        qc_out_ch
     )
 }   
