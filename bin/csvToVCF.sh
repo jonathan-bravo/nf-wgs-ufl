@@ -16,7 +16,7 @@ sed -i "s|##fileDate=|##fileDate=$TODAY|" ${sample_id}.head
 #sed -i "s|SAMPLE1|${sample_id}-sort|g" ${sample_id}.head
 sed -i '$ s/\s/\t/g' ${sample_id}.head
 
-cut -d "," -f 2,3,4,5,8,9,10,11- ${sample_id}_cnvs.csv | \
+cut -d "," -f 2,3,4,5,8,9,10 ${sample_id}_cnvs.csv | \
 awk -F',' 'NR>1 {
     printf $1"\t"$2"\tcn.MOPS:"$1":"$2"-"$3"\tN\t";
     if ($7 ~ "CN0" || $7 ~ "CN1") printf "DEL\t";
