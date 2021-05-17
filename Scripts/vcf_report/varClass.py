@@ -140,7 +140,7 @@ def get_cnv_determination(sample_id):
 def get_clinvar_hits(variant, sample_id):
     """
     """
-    clinvar = VariantFile(f'clinvar_in_{sample_id}/0000.vcf.gz')
+    clinvar = VariantFile(f'clinvar_in_{sample_id}/0000.vcf')
     for hit in clinvar.fetch():
         if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
             if 'CLNSIG' in hit.info.keys(): variant.info['CLNSIG'] = hit.info['CLNSIG']
