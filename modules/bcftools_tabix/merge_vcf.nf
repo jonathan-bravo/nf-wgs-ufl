@@ -10,30 +10,26 @@ process MERGE_VCF {
     label 'small_process'
 
     input:
-    tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz"), file("${sample_id}_filtered_cnv_ann.vcf"), file("${sample_id}_filtered_eh.vcf")
+    tuple val(sample_id), path(files)
 
     output:
     tuple val(sample_id), file("${sample_id}_concat.vcf.gz"), file("${sample_id}_concat.vcf.gz.tbi"), emit: vcf
 
     script:
     """
-    bgzip -@ ${task.cpus} ${sample_id}_filtered_cnv_ann.vcf
-    bgzip -@ ${task.cpus} ${sample_id}_filtered_eh.vcf
+    bgzip -@ ${task.cpus} ${files[0]}
+    bgzip -@ ${task.cpus} ${files[1]}
+    bgzip -@ ${task.cpus} ${files[2]}
 
-    bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_snpsift.vcf.gz
-
-    bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_filtered_cnv_ann.vcf.gz
-
-    bcftools index --threads ${task.cpus} --tbi \
-    ${sample_id}_filtered_eh.vcf.gz
+    bcftools index --threads ${task.cpus} --tbi ${files[0]}.gz
+    bcftools index --threads ${task.cpus} --tbi ${files[1]}.gz
+    bcftools index --threads ${task.cpus} --tbi ${files[2]}.gz
 
     bcftools concat --threads ${task.cpus} -a \
     -o ${sample_id}_concat.vcf \
-    ${sample_id}_filtered_cnv_ann.vcf.gz \
-    ${sample_id}_snpsift.vcf.gz \
-    ${sample_id}_filtered_eh.vcf.gz
+    ${files[0]}.gz \
+    ${files[1]}.gz \
+    ${files[2]}.gz
 
     bgzip -@ ${task.cpus} ${sample_id}_concat.vcf
 

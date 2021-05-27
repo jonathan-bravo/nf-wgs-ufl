@@ -10,7 +10,7 @@ process MULTIQC_SAMPLE {
     label 'small_process'
 
     input:
-    tuple val(sample_id), file(snpeff_stats), file(picard_metrics), file(trim_log), path(fastqc_out)
+    tuple val(sample_id), path(files)
 
     output:
     file "${sample_id}.html"

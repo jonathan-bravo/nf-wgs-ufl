@@ -16,7 +16,7 @@ process ANNOTATE_VCF {
     tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz")
 
     output:
-    tuple val(sample_id), file("${sample_id}_snpsift.vcf.gz"), emit: sift_vcf
+    tuple val(sample_id), file("${sample_id}_snpsift.vcf"), emit: sift_vcf
     tuple val(sample_id), file("${sample_id}_snpeff_stats.csv"), emit: snpeff_stats
 
     script:
@@ -37,6 +37,6 @@ process ANNOTATE_VCF {
     ${sample_id}_snpeff.vcf.gz \
     > ${sample_id}_snpsift.vcf
     
-    bgzip -@ ${task.cpus} ${sample_id}_snpsift.vcf
+    # bgzip -@ ${task.cpus} ${sample_id}_snpsift.vcf
     """
 }

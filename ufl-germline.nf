@@ -182,57 +182,50 @@ workflow GERMLINE {
         SAMTOOLS_INDEX.out.index_sort_bam
     )
 
-    vcf_concat_ch = Channel.from(
-        ANNOTATE_VCF.out.sift_vcf,
-        ANNOTATE_CNV.out.cnv_ann,
-        CALL_EH.out.eh_vcf
-    )
-    .groupTuple(size: 3)
+    vcf_concat_ch = ANNOTATE_VCF.out.sift_vcf
+    vcf_concat_ch
+        .mix(ANNOTATE_CNV.out.cnv_ann, CALL_EH.out.eh_vcf)
+        .groupTuple()
+        .set { vcf_concat_ch }
 
     MERGE_VCF(
         vcf_concat_ch
     )
 
-    if (params.exome == "YES"){
-        gvcf_concat_ch = Channel.from(
-            CALL_SNV_WES.out.snv_gvcf,
-            CALL_CNV.out.cnv_gvcf,
-            CALL_EH.out.eh_gvcf
-        )
-        .groupTuple(size: 3)
+    if (params.exome == "YES") {
+        gvcf_concat_ch = CALL_SNV_WES.out.snv_gvcf
     }
     else {
-        gvcf_concat_ch = Channel.from(
-            CALL_SNV_WGS.out.snv_gvcf,
-            CALL_CNV.out.cnv_gvcf,
-            CALL_EH.out.eh_gvcf
-        )
-        .groupTuple(size: 3)
+        gvcf_concat_ch = CALL_SNV_WGS.out.snv_gvcf
     }
+
+    gvcf_concat_ch
+        .mix(CALL_CNV.out.cnv_gvcf, CALL_EH.out.eh_gvcf)
+        .groupTuple()
+        .set { gvcf_concat_ch }
 
     MERGE_GVCF(
         gvcf_concat_ch
     )
+
+    qc_out_ch = ANNOTATE_VCF.out.snpeff_stats
         
-    if (params.exome == "YES"){ picard = PICARD_COLLECT_HS_METRICS.out.hs_metrics}
-    else {picard = PICARD_COLLECT_WGS_METRICS.out.wgs_metrics}
-    if (params.single_lane == "NO"){
-        trim = TRIM_READS.out.trim_log
-        fastqc = FASTQC.out.qc
+    if (params.exome == "YES") {
+        qc_out_ch.mix(PICARD_COLLECT_HS_METRICS.out.hs_metrics)
     }
     else {
-        trim = TRIM_READS_SINGLE.out.trim_log
-        fastqc = FASTQC_SINGLE.out.qc
+        qc_out_ch.mix(PICARD_COLLECT_WGS_METRICS.out.wgs_metrics)
     }
-    snpeff = ANNOTATE_VCF.out.snpeff_stats
+    if (params.single_lane == "NO") {
+         qc_out_ch.mix(TRIM_READS.out.trim_log, FASTQC.out.qc)
+    }
+    else {
+        qc_out_ch.mix(TRIM_READS_SINGLE.out.trim_log, FASTQC_SINGLE.out.qc)
+    }
 
-    qc_out_ch = Channel.from(
-        snpeff,
-        picard,
-        trim,
-        fastqc
-    )
-    .groupTuple(size: 4)
+    qc_out_ch
+        .groupTuple()
+        .set { qc_out_ch }
 
     MULTIQC_SAMPLE(
         qc_out_ch
