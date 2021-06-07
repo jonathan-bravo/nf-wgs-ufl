@@ -14,7 +14,8 @@ wget \
 libxml2-dev \
 libxmlsec1-dev \
 bedtools \
-bcftools
+bcftools \
+tabix
 
 RUN pip3 install \
 awscli \
@@ -42,5 +43,6 @@ COPY g_ranges.py /
 COPY json_to_csv.py /
 COPY clinvar.vcf.gz /
 COPY clinvar.vcf.gz.tbi /
+COPY hg19_regions.bed /
 
 RUN gunzip PMC-ids.csv.gz

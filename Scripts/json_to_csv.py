@@ -35,8 +35,14 @@ def parse_variant(json, var_type):
     likely = pd.DataFrame(json[var_type][f'likely_pathogenic_{var_type}'])
     path_status = ['Pathogenic'] * len(path)
     likely_status = ['Likely Pathogenic'] * len(likely)
-    status = path_status + likely_status
-    result = pd.concat([path, likely])
+    if var_type == 'snp' or var_type == 'sv':
+        vus = pd.DataFrame(json[var_type][f'vus_{var_type}'])
+        vus_status = ['VUS'] * len(vus) # test
+        status = path_status + likely_status + vus_status
+        result = pd.concat([path, likely, vus])
+    else:
+        status = path_status + likely_status
+        result = pd.concat([path, likely])
     result.insert(0, 'Status', status)
     return result
 

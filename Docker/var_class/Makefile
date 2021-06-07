@@ -12,12 +12,14 @@ make:
 	cp -r ../../Reference_Data/PMC-ids.csv.gz .
 	cp -r ../../Reference_Data/clinvar.vcf.gz .
 	cp -r ../../Reference_Data/clinvar.vcf.gz.tbi .
-	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 178175818611.dkr.ecr.us-east-1.amazonaws.com
+	cp -r ../../Reference_Data/hg19_regions.bed .
+	#aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 178175818611.dkr.ecr.us-east-1.amazonaws.com
 	docker build -t var_class-ufl-germline:${version} .
-	docker tag var_class-ufl-germline:${version} 178175818611.dkr.ecr.us-east-1.amazonaws.com/var_class-ufl-germline:${version}
-	docker push 178175818611.dkr.ecr.us-east-1.amazonaws.com/var_class-ufl-germline:${version}
+	#docker tag var_class-ufl-germline:${version} 178175818611.dkr.ecr.us-east-1.amazonaws.com/var_class-ufl-germline:${version}
+	#docker push 178175818611.dkr.ecr.us-east-1.amazonaws.com/var_class-ufl-germline:${version}
 	rm -rf Resources/
 	rm *.py
 	rm *.R
 	rm *.gz
 	rm *.tbi
+	rm *.bed

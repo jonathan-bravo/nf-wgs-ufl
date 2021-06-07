@@ -137,25 +137,128 @@ def get_cnv_determination(sample_id):
     return cnvs
 
 
-def get_clinvar_hits(variant, sample_id):
+# def get_clinvar_hits(variant, sample_id):
+#     """
+#     """
+#     clinvar = VariantFile(f'clinvar_in_{sample_id}/0000.vcf')
+#     for hit in clinvar.fetch():
+#         if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
+#             if 'CLNSIG' in hit.info.keys(): variant.info['CLNSIG'] = hit.info['CLNSIG']
+#             else: variant.info['CLNSIG'] = "."
+#             if 'AF_EXAC' in hit.info.keys(): variant.info['AF_EXAC'] = str(hit.info['AF_EXAC'])
+#             else: variant.info['AF_EXAC'] = "."
+#             if 'ALLELEID' in hit.info.keys(): variant.info['ALLELEID'] = str(hit.info['ALLELEID'])
+#             return variant
+#     variant.info['CLNSIG'] = "."
+#     variant.info['AF_EXAC'] = "."
+#     variant.info['ALLELEID'] = "."
+#     return variant
+
+
+# def get_gnomad_sv_hits(variant, sample_id):
+#     """
+#     """
+#     gnomad = VariantFile(f'gnomad_sv_in_{sample_id}/0000.vcf')
+#     for hit in gnomad.fetch():
+#         if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
+#             if 'AF' in hit.info.keys(): variant.info['AF'] = hit.info['AF']
+#             else: variant.info['AF'] = "."
+#             return variant
+#     variant.info['AF'] = "."
+#     return variant
+
+
+# def get_gnomad_hits(variant, sample_id):
+#     """
+#     """
+#     gnomad = VariantFile(f'gnomad_in_{sample_id}/0000.vcf')
+#     for hit in gnomad.fetch():
+#         if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
+#             if 'AF' in hit.info.keys(): variant.info['AF'] = str(hit.info['AF'])
+#             else: variant.info['AF'] = "."
+#             return variant
+#     variant.info['AF'] = "."
+#     return variant
+
+
+def get_region_name(var_list):
+    """
+    """
+    for variant in var_list:
+        start_length = len(variant)
+        with open('hg19_regions.bed') as bed:
+            for line in bed:
+                region = line.split('\t')
+                loc = range(int(region[1]), int(region[2])+1)
+                match = (
+                    variant[0] == region[0]
+                    and (variant[1] in loc or variant[2] in loc)
+                )
+                if match:
+                    print(region[3])
+                    variant.append(region[3])
+            if len(variant) == start_length:
+                print("NA")
+                variant.append("NA")
+    return var_list
+
+
+def compress_and_index_sample(cpus, sample_id):
+    """
+    """
+    compress = f'bgzip -@ {cpus} {sample_id}_temp.vcf'
+    index = f'bcftools index --threads {cpus} --tbi {sample_id}_temp.vcf.gz'
+    system(compress)
+    system(index)
+
+
+def get_clinvar_and_gnomad_in_sample(cpus, sample_id):
+    """
+    """
+    clinvar = f'bcftools isec --threads  {cpus} -p clinvar_in_{sample_id} -w1 -n=2 clinvar.vcf.gz {sample_id}_temp.vcf.gz'
+    gnomad = f'bcftools isec --threads  {cpus} -p gnomad_in_{sample_id} -w1 -n=2 gnomad_exomes_2-1-1_chr.vcf.gz {sample_id}_temp.vcf.gz'
+    system(clinvar)
+    system(gnomad)
+
+
+def get_clinvar_hits(var_list, sample_id):
     """
     """
     clinvar = VariantFile(f'clinvar_in_{sample_id}/0000.vcf')
-    for hit in clinvar.fetch():
-        if hit.contig == variant.contig and hit.start == variant.start and hit.stop == variant.stop:
-            if 'CLNSIG' in hit.info.keys(): variant.info['CLNSIG'] = hit.info['CLNSIG']
-            else: variant.info['CLNSIG'] = "."
-            if 'AF_EXAC' in hit.info.keys(): variant.info['AF_EXAC'] = str(hit.info['AF_EXAC'])
-            else: variant.info['AF_EXAC'] = "."
-            if 'ALLELEID' in hit.info.keys(): variant.info['ALLELEID'] = str(hit.info['ALLELEID'])
-            return variant
-    variant.info['CLNSIG'] = "."
-    variant.info['AF_EXAC'] = "."
-    variant.info['ALLELEID'] = "."
-    return variant
+    for variant in var_list:
+        start_length = len(variant)
+        for hit in clinvar.fetch():
+            if hit.contig == variant[0] and hit.start == variant[1] and hit.stop == variant[2]:
+                if 'CLNSIG' in hit.info.keys(): variant.append(hit.info['CLNSIG'])
+                else: variant.append(".")
+                if 'AF_EXAC' in hit.info.keys(): variant.append(str(hit.info['AF_EXAC']))
+                else: variant.append(".")
+                if 'ALLELEID' in hit.info.keys(): variant.append(str(hit.info['ALLELEID']))
+                else: variant.append(".")
+        if len(variant) == start_length:
+            variant.append(".")
+            variant.append(".")
+            variant.append(".")
+    return var_list
 
 
-def filter_vcf(vcf, panel, coverage, sample_id):
+def get_gnomad_hits(var_list, sample_id):
+    """
+    """
+    gnomad = VariantFile(f'gnomad_in_{sample_id}/0000.vcf')
+    for variant in var_list:
+        start_length = len(variant)
+        for hit in gnomad.fetch():
+            if hit.contig == variant[0] and hit.start == variant[1] and hit.stop == variant[2]:
+                if 'AF' in hit.info.keys(): variant.append(str(hit.info['AF']))
+                else: variant.append(".")
+        if len(variant) == start_length:
+            variant.append(".")
+    return var_list
+
+
+
+def filter_vcf(vcf, panel, coverage, sample_id, temp_vcf, cpus):
     """This function parses the input VCF file.
 
     This functions takes a CNV VCF file that has been filtered to only
@@ -303,29 +406,64 @@ def filter_vcf(vcf, panel, coverage, sample_id):
                 nm = ann[6]
                 codon = ann[9]
                 protein = ann[10]
-                if n_score >= 0.87: variant = get_clinvar_hits(variant, sample_id)
-                if n_score >= 0.87: snp_list.append((
-                    variant.contig,
-                    variant.start,
-                    variant.stop,
-                    variant.ref,
-                    variant.alts,
-                    gene,
-                    nm,
-                    codon,
-                    protein,
-                    lof,
-                    nmd,
-                    genotype,
-                    fr,
-                    round(cadd, 3),
-                    gnomad,
-                    gp3,
-                    n_score,
-                    variant.info['CLNSIG'],
-                    variant.info['AF_EXAC'],
-                    variant.info['ALLELEID']
-                ))
+                if panel != None:
+                    #variant = get_clinvar_hits(variant, sample_id)
+                    #variant = get_gnomad_hits(variant, sample_id)
+                    temp_vcf.write(str(variant))
+                    if isinstance(cadd, float): cadd_score = round(cadd, 3)
+                    else: cadd_score = '.'
+                    snp_list.append([
+                        variant.contig,
+                        variant.start,
+                        variant.stop,
+                        variant.ref,
+                        variant.alts,
+                        gene,
+                        nm,
+                        codon,
+                        protein,
+                        lof,
+                        nmd,
+                        genotype,
+                        fr,
+                        cadd_score,
+                        gnomad,
+                        gp3,
+                        n_score,
+                        #variant.info['CLNSIG'],
+                        #variant.info['AF_EXAC'],
+                        #variant.info['ALLELEID'],
+                        #variant.info['AF']
+                    ])
+                elif n_score >= 0.87:
+                    #variant = get_clinvar_hits(variant, sample_id)
+                    #variant = get_gnomad_hits(variant, sample_id)
+                    temp_vcf.write(str(variant))
+                    if isinstance(cadd, float): cadd_score = round(cadd, 3)
+                    else: cadd_score = '.'
+                    snp_list.append([
+                        variant.contig,
+                        variant.start,
+                        variant.stop,
+                        variant.ref,
+                        variant.alts,
+                        gene,
+                        nm,
+                        codon,
+                        protein,
+                        lof,
+                        nmd,
+                        genotype,
+                        fr,
+                        cadd_score,
+                        gnomad,
+                        gp3,
+                        n_score,
+                        #variant.info['CLNSIG'],
+                        #variant.info['AF_EXAC'],
+                        #variant.info['ALLELEID'],
+                        #variant.info['AF']
+                    ])
             elif sv and '30x' in coverage:
                 sv_score = 0.0
                 ann = str(variant.info['ANN']).split('|')[2]
@@ -351,26 +489,54 @@ def filter_vcf(vcf, panel, coverage, sample_id):
                 nm = ann[6]
                 codon = ann[9]
                 protein = ann[10]
-                if sv_score >= 1.0: variant = get_clinvar_hits(variant, sample_id)
-                if sv_score >= 1.0: sv_list.append((
-                    variant.contig,
-                    variant.start,
-                    variant.stop,
-                    variant.ref,
-                    variant.alts,
-                    gene,
-                    nm,
-                    codon,
-                    protein,
-                    lof,
-                    nmd,
-                    genotype,
-                    fr,
-                    sv_score,
-                    variant.info['CLNSIG'],
-                    variant.info['AF_EXAC'],
-                    variant.info['ALLELEID']
-                ))
+                if panel != None:
+                    #variant = get_clinvar_hits(variant, sample_id)
+                    #variant = get_gnomad_hits(variant, sample_id)
+                    temp_vcf.write(str(variant))
+                    sv_list.append([
+                        variant.contig,
+                        variant.start,
+                        variant.stop,
+                        variant.ref,
+                        variant.alts,
+                        gene,
+                        nm,
+                        codon,
+                        protein,
+                        lof,
+                        nmd,
+                        genotype,
+                        fr,
+                        sv_score,
+                        #variant.info['CLNSIG'],
+                        #variant.info['AF_EXAC'],
+                        #variant.info['ALLELEID'],
+                        #variant.info['AF']
+                    ])
+                elif sv_score >= 1.0:
+                    #variant = get_clinvar_hits(variant, sample_id)
+                    #variant = get_gnomad_hits(variant, sample_id)
+                    temp_vcf.write(str(variant))
+                    sv_list.append([
+                        variant.contig,
+                        variant.start,
+                        variant.stop,
+                        variant.ref,
+                        variant.alts,
+                        gene,
+                        nm,
+                        codon,
+                        protein,
+                        lof,
+                        nmd,
+                        genotype,
+                        fr,
+                        sv_score,
+                        #variant.info['CLNSIG'],
+                        #variant.info['AF_EXAC'],
+                        #variant.info['ALLELEID'],
+                        #variant.info['AF']
+                    ])
             elif cnv or cnv_multi_gene:
                 cnv_list.append((
                     variant.contig,
@@ -410,6 +576,15 @@ def filter_vcf(vcf, panel, coverage, sample_id):
                     genotype,
                     loc_coverage
                 ))
+    temp_vcf.close()
+    compress_and_index_sample(cpus, sample_id)
+    get_clinvar_and_gnomad_in_sample(cpus, sample_id)
+    snp_list = get_clinvar_hits(snp_list, sample_id)
+    sv_list = get_clinvar_hits(sv_list, sample_id)
+    snp_list = get_gnomad_hits(snp_list, sample_id)
+    sv_list = get_gnomad_hits(sv_list, sample_id)
+    snp_list = get_region_name(snp_list)
+    sv_list = get_region_name(sv_list)
     return (snp_list, sv_list, cnv_list, exp_list)
 
 
@@ -487,21 +662,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'Chrom': snp[0],
                     'Start': snp[1],
                     'Stop': snp[2],
-                    'Ref Allele': snp[3],
-                    'Alt Allele': snp[4],
-                    'Gene': snp[5],
-                    'NCBI Reference Sequence': snp[6],
-                    'Nucleotide': snp[7],
-                    'Protein': snp[8],
-                    'Loss of Function': lof,
-                    'Nonsense Mediated Decay Effect': nmd,
-                    'Genotype': snp[11],
-                    'F:R_ref_F:R_alt': snp[12],
-                    'CADD': snp[13],
-                    'ExAC Freq': snp[14],
-                    '1000 Genomes Freq': snp[15],
-                    'ClinVar Significance': snp[17],
-                    'ClinVar ExAC Freq': snp[18]
+                    'Gene': snp[5]
                 }
                 overlap['SNPs'].append(snp_dict)
         for sv in sv_list:
@@ -515,18 +676,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'Chrom': sv[0],
                     'Start': sv[1],
                     'Stop': sv[2],
-                    'Ref Allele': sv[3],
-                    'Alt Allele': sv[4],
                     'Gene': sv[5],
-                    'NCBI Reference Sequence': sv[6],
-                    'Nucleotide': sv[7],
-                    'Protein': sv[8],
-                    'Loss of Function': lof,
-                    'Nonsense Mediated Decay Effect': nmd,
-                    'Genotype': sv[11],
-                    'F:R_ref_F:R_alt': sv[12],
-                    'ClinVar Significance': sv[14],
-                    'ClinVar ExAC Freq': sv[15]
                 }
                 overlap['SVs'].append(sv_dict)
         for exp in exp_list:
@@ -536,11 +686,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'Chrom': exp[0],
                     'Start': exp[1],
                     'Stop' : exp[2],
-                    'Ref Allele': exp[3],
-                    'Alt Allele' : exp[4],
-                    'Gene': exp[5],
-                    'Genotype': exp[6],
-                    'Locus Coverage': round(exp[7])
+                    'Gene': exp[5]
                 }
                 overlap['EXPs'].append(exp_dict)
         empty = (
@@ -559,11 +705,13 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
     data = {}
     data['snp'] = {
         'pathogenic_snp':[],
-        'likely_pathogenic_snp':[]
+        'likely_pathogenic_snp':[],
+        'vus_snp': []
     }
     data['sv'] = {
         'pathogenic_sv':[],
-        'likely_pathogenic_sv':[]
+        'likely_pathogenic_sv':[],
+        'vus_sv': []
     }
     data['cnv'] = {
         'pathogenic_cnv':[],
@@ -951,6 +1099,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         ]
     }
     for snp in snp_list:
+        print(f'length of snp in snp_list {len(snp)}')
+        print(snp)
         genes.append(snp[5])
         if snp[9] != '.': lof = snp[9].split('|')[0] + " " + snp[9].split('|')[3]
         else: lof = '.'
@@ -977,12 +1127,17 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             '1000 Genomes Freq': snp[15],
             'ClinVar Significance': snp[17],
             'ClinVar ExAC Freq': snp[18],
-            'ClinVar Link': link
-
+            'ClinVar Link': link,
+            'gnomAD 2.1.1 Freq': snp[20],
+            'Exon Name': snp[21]
         }
         if float(snp[16]) >= 0.9: data['snp']['pathogenic_snp'].append(snp_dict)
-        else: data['snp']['likely_pathogenic_snp'].append(snp_dict)
+        elif float(snp[16]) >= 0.87: data['snp']['likely_pathogenic_snp'].append(snp_dict) # test
+        else: data['snp']['vus_snp'].append(snp_dict)
+        
     for sv in sv_list:
+        print(f'length of sv in sv_list {len(sv)}')
+        print(sv)
         genes.append(sv[5])
         if sv[9] != '.': lof = sv[9].split('|')[0] + " " + sv[9].split('|')[3]
         else: lof = '.'
@@ -1006,10 +1161,13 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'F:R_ref_F:R_alt': sv[12],
             'ClinVar Significance': sv[14],
             'ClinVar ExAC Freq': sv[15],
-            'ClinVar Link': link
+            'ClinVar Link': link,
+            'gnomAD 2.1.1 Freq': sv[17],
+            'Exon Name': sv[18]
         }
         if float(sv[13]) >= 1.5: data['sv']['pathogenic_sv'].append(sv_dict)
-        else: data['sv']['likely_pathogenic_sv'].append(sv_dict)
+        elif float(sv[13]) >= 1.0: data['sv']['likely_pathogenic_sv'].append(sv_dict)
+        else: data['sv']['vus_sv'].append(sv_dict)
     for cnv in path_cnvs:
         genes.append(cnv[5])
         cnv_dict = {
@@ -1045,12 +1203,25 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             dump(data, outfile, indent = 4)
 
 
-def get_clinvar_in_sample(cpus, sample_id, vcf):
-    """
-    """
-    launch = f'bcftools isec --threads  {cpus} -p clinvar_in_{sample_id} -w1 -n=2 clinvar.vcf.gz {vcf}'
-    system(launch)
+# def get_clinvar_in_sample(cpus, sample_id, vcf):
+#     """
+#     """
+#     launch = f'bcftools isec --threads  {cpus} -p clinvar_in_{sample_id} -w1 -n=2 clinvar.vcf.gz {vcf}'
+#     system(launch)
 
+
+# def get_gnomad_sv_in_sample(cpus, sample_id, vcf):
+#     """
+#     """
+#     launch = f'bcftools isec --threads  {cpus} -p gnomad_sv_in_{sample_id} -w1 -n=2 gnomad_v2.1_sv.sites.vcf.gz {vcf}'
+#     system(launch)
+
+
+# def get_gnomad_in_sample(cpus, sample_id, vcf):
+#     """
+#     """
+#     launch = f'bcftools isec --threads  {cpus} -p gnomad_in_{sample_id} -w1 -n=2 gnomad_exomes_2-1-1_chr.vcf.gz {vcf}'
+#     system(launch)
 
 def main():
     """
@@ -1059,14 +1230,18 @@ def main():
     if args.p != None: panel = get_panel(args.p)
     else: panel = None
     vcf = VariantFile(args.v)
-    vcf.header.info.add("CLNSIG",".","String","Clinical significance for this single variant")
-    vcf.header.info.add("AF_EXAC","1","String","allele frequencies from ExAC")
-    vcf.header.info.add("ALLELEID","1","String","the ClinVar Allele ID")
+    # vcf.header.info.add("CLNSIG",".","String","Clinical significance for this single variant")
+    # vcf.header.info.add("AF_EXAC","1","String","allele frequencies from ExAC")
+    # vcf.header.info.add("ALLELEID","1","String","the ClinVar Allele ID")
+    # vcf.header.info.add("AF",".","String","Allele frequency (for biallelic sites) or copy-state frequency (for multiallelic sites).")
     sample_id = args.s
     cpus = args.t
     if cpus == None: cpus = 1
-    get_clinvar_in_sample(cpus, sample_id, args.v)
-    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.c, sample_id)
+    temp_vcf = open(f"{sample_id}_temp.vcf", "w")
+    temp_vcf.write(str(vcf.header))
+    # get_clinvar_in_sample(cpus, sample_id, args.v)
+    # get_gnomad_in_sample(cpus, sample_id, args.v)
+    snp_list, sv_list, cnv_list, exp_list = filter_vcf(vcf, panel, args.c, sample_id, temp_vcf, cpus)
     cnv_bed(cnv_list, sample_id)
     call_classify_cnv(cpus, sample_id)
     cnv_determinations = get_cnv_determination(sample_id)
