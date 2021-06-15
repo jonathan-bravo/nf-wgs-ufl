@@ -7,7 +7,7 @@ process TRIM_READS_SINGLE {
     tag "${sample_id}"
     publishDir "${params.outdir}/${params.run_id}/${sample_id}/Trimmomatic", mode: 'copy'
     label 'trimmomatic'
-    label 'small_process'
+    label 'medium_process'
 
     input:
     tuple val(sample_id), path(reads)
