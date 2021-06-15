@@ -6,7 +6,7 @@ load(file = "wgs_cnv_controls.RData")
 args = commandArgs(trailingOnly = TRUE)
 sample_id = args[1]
 
-bam <- paste(sample_id, "-sort.bam", sep = '')
+bam <- paste(sample_id, "_md.bam", sep = '')
 
 bamDataRanges <- getReadCountsFromBAM(bam)
 

@@ -12,16 +12,17 @@ process PICARD_COLLECT_WGS_METRICS {
     input:
     path reference
     path ref_fai
-    tuple val(sample_id), file("${sample_id}-sort.bam")
-    tuple val(sample_id), file("${sample_id}-sort.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam")
+    tuple val(sample_id), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_gatk_collect_wgs_metrics.txt"), emit: wgs_metrics
 
     script:
     """
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /picard.jar CollectWgsMetrics \
-    -I ${sample_id}-sort.bam \
+    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx62g \
+    /picard.jar CollectWgsMetrics \
+    -I ${sample_id}_md.bam \
     -O ${sample_id}_gatk_collect_wgs_metrics.txt \
     -R ${reference}
     """

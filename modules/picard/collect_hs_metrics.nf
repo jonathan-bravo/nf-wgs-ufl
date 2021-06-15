@@ -14,16 +14,17 @@ process PICARD_COLLECT_HS_METRICS {
     path ref_fai
     path target
     path bait
-    tuple val(sample_id), file("${sample_id}-sort.bam")
-    tuple val(sample_id), file("${sample_id}-sort.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam")
+    tuple val(sample_id), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_gatk_collect_hs_metrics.txt"), emit: hs_metrics
 
     script:
     """
-    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx32g /picard.jar CollectHsMetrics \
-    -I ${sample_id}-sort.bam \
+    java -jar -XX:ParallelGCThreads=${task.cpus} -Xmx62g \
+    /picard.jar CollectHsMetrics \
+    -I ${sample_id}_md.bam \
     -O ${sample_id}_gatk_collect_hs_metrics.txt \
     -R ${reference} \
     --BAIT_INTERVALS ${bait} \

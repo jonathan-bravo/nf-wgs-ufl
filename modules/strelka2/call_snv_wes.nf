@@ -12,8 +12,8 @@ process CALL_SNV_WES {
     input:
     path reference
     path ref_fai
-    tuple val(sample_id), file("${sample_id}-sort.bam")
-    tuple val(sample_id), file("${sample_id}-sort.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam")
+    tuple val(sample_id), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz"), emit: snv_vcf
@@ -24,7 +24,7 @@ process CALL_SNV_WES {
     mkdir ${sample_id}_strelka2
 
     /strelka-2.9.10.centos6_x86_64/bin/configureStrelkaGermlineWorkflow.py \
-    --bam ${sample_id}-sort.bam \
+    --bam ${sample_id}_md.bam \
     --referenceFasta ${reference} \
     --runDir ${sample_id}_strelka2 \
     --exome

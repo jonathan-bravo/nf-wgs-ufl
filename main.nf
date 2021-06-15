@@ -10,6 +10,7 @@ params.bucket         = ""
 params.run_id         = ""
 params.run_dir        = "${params.bucket}/Pipeline_Output/${params.run_id}"
 params.ref_dir        = "${params.bucket}/Pipeline/Reference"
+params.trim_adapters  = "${params.ref_dir}/trim/NEBNext.fa"
 params.reference      = "${params.ref_dir}/hg19/hg19.fa"
 params.bwa_amb        = "${params.reference}.amb"
 params.bwa_ann        = "${params.reference}.ann"
@@ -36,6 +37,7 @@ germline_params = [
     "bucket"         : params.bucket,
     "run_id"         : params.run_id,
     "ref_dir"        : params.ref_dir,
+    "trim_adapters"  : params.trim_adapters,
     "reference"      : params.reference,
     "bwa_amb"        : params.bwa_amb,
     "bwa_ann"        : params.bwa_ann,
@@ -70,3 +72,6 @@ workflow {
         MULTIQC ()
     }
 }
+
+// Add Fastqc step
+// Add option for single sample runs

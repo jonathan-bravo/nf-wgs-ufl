@@ -15,7 +15,7 @@ process ALIGN_TRIMMED_READS {
     path bwa_bwt
     path bwa_pac
     path bwa_sa
-    tuple val(sample_id), file("${sample_id}_forward-paired.fastq.gz"), file("${sample_id}_reverse-paired.fastq.gz")
+    tuple val(sample_id), file("${sample_id}_R1-p_trimmed.fastq.gz"), file("${sample_id}_R2-p_trimmed.fastq.gz")
 
     output:
     tuple val(sample_id), file("${sample_id}.sam"), emit: sam
@@ -24,8 +24,8 @@ process ALIGN_TRIMMED_READS {
     """
     bwa mem -t ${task.cpus} \
     ${reference} \
-    ${sample_id}_forward-paired.fastq.gz \
-    ${sample_id}_reverse-paired.fastq.gz > \
+    ${sample_id}_R1-p_trimmed.fastq.gz \
+    ${sample_id}_R2-p_trimmed.fastq.gz > \
     ${sample_id}.sam
     """
 }

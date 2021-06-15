@@ -12,8 +12,8 @@ process CALL_EH {
     input:
     path reference
     path ref_fai
-    tuple val(sample_id), file("${sample_id}-sort.bam")
-    tuple val(sample_id), file("${sample_id}-sort.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam")
+    tuple val(sample_id), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_filtered_eh.vcf"), emit: eh_vcf
@@ -24,7 +24,7 @@ process CALL_EH {
     shell:
     '''
     /ExpansionHunter-v4.0.2-linux_x86_64/bin/ExpansionHunter \
-    --reads !{sample_id}-sort.bam \
+    --reads !{sample_id}_md.bam \
     --reference !{reference} \
     --variant-catalog /ExpansionHunter-v4.0.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json \
     --output-prefix !{sample_id}_eh
