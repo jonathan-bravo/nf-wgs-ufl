@@ -11,7 +11,7 @@ include { TRIM_READS                         } from './modules/trimmomatic/trim_
 include { TRIM_READS_SINGLE                  } from './modules/trimmomatic/trim_reads_single' addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { SAMTOOLS_SORT                      } from './modules/samtools/sort'                 addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { SAMTOOLS_INDEX                     } from './modules/samtools/index'                addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { SAMTOOLS_INDEX                     } from './modules/samtools/index_md'             addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { SAMTOOLS_INDEX_MD                  } from './modules/samtools/index_md'             addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { PICARD_COLLECT_WGS_METRICS         } from './modules/picard/collect_wgs_metrics'    addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { PICARD_COLLECT_HS_METRICS          } from './modules/picard/collect_hs_metrics'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { PICARD_MARK_DUPLICATES             } from './modules/picard/mark_duplicates'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
