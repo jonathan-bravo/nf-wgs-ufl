@@ -29,7 +29,7 @@ process CALL_EH {
     --variant-catalog /ExpansionHunter-v4.0.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json \
     --output-prefix !{sample_id}_eh
 
-    sed -i s/!{sample_id}-sort/SAMPLE1/g !{sample_id}_eh.vcf
+    sed -i s/!{sample_id}_md/SAMPLE1/g !{sample_id}_eh.vcf
 
     grep '^#' !{sample_id}_eh.vcf > !{sample_id}_filtered_eh.vcf
     grep '^chr' !{sample_id}_eh.vcf | \
