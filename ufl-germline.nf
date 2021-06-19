@@ -238,26 +238,29 @@ workflow GERMLINE {
     qc_out_ch = ANNOTATE_VCF.out.snpeff_stats
         
     if (params.exome == "YES") {
-        qc_out_ch.mix(PICARD_COLLECT_HS_METRICS.out.hs_metrics)
+        picard_qc_ch = PICARD_COLLECT_HS_METRICS.out.hs_metrics
     }
     else {
-        qc_out_ch.mix(PICARD_COLLECT_WGS_METRICS.out.wgs_metrics)
+        picard_qc_ch = PICARD_COLLECT_WGS_METRICS.out.wgs_metrics
     }
     if (params.single_lane == "NO") {
-         qc_out_ch.mix(TRIM_READS.out.trim_log, FASTQC.out.qc)
+        trim_qc_ch = TRIM_READS.out.trim_log
+        fastqc_qc_ch = FASTQC.out.qc
     }
     else {
-        qc_out_ch.mix(TRIM_READS_SINGLE.out.trim_log, FASTQC_SINGLE.out.qc)
+        trim_qc_ch = TRIM_READS_SINGLE.out.trim_log
+        fastqc_qc_ch = FASTQC_SINGLE.out.qc
     }
 
     qc_out_ch
         .mix(
+            picard_qc_ch,
+            trim_qc_ch,
+            fastqc_qc_ch,
             FASTQC_TRIMMED.out.qc_trimmed,
             PICARD_MARK_DUPLICATES.out.md_metrics,
             PICARD_ESTIMATE_LIBRARY_COMPLEXITY.out.lib_complex_metrics
         )
-
-    qc_out_ch
         .groupTuple()
         .set { qc_out_ch }
 
