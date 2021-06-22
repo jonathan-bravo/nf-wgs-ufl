@@ -1,11 +1,11 @@
 #!/usr/bin/env nextflow
 
-nextflow.enable.dsl   = 2
+nextflow.enable.dsl = 2
 
 process MULTIQC_RUN {
     
     tag "${params.run_id}"
-    publishDir "${params.run_dir}/MultiQC"
+    publishDir "${params.run_dir}/MultiQC", mode: 'copy'
     label 'multiqc'
     label 'small_process'
 
