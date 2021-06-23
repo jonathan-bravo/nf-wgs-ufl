@@ -7,7 +7,7 @@ process MULTIQC_RUN {
     tag "${params.run_id}"
     publishDir "${params.run_dir}/MultiQC", mode: 'copy'
     label 'multiqc'
-    label 'medium_process'
+    label 'high_mem'
 
     input:
     path run_dir
