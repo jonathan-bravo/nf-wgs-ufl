@@ -26,14 +26,15 @@ include { MERGE_VCF                          } from './modules/bcftools_tabix/me
 include { MERGE_GVCF                         } from './modules/bcftools_tabix/merge_gvcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { ANNOTATE_VCF                       } from './modules/snpeff_tabix/annotate_vcf'     addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { MULTIQC_SAMPLE                     } from './modules/multiqc/multiqc_sample'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
-include { CAT_LANES                          } from './modules/ubuntu_python3/cat_lanes'
+include { CAT_TWO_LANES                      } from './modules/ubuntu_python3/cat_two_lanes'
+include { CAT_FOUR_LANES                     } from './modules/ubuntu_python3/cat_four_lanes'
 include { ALIGN_TRIMMED_READS                } from './modules/bwa/align_trimmed_reads'
 include { SAMTOOLS_VIEW                      } from './modules/samtools/view'
 
 
 
 
-if (params.single_lane == "YES"){
+if (params.lanes == "ONE") {
     if (params.exome == "YES"){
         params.reads_path = "${params.bucket}/Exome_Fastqs/${params.run_id}*${params.match}"
     }
@@ -43,53 +44,43 @@ if (params.single_lane == "YES"){
 
     reads_ch  = Channel.fromFilePairs(params.reads_path)
 }
-else {
+else if (params.lanes == "TWO") {
     if (params.exome == "YES"){
-        params.reads1 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
-        params.reads2 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
+        params.reads1 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_L001_{R1,R2}_001.fastq.gz"
+        params.reads2 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_L002_{R1,R2}_001.fastq.gz"
     }
     else {
-        params.reads1 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R1_001.fastq.gz"
-        params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_{L001,L002}_R2_001.fastq.gz"
+        params.reads1 = "${params.bucket}/Fastqs/${params.run_id}*_L001_{R1,R2}_001.fastq.gz"
+        params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_L002_{R1,R2}_001.fastq.gz"
     }
 
     reads1_ch = Channel.fromFilePairs(params.reads1)
     reads2_ch = Channel.fromFilePairs(params.reads2)
 }
+else if (params.lanes == "FOUR") {
+    if (params.exome == "YES"){
+        params.reads1 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_L001_{R1,R2}_001.fastq.gz"
+        params.reads2 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_L002_{R1,R2}_001.fastq.gz"
+        params.reads3 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_L003_{R1,R2}_001.fastq.gz"
+        params.reads4 = "${params.bucket}/Exome_Fastqs/${params.run_id}*_L004_{R1,R2}_001.fastq.gz"
+    }
+    else {
+        params.reads1 = "${params.bucket}/Fastqs/${params.run_id}*_L001_{R1,R2}_001.fastq.gz"
+        params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_L002_{R1,R2}_001.fastq.gz"
+        params.reads3 = "${params.bucket}/Fastqs/${params.run_id}*_L003_{R1,R2}_001.fastq.gz"
+        params.reads4 = "${params.bucket}/Fastqs/${params.run_id}*_L004_{R1,R2}_001.fastq.gz"
+    }
+
+    reads1_ch = Channel.fromFilePairs(params.reads1)
+    reads2_ch = Channel.fromFilePairs(params.reads2)
+    reads3_ch = Channel.fromFilePairs(params.reads3)
+    reads4_ch = Channel.fromFilePairs(params.reads4)
+}
 
 
 
 workflow GERMLINE {
-    if (params.single_lane == "NO"){
-        CAT_LANES(
-            reads1_ch,
-            reads2_ch
-        )
-
-        FASTQC(
-            CAT_LANES.out.read_pairs
-        )
-
-        TRIM_READS(
-            CAT_LANES.out.read_pairs,
-            params.trim_adapters
-        )
-
-        FASTQC_TRIMMED(
-            TRIM_READS.out.trimmed_paired_reads
-        )
-
-        ALIGN_TRIMMED_READS(
-            params.reference,
-            params.bwa_amb,
-            params.bwa_ann,
-            params.bwa_bwt,
-            params.bwa_pac,
-            params.bwa_sa,
-            TRIM_READS.out.trimmed_paired_reads
-        )
-    }
-    else {
+    if (params.lanes == "ONE") {
         FASTQC_SINGLE(
             reads_ch
         )
@@ -110,6 +101,66 @@ workflow GERMLINE {
             params.bwa_pac,
             params.bwa_sa,
             TRIM_READS_SINGLE.out.trimmed_paired_reads
+        )
+    }
+    else if (params.lanes == "TWO") {
+        CAT_TWO_LANES(
+            reads1_ch,
+            reads2_ch
+        )
+
+        FASTQC(
+            CAT_TWO_LANES.out.read_pairs
+        )
+
+        TRIM_READS(
+            CAT_TWO_LANES.out.read_pairs,
+            params.trim_adapters
+        )
+
+        FASTQC_TRIMMED(
+            TRIM_READS.out.trimmed_paired_reads
+        )
+
+        ALIGN_TRIMMED_READS(
+            params.reference,
+            params.bwa_amb,
+            params.bwa_ann,
+            params.bwa_bwt,
+            params.bwa_pac,
+            params.bwa_sa,
+            TRIM_READS.out.trimmed_paired_reads
+        )
+    }
+    else if (params.lanes == "FOUR") {
+        CAT_FOUR_LANES(
+            reads1_ch,
+            reads2_ch,
+            reads3_ch,
+            reads4_ch,
+        )
+
+        FASTQC(
+            CAT_FOUR_LANES.out.read_pairs
+        )
+
+        TRIM_READS(
+            CAT_FOUR_LANES.out.read_pairs,
+            params.trim_adapters
+        )
+
+        FASTQC_TRIMMED(
+            TRIM_READS.out.trimmed_paired_reads
+        )
+
+        ALIGN_TRIMMED_READS(
+            params.reference,
+            params.bwa_amb,
+            params.bwa_ann,
+            params.bwa_bwt,
+            params.bwa_pac,
+            params.bwa_sa,
+            TRIM_READS.out.trimmed_paired_reads
         )
     }
 
@@ -243,13 +294,13 @@ workflow GERMLINE {
     else {
         picard_qc_ch = PICARD_COLLECT_WGS_METRICS.out.wgs_metrics
     }
-    if (params.single_lane == "NO") {
-        trim_qc_ch = TRIM_READS.out.trim_log
-        fastqc_qc_ch = FASTQC.out.qc
-    }
-    else {
+    if (params.lanes == "ONE") {
         trim_qc_ch = TRIM_READS_SINGLE.out.trim_log
         fastqc_qc_ch = FASTQC_SINGLE.out.qc
+    }
+    else {
+        trim_qc_ch = TRIM_READS.out.trim_log
+        fastqc_qc_ch = FASTQC.out.qc
     }
 
     qc_out_ch

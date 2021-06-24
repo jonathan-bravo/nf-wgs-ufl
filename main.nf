@@ -3,7 +3,7 @@
 nextflow.enable.dsl   = 2
 
 params.pipeline       = ""
-params.single_lane    = ""
+params.lanes          = ""
 params.exome          = ""
 params.match          = ""
 params.bucket         = ""
@@ -31,7 +31,7 @@ params.glue_dir       = "${params.bucket}/Pipeline_Output/_SampleTSV"
 
 germline_params = [
     *:params,
-    "single_lane"    : params.single_lane,
+    "lanes"          : params.lanes,
     "exome"          : params.exome,
     "match"          : params.match,
     "bucket"         : params.bucket,

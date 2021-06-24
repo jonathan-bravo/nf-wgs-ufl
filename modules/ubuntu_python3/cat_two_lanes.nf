@@ -1,12 +1,13 @@
 #!/usr/bin/env nextflow
 
-nextflow.enable.dsl=2
+nextflow.enable.dsl = 2
 
-process CAT_LANES {
+process CAT_TWO_LANES {
 
     tag "${sample_id}"
     label 'ubuntu_python3'
     label 'small_process'
+    echo true
 
     input:
     tuple val(sample_id), path(reads1)
@@ -17,7 +18,9 @@ process CAT_LANES {
 
     script:
     """
-    cat ${reads1[0]} ${reads1[1]} > ${sample_id}_R1.fastq.gz
-    cat ${reads2[0]} ${reads2[1]} > ${sample_id}_R2.fastq.gz
+    echo ${reads1[0]}
+    echo ${reads2[0]}
+    cat ${reads1[0]} ${reads2[0]} > ${sample_id}_R1.fastq.gz
+    cat ${reads1[1]} ${reads2[1]} > ${sample_id}_R2.fastq.gz
     """
 }
