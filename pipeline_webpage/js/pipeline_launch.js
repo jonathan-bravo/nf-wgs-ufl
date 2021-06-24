@@ -43,7 +43,7 @@ function launch_pipeline() {
 
 function check_germline() {
 
-    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --single_lane \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
+    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --lanes \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
 
     $("#command_box").show();
     $("#germline_command").show();
@@ -109,20 +109,25 @@ function set_match() {
 
 function get_match() {
 
-    var single = document.getElementById('single');
-    var multi = document.getElementById('multi');
+    var one_lane = document.getElementById('one-lane');
+    var two_lane = document.getElementById('two-lane');
+    var four_lane = document.getElementById('four-lane');
 
     $("#lane_box").hide();
 
-    if(single.checked==true) {
+    if(one_lane.checked==true) {
 
-        lane = 'YES';
+        lane = 'ONE';
 
         $("#match_box").show();
 
-    } else if(multi.checked==true) {
+    } else if(two_lane.checked==true) {
 
-        lane = 'NO';
+        lane = 'TWO';
+        match = '';
+        check_germline();
+    } else if(four_lane.checked==true) {
+        lane = 'FOUR';
         match = '';
         check_germline();
     }

@@ -208,20 +208,27 @@
             <div id="lane_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToRunIdView()"></button>
                 <div class="text-box" id="lane_text">
-                    <p class="statement" id="lane_statement">Is this run single-lane or multi-lane run?</p>
+                    <p class="statement" id="lane_statement">Is this run a one, two or four lane run?</p>
                     <label class="radio">
                         <span class="radio__input">
-                            <input type="radio" class="choices" name="lanes" id="single">
+                            <input type="radio" class="choices" name="lanes" id="one-lane">
                             <span class="radio__control"></span>
                         </span>
-                        <span class="radio__label">NextSeq [Single Lane]</span>
+                        <span class="radio__label">SP Flowcell [ONE]</span>
                     </label>
                     <label class="radio">
                         <span class="radio__input">
-                            <input type="radio" class="choices" name="lanes" id="multi">
+                            <input type="radio" class="choices" name="lanes" id="two-lane">
                             <span class="radio__control"></span>
                         </span>
-                        <span class="radio__label">NovaSeq [Multi Lane]</span>
+                        <span class="radio__label">S2 Flowcell [TWO]</span>
+                    </label>
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="lanes" id="four-lane">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">S4 Flowcell [FOUR]</span>
                     </label>
                 </div>
                 <div class="question-button">
