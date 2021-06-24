@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-nextflow.enable.dsl   = 2
+nextflow.enable.dsl = 2
 
 params.germline_params = [:]
 

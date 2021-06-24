@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-nextflow.enable.dsl=2
+nextflow.enable.dsl = 2
 
 process TRIM_READS_SINGLE {
 
@@ -21,8 +21,8 @@ process TRIM_READS_SINGLE {
     script:
     """
     TrimmomaticPE -threads ${task.cpus} \
-    ${sample_id}_R1.fastq.gz \
-    ${sample_id}_R2.fastq.gz \
+    ${reads[0]} \
+    ${reads[1]} \
     ${sample_id}_R1-p_trimmed.fastq.gz \
     ${sample_id}_R1-u_trimmed.fastq.gz \
     ${sample_id}_R2-p_trimmed.fastq.gz \
