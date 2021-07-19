@@ -50,7 +50,7 @@ germline_params = [
     "bait"                     : params.bait,
     "target"                   : params.target,
     "variant_catalog"          : params.variant_catalog,
-    "research_variant_catalog" : params.research_variant_catalog
+    "research_variant_catalog" : params.research_variant_catalog,
     "outdir"                   : params.outdir
 ]
 
