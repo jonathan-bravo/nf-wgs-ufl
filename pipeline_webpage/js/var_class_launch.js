@@ -93,14 +93,14 @@ async function launch_reporting() {
                     '<a href='+cnv_link+'>CNV Plot</a>'
                 ];
 
-                // batch.submitJob(job_params, function(err, data) {
-                //     if(err) {
-                //         console.log(err, err.stack);
-                //     } else {
-                //         $("#launch_img").show();
-                //         console.log(data);
-                //     }
-                // });
+                batch.submitJob(job_params, function(err, data) {
+                    if(err) {
+                        console.log(err, err.stack);
+                    } else {
+                        $("#launch_img").show();
+                        console.log(data);
+                    }
+                });
             }
         } else {
             var job_params = {
@@ -111,7 +111,7 @@ async function launch_reporting() {
                     'command': [
                         'bash',
                         '-c',
-                        'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz.tbi /; aws s3 sync s3://hakmonkey-genetics-lab/Pipeline/Reporting/ /; /reporting.py -v '+sample_id[i]+'_concat.vcf.gz -t 8 -s '+sample_id[i]+' -c '+lc+'; /json_to_csv.py -j '+sample_id[i]+'_report.json; /g_ranges.py -j '+sample_id[i]+'_report.json -s '+sample_id[i]+'; /CNV_json_plot.R '+sample_id[i]+'; aws s3 cp '+sample_id[i]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/; aws s3 cp '+sample_id[i]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/; aws s3 cp '+sample_id[i]+'_cnv.pdf s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/'
+                        'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/variants/'+sample_id[i]+'_concat.vcf.gz.tbi /; aws s3 sync s3://hakmonkey-genetics-lab/Pipeline/Reporting/ /; /reporting.py -v '+sample_id[i]+'_concat.vcf.gz -t 16 -s '+sample_id[i]+' -c '+lc+'; /json_to_csv.py -j '+sample_id[i]+'_report.json; /g_ranges.py -j '+sample_id[i]+'_report.json -s '+sample_id[i]+'; /CNV_json_plot.R '+sample_id[i]+'; aws s3 cp '+sample_id[i]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/; aws s3 cp '+sample_id[i]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/; aws s3 cp '+sample_id[i]+'_cnv.pdf s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+sample_id[i]+'/General_Report/'
                     ]
                 }
             };
@@ -141,14 +141,14 @@ async function launch_reporting() {
                 '<a href='+cnv_link+'>CNV Plot</a>'
             ];
 
-            // batch.submitJob(job_params, function(err, data) {
-            //     if(err) {
-            //         console.log(err, err.stack);
-            //     } else {
-            //         $("#launch_img").show();
-            //         console.log(data);
-            //     }
-            // });
+            batch.submitJob(job_params, function(err, data) {
+                if(err) {
+                    console.log(err, err.stack);
+                } else {
+                    $("#launch_img").show();
+                    console.log(data);
+                }
+            });
         }
     }
 
