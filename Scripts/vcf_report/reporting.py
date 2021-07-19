@@ -349,7 +349,7 @@ def get_literature(panel, genes):
                     if pub != '': lit.append(pub)
     lit = set(lit)
     lit_list = []
-    with open('PMC-ids.csv') as f:
+    with open('pmc/PMC-ids.csv') as f:
         for line in f:
             pub = line.split(',') # 7 = DOI, 9 = PMID
             if pub[9] in lit: lit_list.append(f'{pub[8]}: https://doi.org/{pub[7]}')
@@ -710,7 +710,7 @@ def apply_omim(gene):
     """
     """ 
     link = '.'
-    with open('omim_2_gene.tsv') as omim:
+    with open('omim/omim_2_gene.tsv') as omim:
         for line in omim:
             entry = line.split('\t')
             omim_id = entry[0]

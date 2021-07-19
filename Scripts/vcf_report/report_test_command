@@ -1,6 +1,0 @@
-cp /data/nf-wgs-ufl/Reference_Data/gene_panels/parkinson_disease .
-cp /data/G_E/G_E_CKDN190048243-1A_HMG73DSXX_L2_concat.vcf.gz .
-cp /data/G_E/G_E_CKDN190048243-1A_HMG73DSXX_L2_concat.vcf.gz.tbi .
-cp /data/gnomad_exomes_2-1-1_chr.vcf.gz .
-cp /data/gnomad_exomes_2-1-1_chr.vcf.gz.tbi .
-./varClass.py -v G_E_CKDN190048243-1A_HMG73DSXX_L2_concat.vcf.gz -t 8 -p parkinson_disease -s G_E
