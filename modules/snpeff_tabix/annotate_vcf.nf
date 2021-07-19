@@ -10,13 +10,10 @@ process ANNOTATE_VCF {
     label 'high_mem'
 
     input:
-    path dbNSFP
-    path dbNSFP_tbi
-    path dbNSFP_data_types
     tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz")
 
     output:
-    tuple val(sample_id), file("${sample_id}_snpsift.vcf"), emit: sift_vcf
+    tuple val(sample_id), file("${sample_id}_snpeff.vcf"), emit: snpeff_vcf
     tuple val(sample_id), file("${sample_id}_snpeff_stats.csv"), emit: snpeff_stats
 
     script:
@@ -28,15 +25,5 @@ process ANNOTATE_VCF {
     -v -canon hg19 \
     ${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz \
     > ${sample_id}_snpeff.vcf
-
-    bgzip -@ ${task.cpus} ${sample_id}_snpeff.vcf
-    tabix ${sample_id}_snpeff.vcf.gz
-
-    java -jar /snpEff/SnpSift.jar \
-    dbnsfp -v -db ${dbNSFP} \
-    ${sample_id}_snpeff.vcf.gz \
-    > ${sample_id}_snpsift.vcf
-    
-    # bgzip -@ ${task.cpus} ${sample_id}_snpsift.vcf
     """
 }
