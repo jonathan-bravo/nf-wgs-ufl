@@ -32,17 +32,11 @@ RUN R -e "BiocManager::install('KaryoploteR')"
 RUN R -e "BiocManager::install('CopyNumberPlots')"
 
 RUN mkdir Resources/
-COPY varClass.py /
+COPY reporting.py /
 COPY ClassifyCNV.py /
 COPY parse_clingen_tsv.py /
 COPY resources.py /
 COPY Resources /Resources/
-COPY PMC-ids.csv.gz /
 COPY CNV_json_plot.R /
 COPY g_ranges.py /
 COPY json_to_csv.py /
-COPY clinvar.vcf.gz /
-COPY clinvar.vcf.gz.tbi /
-COPY hg19_regions.bed /
-
-RUN gunzip PMC-ids.csv.gz
