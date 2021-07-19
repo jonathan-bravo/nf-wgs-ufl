@@ -56,7 +56,7 @@ async function launch_reporting() {
         if(panels.length != 0){
             for(var j = 0; j < panels.length; j++){
                 var job_params = {
-                    jobDefinition: "var_class-ufl-germline:1", 
+                    jobDefinition: "var_class-ufl-germline:2", 
                     jobName: sample_id[i]+'_'+panels[j], 
                     jobQueue: "hakmonkey-var_class",
                     containerOverrides: {
@@ -104,7 +104,7 @@ async function launch_reporting() {
             }
         } else {
             var job_params = {
-                jobDefinition: "var_class-ufl-germline:1", 
+                jobDefinition: "var_class-ufl-germline:2", 
                 jobName: sample_id[i]+'_General_Report', 
                 jobQueue: "hakmonkey-var_class",
                 containerOverrides: {
