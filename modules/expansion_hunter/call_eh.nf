@@ -10,6 +10,7 @@ process CALL_EH {
     label 'small_process'
 
     input:
+    path variant_catalog
     path reference
     path ref_fai
     tuple val(sample_id), file("${sample_id}_md.bam")
@@ -26,7 +27,7 @@ process CALL_EH {
     /ExpansionHunter-v4.0.2-linux_x86_64/bin/ExpansionHunter \
     --reads !{sample_id}_md.bam \
     --reference !{reference} \
-    --variant-catalog /ExpansionHunter-v4.0.2-linux_x86_64/variant_catalog/hg19/variant_catalog.json \
+    --variant-catalog !{variant_catalog} \
     --output-prefix !{sample_id}_eh
 
     sed -i s/!{sample_id}_md/SAMPLE1/g !{sample_id}_eh.vcf
