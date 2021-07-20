@@ -40,3 +40,5 @@ COPY Resources /Resources/
 COPY CNV_json_plot.R /
 COPY g_ranges.py /
 COPY json_to_csv.py /
+
+RUN mkdir Reporting/
