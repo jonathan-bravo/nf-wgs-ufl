@@ -136,7 +136,7 @@ def process_snps(variant_list, panel, coverage):
             if gt != None and len(gt) > 1:
                 if gt[0] == gt[1]: genotype = 'homozygous'
                 elif gt[0] != gt[1]: genotype = 'heterozygous'
-            else: genotype == 'None'
+            else: genotype = 'None'
             adf = variant.samples['SAMPLE1'].get('ADF')
             adr = variant.samples['SAMPLE1'].get('ADR')
             fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
@@ -201,7 +201,7 @@ def process_svs(variant_list, panel, coverage):
             if gt != None and len(gt) > 1:
                 if gt[0] == gt[1]: genotype = 'homozygous'
                 elif gt[0] != gt[1]: genotype = 'heterozygous'
-            else: genotype == 'None'
+            else: genotype = 'None'
             adf = variant.samples['SAMPLE1'].get('ADF')
             adr = variant.samples['SAMPLE1'].get('ADR')
             fr = f'{adf[0]}:{adr[0]}, {adf[1]}:{adr[1]}'
