@@ -23,7 +23,8 @@ boto3 \
 pandas \
 pysam \
 argparse \
-openpyxl
+openpyxl \
+tqdm
 
 RUN R -e "install.packages('RCurl')"
 RUN R -e "install.packages('BiocManager')"
