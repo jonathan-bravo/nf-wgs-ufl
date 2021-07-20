@@ -349,7 +349,7 @@ def get_literature(panel, genes):
                     if pub != '': lit.append(pub)
     lit = set(lit)
     lit_list = []
-    with open('pmc/PMC-ids.csv') as f:
+    with open('Reporting/pmc/PMC-ids.csv') as f:
         for line in f:
             pub = line.split(',') # 7 = DOI, 9 = PMID
             if pub[9] in lit: lit_list.append(f'{pub[8]}: https://doi.org/{pub[7]}')
@@ -518,13 +518,31 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
                 'citation': 'http://genome.ucsc.edu/cite.html'
             },
             {
-                'name': 'dbNSFP',
-                'version': '4.1a',
+                'name': 'CADD',
+                'version': 'v1.6',
                 'purpose': 'variant annotation',
-                'citation': 'https://doi.org/10.1186/s13073-020-00803-9'
+                'citation': 'https://cadd.gs.washington.edu/'
             },
             {
-                'name': 'gnomAD SV Frequencies',
+                'name': 'REVEL',
+                'version': '1.0',
+                'purpose': 'variant annotation',
+                'citation': 'http://dx.doi.org/10.1016/j.ajhg.2016.08.016'
+            },
+            {
+                'name': 'PMC',
+                'version': '',
+                'purpose': 'variant annotation',
+                'citation': 'https://www.ncbi.nlm.nih.gov/pmc/'
+            },
+            {
+                'name': 'OMIM',
+                'version': '',
+                'purpose': 'variant annotation',
+                'citation': 'https://www.omim.org/'
+            },
+            {
+                'name': 'gnomAD',
                 'version': '2.1.1',
                 'purpose': 'variant annotation',
                 'citation': 'https://doi.org/10.1038/s41586-020-2308-7'
@@ -532,7 +550,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             {
                 'name': 'ClinVar',
                 'version': 'GRcH37_2021-04-18',
-                'purpose': '',
+                'purpose': 'variant annotation',
                 'citation': 'https://doi.org/10.1093/nar/gkx1153'
             }
         ]
@@ -640,7 +658,7 @@ def apply_revel(chr, variant_list):
     """
     """
     print(f'Applying REVEL for {chr}...')
-    with open(f'revel/revel.{chr}.pkl', 'rb') as f:
+    with open(f'Reporting/revel/revel.{chr}.pkl', 'rb') as f:
         revel = pickle.load(f)
     for variant in variant_list:
         snv = ('SNVHPOL' in variant.info.keys() or 'CIGAR' in variant.info.keys())
@@ -658,7 +676,7 @@ def apply_cadd(chr, variant_list):
     """
     print(f'Applying CADD for {chr}...')
     for i in range(20):
-        with open(f'cadd/cadd.{chr}.{i}.pkl', 'rb') as f:
+        with open(f'Reporting/cadd/cadd.{chr}.{i}.pkl', 'rb') as f:
             cadd = pickle.load(f)
         for variant in variant_list:
             snv = ('SNVHPOL' in variant.info.keys() or 'CIGAR' in variant.info.keys())
@@ -675,7 +693,7 @@ def apply_gnomad(chr, variant_list):
     """
     """
     print(f'Applying gnomAD for {chr}...')
-    with open(f'gnomad/gnomad.{chr}.pkl', 'rb') as f:
+    with open(f'Reporting/gnomad/gnomad.{chr}.pkl', 'rb') as f:
         gnomad = pickle.load(f)
     for variant in variant_list:
         snv = ('SNVHPOL' in variant.info.keys() or 'CIGAR' in variant.info.keys())
@@ -692,7 +710,7 @@ def apply_clinvar(chr, variant_list):
     """
     """
     print(f'Applying ClinVar for {chr}...')
-    with open(f'clinvar/clinvar.{chr}.pkl', 'rb') as f:
+    with open(f'Reporting/clinvar/clinvar.{chr}.pkl', 'rb') as f:
         clinvar = pickle.load(f)
     for variant in variant_list:
         snv = ('SNVHPOL' in variant.info.keys() or 'CIGAR' in variant.info.keys())
@@ -710,7 +728,7 @@ def apply_omim(gene):
     """
     """ 
     link = '.'
-    with open('omim/omim_2_gene.tsv') as omim:
+    with open('Reporting/omim/omim_2_gene.tsv') as omim:
         for line in omim:
             entry = line.split('\t')
             omim_id = entry[0]
