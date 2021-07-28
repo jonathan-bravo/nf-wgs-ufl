@@ -22,7 +22,7 @@ EOF
     exit 1;
 }
 
-while getopts "hser:b:" opt; do
+while getopts "hser:b:n:" opt; do
     case $opt in
         h)
             usage
