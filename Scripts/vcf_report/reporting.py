@@ -53,11 +53,20 @@ def parse_args():
     )
     parser.add_argument(
         '-c',
-        metavar = '--coverage',
+        metavar = '--COVERAGE',
         type = str,
         help = '',
         default = '30x',
         choices = ['30x', '5x'],
+        required = False
+    )
+    parser.add_argument(
+        '-f',
+        metavar = '--FILTER',
+        type = str,
+        help = '',
+        default = 'true',
+        choices = ['true', 'false'],
         required = False
     )
     args = parser.parse_args()
@@ -108,7 +117,7 @@ def get_cnv_determination(sample_id):
     return cnvs
 
 
-def process_snps(variant_list, panel, coverage):
+def process_snps(variant_list, panel, coverage, filter):
     """
     """
     snp_list = []
@@ -124,7 +133,9 @@ def process_snps(variant_list, panel, coverage):
                 'SNVHPOL' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.001
             )
-        if 'PASS' in variant.filter.keys() and snp and '30x' in coverage:
+        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
+        else: filtered = ('PASS' not in variant.filter.keys())
+        if filtered and snp and '30x' in coverage:
             ann = str(variant.info['ANN']).split('|')[2]
             if 'LOF' in variant.info.keys(): 
                 lof = variant.info['LOF'][0]
@@ -173,7 +184,7 @@ def process_snps(variant_list, panel, coverage):
     return snp_list
 
 
-def process_svs(variant_list, panel, coverage):
+def process_svs(variant_list, panel, coverage, filter):
     """
     """
     sv_list = []
@@ -189,7 +200,9 @@ def process_svs(variant_list, panel, coverage):
                 'CIGAR' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.001
             )
-        if 'PASS' in variant.filter.keys() and sv and '30x' in coverage:
+        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
+        else: filtered = ('PASS' not in variant.filter.keys())
+        if filtered and sv and '30x' in coverage:
             ann = str(variant.info['ANN']).split('|')[2]
             if 'LOF' in variant.info.keys():
                 lof = variant.info['LOF'][0]
@@ -236,7 +249,7 @@ def process_svs(variant_list, panel, coverage):
     return sv_list
          
 
-def process_cnvs(variant_list, panel):
+def process_cnvs(variant_list, panel, filter):
     """
     """
     cnv_list = []
@@ -254,7 +267,9 @@ def process_cnvs(variant_list, panel):
         else:
             cnv = ('CNCLASS' in variant.info.keys())
             cnv_multi_gene = ('SVTYPE' in variant.info.keys())
-        if 'PASS' in variant.filter.keys() and (cnv or cnv_multi_gene):
+        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
+        else: filtered = ('PASS' not in variant.filter.keys())
+        if filtered and (cnv or cnv_multi_gene):
             cnv_list.append((
                 variant.contig,
                 variant.start,
@@ -267,9 +282,203 @@ def process_cnvs(variant_list, panel):
     return cnv_list
 
 
-def process_exps(variant_list, panel):
+def process_exps(variant_list, panel, filter):
     """
     """
+    ranges = {
+        'AFF2': {
+            'normal': '4-39',
+            'affected': '200-900'
+        },
+        'AR': {
+            'normal': '9-36',
+            'affected': '38-68'
+        },
+        'ARX': {
+            'normal': '12-16',
+            'affected': '20-23'
+        },
+        'ATN1': {
+            'normal': '3-35',
+            'affected': '48-93'
+        },
+        'ATXN1': {
+            'normal': '6-38',
+            'affected': '39-88'
+        },
+        'ATXN10': {
+            'normal': '10-32',
+            'affected': '280-4500'
+        },
+        'ATXN2': {
+            'normal': '13-31',
+            'affected': '32-500'
+        },
+        'ATXN3': {
+            'normal': '12-44',
+            'affected': '55-87'
+        },
+        'ATXN7': {
+            'normal': '4-33',
+            'affected': '37-460'
+        },
+        'ATXN8OS': {
+            'normal': '15-50',
+            'affected': '74-250'
+        },
+        'BEAN1': {
+            'normal': '< 110',
+            'affected': '110-760'
+        },
+        'C9ORF72': {
+            'normal': '3-25',
+            'affected': '>= 30'
+        },
+        'CACNA1A': {
+            'normal': '4-18',
+            'affected': '20-33'
+        },
+        'CBL': {
+            'normal': '.',
+            'affected': '.'
+        },
+        'CNBP': {
+            'normal': '11-30',
+            'affected': '50-11000'
+        },
+        'CSTB': {
+            'normal': '2-3',
+            'affected': '30-75'
+        },
+        'DAB1': {
+            'normal': '7-400',
+            'affected': '> 31-75 (ATTTC)'
+        },
+        'DIP2B': {
+            'normal': '.',
+            'affected': '.'
+        },
+        'DMPK': {
+            'normal': '5-37',
+            'affected': '50-10000'
+        },
+        'FMR1': {
+            'normal': '5-50',
+            'affected': '>= 200'
+        },
+        'FOXL2': {
+            'normal': '14',
+            'affected': '19-24'
+        },
+        'FXN': {
+            'normal': '5-34',
+            'affected': '66-1300'
+        },
+        'GIPC1': {
+            'normal': '12-32',
+            'affected': '97-120'
+        },
+        'GLS': {
+            'normal': '8-16',
+            'affected': '680-1400'
+        },
+        'HOXA13': {
+            'normal': '12-18',
+            'affected': '18-30'
+        },
+        'HOXD13': {
+            'normal': '15',
+            'affected': '24'
+        },
+        'HTT': {
+            'normal': '6-35',
+            'affected': '36-250'
+        },
+        'JPH3': {
+            'normal': '6-28',
+            'affected': '41-58'
+        },
+        'LRP12': {
+            'normal': '13-45',
+            'affected': '90-130'
+        },
+        'MARCHF6': {
+            'normal': '10-30',
+            'affected': '660-2800'
+        },
+        'NIPA1': {
+            'normal': '8',
+            'affected': '9-10'
+        },
+        'NOP56': {
+            'normal': '5-14',
+            'affected': '650-2500'
+        },
+        'NOTCH2NLC': {
+            'normal': '7-60',
+            'affected': '61-500'
+        },
+        'NUTM2B-AS1': {
+            'normal': '3-16',
+            'affected': '40-60'
+        },
+        'PABPN1': {
+            'normal': '6-10',
+            'affected': '12-17'
+        },
+        'PHOX2B': {
+            'normal': '20',
+            'affected': '25-29'
+        },
+        'PPP2R2B': {
+            'normal': '4-32',
+            'affected': '43-78'
+        },
+        'RAPGEF2': {
+            'normal': '.',
+            'affected': '.'
+        },
+        'RFC1': {
+            'normal': '.',
+            'affected': '400-2000'
+        },
+        'RUNX2': {
+            'normal': '17',
+            'affected': '27'
+        },
+        'SAMD12': {
+            'normal': '7',
+            'affected': '440-3680'
+        },
+        'SOX3': {
+            'normal': '15',
+            'affected': '26'
+        },
+        'STARD7': {
+            'normal': '9-20',
+            'affected': '661-735'
+        },
+        'TBP': {
+            'normal': '25-40',
+            'affected': '43-66'
+        },
+        'TCF4': {
+            'normal': '5-31',
+            'affected': '50'
+        },
+        'TNRC6A': {
+            'normal': '.',
+            'affected': '.'
+        },
+        'YEATS2': {
+            'normal': '7-400',
+            'affected': '.'
+        },
+        'ZIC2': {
+            'normal': '15',
+            'affected': '25'
+        }
+    }
     exp_list = []
     for variant in variant_list:
         if panel != None:
@@ -279,7 +488,9 @@ def process_exps(variant_list, panel):
             )
         else:
             exp = ('VARID' in variant.info.keys())
-        if 'PASS' in variant.filter.keys() and exp:
+        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
+        else: filtered = ('PASS' not in variant.filter.keys())
+        if filtered and exp:
             gt = variant.samples['SAMPLE1'].get('GT')
             if gt != None and len(gt) > 1:
                 if gt[0] == gt[1]: genotype = 'homozygous'
@@ -288,17 +499,17 @@ def process_exps(variant_list, panel):
             loc_coverage = variant.samples['SAMPLE1'].get('LC')
             if genotype == 'homozygous':
                 if len(variant.alts) == 1:
-                    allele1 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
-                    allele2 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
+                    allele1 = f"{variant.info['RU']}*{variant.alts[0][4:-1]}"
+                    allele2 = f"{variant.info['RU']}*{variant.alts[0][4:-1]}"
             elif genotype == 'heterozygous':
                 if len(variant.alts) == 2:
-                    allele1 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
-                    allele2 = f"{variant.info['RU'][0]}*{variant.alts[1][4:-1]}"
+                    allele1 = f"{variant.info['RU']}*{variant.alts[0][4:-1]}"
+                    allele2 = f"{variant.info['RU']}*{variant.alts[1][4:-1]}"
                 else:
-                    allele1 = f"{variant.info['RU'][0]}*{variant.alts[0][4:-1]}"
-                    allele2 = f"{variant.info['RU'][0]}*{variant.info['REF']}"
+                    allele1 = f"{variant.info['RU']}*{variant.alts[0][4:-1]}"
+                    allele2 = f"{variant.info['RU']}*{variant.info['REF']}"
             alleles = f"{allele1} / {allele2}"
-            reference = f"{variant.info['RU'][0]}*{variant.info['REF']}"
+            reference = f"{variant.info['RU']}*{variant.info['REF']}"
             exp_list.append((
                 variant.contig,
                 variant.start + 1,
@@ -307,7 +518,9 @@ def process_exps(variant_list, panel):
                 alleles,
                 variant.info['VARID'],
                 genotype,
-                loc_coverage
+                loc_coverage,
+                ranges[variant.info['VARID']]['normal'],
+                ranges[variant.info['VARID']]['affected']
             ))
     return exp_list
 
@@ -415,7 +628,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
     return overlaps
 
 
-def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions):
+def make_json(filter, panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions):
     """
     """
     genes = []
@@ -641,16 +854,26 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'Alt Allele' : exp[4],
             'Gene': exp[5],
             'Genotype': exp[6],
-            'Locus Coverage': round(exp[7])
+            'Locus Coverage': round(exp[7]),
+            'Normal Range': exp[8],
+            'Affected Range': exp[9]
         }
         data['exp']['all_expansions'].append(exp_dict)
-    if panel != None:
+    if panel != None and filter == "true":
         data['metadata']['supporting_literature'] = get_literature(panel, genes)
         with open(f'{sample_id}_{panel}_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
-    else:
+    elif panel != None and filter == "false":
+        data['metadata']['supporting_literature'] = get_literature(panel, genes)
+        with open(f'{sample_id}_{panel}_low-qc_report.json', 'w') as outfile:
+            dump(data, outfile, indent = 4)
+    elif panel == None and filter == "true":
         data['metadata']['supporting_literature'] =  None
         with open(f'{sample_id}_report.json', 'w') as outfile:
+            dump(data, outfile, indent = 4)
+    else:
+        data['metadata']['supporting_literature'] =  None
+        with open(f'{sample_id}_low-qc_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
 
 
@@ -738,17 +961,17 @@ def apply_omim(gene):
     return link
 
 
-def process_variants(variant_list, panel, coverage):
+def process_variants(variant_list, panel, coverage, filter):
     """
     """
-    snp_list = process_snps(variant_list, panel, coverage)
-    sv_list = process_svs(variant_list, panel, coverage)
-    cnv_list = process_cnvs(variant_list, panel)
-    exp_list = process_exps(variant_list, panel)
+    snp_list = process_snps(variant_list, panel, coverage, filter)
+    sv_list = process_svs(variant_list, panel, coverage, filter)
+    cnv_list = process_cnvs(variant_list, panel, filter)
+    exp_list = process_exps(variant_list, panel, filter)
     return(snp_list, sv_list, cnv_list, exp_list)
 
 
-def apply_annotations(variant_file, chr, panel, coverage):
+def apply_annotations(variant_file, chr, panel, coverage, filter):
     """
     """
     print(f'Processing {chr}...')
@@ -760,7 +983,7 @@ def apply_annotations(variant_file, chr, panel, coverage):
         if chr != 'chrY':
             variant_list = apply_cadd(chr, variant_list)
             variant_list = apply_gnomad(chr, variant_list)
-    processed_variants = process_variants(variant_list, panel, coverage)
+    processed_variants = process_variants(variant_list, panel, coverage, filter)
     return processed_variants
 
 
@@ -795,12 +1018,12 @@ def process_results(results):
     return (snp_list, sv_list, cnv_list, exp_list)
         
 
-def thread_annotations(contigs, variant_map, panel_map, coverage_map, cpus):
+def thread_annotations(contigs, variant_map, panel_map, coverage_map, filter_map, cpus):
     """Using multiprocessing to leverage multi-core cpus.
     """
     print('Starting multi-processing...')
     with ProcessPoolExecutor(max_workers = cpus) as executor:
-        results = executor.map(apply_annotations, variant_map, contigs, panel_map, coverage_map)
+        results = executor.map(apply_annotations, variant_map, contigs, panel_map, coverage_map, filter_map)
     return results
 
 
@@ -861,14 +1084,15 @@ def main():
     variant_map = [vcf] * len(contigs)
     panel_map = [panel] * len(contigs)
     coverage_map = [args.c] * len(contigs)
-    results = thread_annotations(contigs, variant_map, panel_map, coverage_map, cpus)
+    filter_map = [args.f] * len(contigs)
+    results = thread_annotations(contigs, variant_map, panel_map, coverage_map, filter_map, cpus)
     snp_list, sv_list, cnv_list, exp_list = process_results(results)
     cnv_bed(cnv_list, sample_id)
     call_classify_cnv(cpus, sample_id)
     cnv_determinations = get_cnv_determination(sample_id)
     path_cnvs = filter_cnv(cnv_list, cnv_determinations)
     interactions = check_interactions(path_cnvs, snp_list, sv_list, exp_list)
-    make_json(args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions)
+    make_json(args.f, args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions)
     remove_tmp_vcf(vcf)
 
 
