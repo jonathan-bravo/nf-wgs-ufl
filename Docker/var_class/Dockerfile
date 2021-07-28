@@ -9,8 +9,6 @@ curl \
 wget \
 unzip \
 libcurl4-openssl-dev \
-r-base \
-wget \
 libxml2-dev \
 libxmlsec1-dev \
 bedtools \
@@ -25,12 +23,6 @@ pysam \
 argparse \
 openpyxl \
 tqdm
-
-RUN R -e "install.packages('RCurl')"
-RUN R -e "install.packages('BiocManager')"
-RUN R -e "BiocManager::install('panelcn.mops')"
-RUN R -e "BiocManager::install('KaryoploteR')"
-RUN R -e "BiocManager::install('CopyNumberPlots')"
 
 RUN mkdir Resources/
 COPY reporting.py /
