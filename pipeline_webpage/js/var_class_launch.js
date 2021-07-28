@@ -34,6 +34,22 @@ async function launch_reporting() {
             var lc = "30x";
         }
 
+        if (panels.includes("not_filtered")) {
+            var f = "false"
+            var f_index = panels.indexOf("not_filtered", 0)
+            panels.splice(f_index, 1)
+        } else {
+            var f = "true"
+        }
+
+        if (panels.includes("general")) {
+            var gen_report = true
+            var gen_report_index = panels.indexOf("general", 0)
+            panels.splice(gen_report_index, 1)
+        } else {
+            var gen_report = false
+        }
+
         url[samples[i].id] = {};
 
         var multiqc_url_params = { 
@@ -56,7 +72,7 @@ async function launch_reporting() {
                         'command': [
                             'bash',
                             '-c',
-                            'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz.tbi /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline/Reference/panels/'+panels[j]+' /; aws s3 sync s3://hakmonkey-genetics-lab/Pipeline/Reporting/ /Reporting/; /reporting.py -v '+samples[i].id+'_concat.vcf.gz -t 16 -s '+samples[i].id+' -p '+panels[j]+' -c '+lc+'; /json_to_csv.py -j '+samples[i].id+'_'+panels[j]+'_report.json; aws s3 cp '+samples[i].id+'_'+panels[j]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/'+panels[j]+'/; aws s3 cp '+samples[i].id+'_'+panels[j]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/'+panels[j]+'/'
+                            'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz.tbi /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline/Reference/panels/'+panels[j]+' /; aws s3 sync s3://hakmonkey-genetics-lab/Pipeline/Reporting/ /Reporting/; /reporting.py -v '+samples[i].id+'_concat.vcf.gz -t 16 -s '+samples[i].id+' -p '+panels[j]+' -c '+lc+' -f '+f+'; /json_to_csv.py -j '+samples[i].id+'_'+panels[j]+'_report.json; aws s3 cp '+samples[i].id+'_'+panels[j]+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/'+panels[j]+'/; aws s3 cp '+samples[i].id+'_'+panels[j]+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/'+panels[j]+'/'
                         ]
                     }
                 };
@@ -89,6 +105,10 @@ async function launch_reporting() {
                 });
             }
         } else {
+            gen_report = true
+        }
+
+        if(gen_report){
             var job_params = {
                 jobDefinition: "var_class-ufl-germline:2", 
                 jobName: samples[i].id+'_General_Report', 
@@ -97,7 +117,7 @@ async function launch_reporting() {
                     'command': [
                         'bash',
                         '-c',
-                        'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz.tbi /; aws s3 sync s3://hakmonkey-genetics-lab/Pipeline/Reporting/ /Reporting/; /reporting.py -v '+samples[i].id+'_concat.vcf.gz -t 16 -s '+samples[i].id+' -c '+lc+'; /json_to_csv.py -j '+samples[i].id+'_report.json; aws s3 cp '+samples[i].id+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/General_Report/; aws s3 cp '+samples[i].id+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/General_Report/;'
+                        'aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz /; aws s3 cp s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/variants/'+samples[i].id+'_concat.vcf.gz.tbi /; aws s3 sync s3://hakmonkey-genetics-lab/Pipeline/Reporting/ /Reporting/; /reporting.py -v '+samples[i].id+'_concat.vcf.gz -t 16 -s '+samples[i].id+' -c '+lc+' -f '+f+'; /json_to_csv.py -j '+samples[i].id+'_report.json; aws s3 cp '+samples[i].id+'_report.json s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/General_Report/; aws s3 cp '+samples[i].id+'_report.xlsx s3://hakmonkey-genetics-lab/Pipeline_Output/'+run_id+'/'+samples[i].id+'/General_Report/;'
                     ]
                 }
             };
@@ -218,6 +238,18 @@ function get_panels_parent(){
     low_coverage.setAttribute("id", "low_coverage");
     low_coverage.innerHTML = "5x WGS";
     parent_selector.appendChild(low_coverage);
+
+    var not_filtered = document.createElement("option");
+    not_filtered.setAttribute("value", "Failed QC");
+    not_filtered.setAttribute("id", "not_filtered");
+    not_filtered.innerHTML = "Failed QC";
+    parent_selector.appendChild(not_filtered);
+
+    var general = document.createElement("option");
+    general.setAttribute("value", "General Report");
+    general.setAttribute("id", "general");
+    general.innerHTML = "General Report";
+    parent_selector.appendChild(general);
 
     for (const i in filtered_panels) {
         var choiceSelection = document.createElement("option");
