@@ -358,6 +358,12 @@ function get_panels(div_id, in_id){
         low_coverage.innerHTML = "5x WGS";
         panels_select.appendChild(low_coverage);
 
+        var general = document.createElement("option");
+        general.setAttribute("value", "General Report");
+        general.setAttribute("id", "general");
+        general.innerHTML = "General Report";
+        panels_select.appendChild(general);
+
         for (const i in filtered_panels) {
             var choiceSelection = document.createElement("option");
 
