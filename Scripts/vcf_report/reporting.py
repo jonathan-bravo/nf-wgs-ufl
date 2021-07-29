@@ -60,15 +60,6 @@ def parse_args():
         choices = ['30x', '5x'],
         required = False
     )
-    parser.add_argument(
-        '-f',
-        metavar = '--FILTER',
-        type = str,
-        help = '',
-        default = 'true',
-        choices = ['true', 'false'],
-        required = False
-    )
     args = parser.parse_args()
     return args
 
@@ -117,7 +108,7 @@ def get_cnv_determination(sample_id):
     return cnvs
 
 
-def process_snps(variant_list, panel, coverage, filter):
+def process_snps(variant_list, panel, coverage):
     """
     """
     snp_list = []
@@ -133,9 +124,7 @@ def process_snps(variant_list, panel, coverage, filter):
                 'SNVHPOL' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.001
             )
-        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
-        else: filtered = ('PASS' not in variant.filter.keys())
-        if filtered and snp and '30x' in coverage:
+        if snp and '30x' in coverage:
             ann = str(variant.info['ANN']).split('|')[2]
             if 'LOF' in variant.info.keys(): 
                 lof = variant.info['LOF'][0]
@@ -161,6 +150,8 @@ def process_snps(variant_list, panel, coverage, filter):
             gnomad = variant.info['gnomAD_AF']
             clinsig = variant.info['CLNSIG']
             alleleid = variant.info['ALLELEID']
+            if 'PASS' in variant.filter.keys(): filter = 'PASS'
+            else: filter = 'Low-QC'
             snp_list.append([
                 variant.contig,
                 variant.start,
@@ -179,12 +170,13 @@ def process_snps(variant_list, panel, coverage, filter):
                 cadd,
                 gnomad,
                 clinsig,
-                alleleid
+                alleleid,
+                filter
             ])
     return snp_list
 
 
-def process_svs(variant_list, panel, coverage, filter):
+def process_svs(variant_list, panel, coverage):
     """
     """
     sv_list = []
@@ -200,9 +192,7 @@ def process_svs(variant_list, panel, coverage, filter):
                 'CIGAR' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.001
             )
-        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
-        else: filtered = ('PASS' not in variant.filter.keys())
-        if filtered and sv and '30x' in coverage:
+        if sv and '30x' in coverage:
             ann = str(variant.info['ANN']).split('|')[2]
             if 'LOF' in variant.info.keys():
                 lof = variant.info['LOF'][0]
@@ -227,6 +217,8 @@ def process_svs(variant_list, panel, coverage, filter):
             gnomad = variant.info['gnomAD_AF']
             clinsig = variant.info['CLNSIG']
             alleleid = variant.info['ALLELEID']
+            if 'PASS' in variant.filter.keys(): filter = 'PASS'
+            else: filter = 'Low-QC'
             sv_list.append([
                 variant.contig,
                 variant.start,
@@ -244,12 +236,13 @@ def process_svs(variant_list, panel, coverage, filter):
                 cadd,
                 gnomad,
                 clinsig,
-                alleleid
+                alleleid,
+                filter
             ])
     return sv_list
          
 
-def process_cnvs(variant_list, panel, filter):
+def process_cnvs(variant_list, panel):
     """
     """
     cnv_list = []
@@ -267,9 +260,9 @@ def process_cnvs(variant_list, panel, filter):
         else:
             cnv = ('CNCLASS' in variant.info.keys())
             cnv_multi_gene = ('SVTYPE' in variant.info.keys())
-        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
-        else: filtered = ('PASS' not in variant.filter.keys())
-        if filtered and (cnv or cnv_multi_gene):
+        if 'PASS' in variant.filter.keys(): filter = 'PASS'
+        else: filter = 'Low-QC'
+        if cnv or cnv_multi_gene:
             cnv_list.append((
                 variant.contig,
                 variant.start,
@@ -277,12 +270,13 @@ def process_cnvs(variant_list, panel, filter):
                 variant.alts[0],
                 variant.info['LENGTH'],
                 variant.info['GENES'],
-                variant.samples['SAMPLE1'].get('MED')
+                variant.samples['SAMPLE1'].get('MED'),
+                filter
             ))
     return cnv_list
 
 
-def process_exps(variant_list, panel, filter):
+def process_exps(variant_list, panel):
     """
     """
     ranges = {
@@ -488,9 +482,7 @@ def process_exps(variant_list, panel, filter):
             )
         else:
             exp = ('VARID' in variant.info.keys())
-        if filter == 'true': filtered = ('PASS' in variant.filter.keys())
-        else: filtered = ('PASS' not in variant.filter.keys())
-        if filtered and exp:
+        if exp:
             gt = variant.samples['SAMPLE1'].get('GT')
             if gt != None and len(gt) > 1:
                 if gt[0] == gt[1]: genotype = 'homozygous'
@@ -510,6 +502,8 @@ def process_exps(variant_list, panel, filter):
                     allele2 = f"{variant.info['RU']}*{variant.info['REF']}"
             alleles = f"{allele1} / {allele2}"
             reference = f"{variant.info['RU']}*{variant.info['REF']}"
+            if 'PASS' in variant.filter.keys(): filter = 'PASS'
+            else: filter = 'Low-QC'
             exp_list.append((
                 variant.contig,
                 variant.start + 1,
@@ -520,7 +514,8 @@ def process_exps(variant_list, panel, filter):
                 genotype,
                 loc_coverage,
                 ranges[variant.info['VARID']]['normal'],
-                ranges[variant.info['VARID']]['affected']
+                ranges[variant.info['VARID']]['affected'],
+                filter
             ))
     return exp_list
 
@@ -628,7 +623,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
     return overlaps
 
 
-def make_json(filter, panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions):
+def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions, low_qc = False):
     """
     """
     genes = []
@@ -859,20 +854,21 @@ def make_json(filter, panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs,
             'Affected Range': exp[9]
         }
         data['exp']['all_expansions'].append(exp_dict)
-    if panel != None and filter == "true":
+    if panel != None and not low_qc:
         data['metadata']['supporting_literature'] = get_literature(panel, genes)
         with open(f'{sample_id}_{panel}_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
-    elif panel != None and filter == "false":
+    else:
+        data['metadata']['supporting_literature'] = None
+        with open(f'{sample_id}_report.json', 'w') as outfile:
+            dump(data, outfile, indent = 4)
+
+    if panel != None and low_qc:
         data['metadata']['supporting_literature'] = get_literature(panel, genes)
         with open(f'{sample_id}_{panel}_low-qc_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
-    elif panel == None and filter == "true":
-        data['metadata']['supporting_literature'] =  None
-        with open(f'{sample_id}_report.json', 'w') as outfile:
-            dump(data, outfile, indent = 4)
     else:
-        data['metadata']['supporting_literature'] =  None
+        data['metadata']['supporting_literature'] = None
         with open(f'{sample_id}_low-qc_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
 
@@ -961,17 +957,17 @@ def apply_omim(gene):
     return link
 
 
-def process_variants(variant_list, panel, coverage, filter):
+def process_variants(variant_list, panel, coverage):
     """
     """
-    snp_list = process_snps(variant_list, panel, coverage, filter)
-    sv_list = process_svs(variant_list, panel, coverage, filter)
-    cnv_list = process_cnvs(variant_list, panel, filter)
-    exp_list = process_exps(variant_list, panel, filter)
+    snp_list = process_snps(variant_list, panel, coverage)
+    sv_list = process_svs(variant_list, panel, coverage)
+    cnv_list = process_cnvs(variant_list, panel)
+    exp_list = process_exps(variant_list, panel)
     return(snp_list, sv_list, cnv_list, exp_list)
 
 
-def apply_annotations(variant_file, chr, panel, coverage, filter):
+def apply_annotations(variant_file, chr, panel, coverage):
     """
     """
     print(f'Processing {chr}...')
@@ -983,7 +979,7 @@ def apply_annotations(variant_file, chr, panel, coverage, filter):
         if chr != 'chrY':
             variant_list = apply_cadd(chr, variant_list)
             variant_list = apply_gnomad(chr, variant_list)
-    processed_variants = process_variants(variant_list, panel, coverage, filter)
+    processed_variants = process_variants(variant_list, panel, coverage)
     return processed_variants
 
 
@@ -1018,12 +1014,12 @@ def process_results(results):
     return (snp_list, sv_list, cnv_list, exp_list)
         
 
-def thread_annotations(contigs, variant_map, panel_map, coverage_map, filter_map, cpus):
+def thread_annotations(contigs, variant_map, panel_map, coverage_map, cpus):
     """Using multiprocessing to leverage multi-core cpus.
     """
     print('Starting multi-processing...')
     with ProcessPoolExecutor(max_workers = cpus) as executor:
-        results = executor.map(apply_annotations, variant_map, contigs, panel_map, coverage_map, filter_map)
+        results = executor.map(apply_annotations, variant_map, contigs, panel_map, coverage_map)
     return results
 
 
@@ -1084,15 +1080,36 @@ def main():
     variant_map = [vcf] * len(contigs)
     panel_map = [panel] * len(contigs)
     coverage_map = [args.c] * len(contigs)
-    filter_map = [args.f] * len(contigs)
-    results = thread_annotations(contigs, variant_map, panel_map, coverage_map, filter_map, cpus)
+    results = thread_annotations(contigs, variant_map, panel_map, coverage_map, cpus)
     snp_list, sv_list, cnv_list, exp_list = process_results(results)
     cnv_bed(cnv_list, sample_id)
     call_classify_cnv(cpus, sample_id)
     cnv_determinations = get_cnv_determination(sample_id)
     path_cnvs = filter_cnv(cnv_list, cnv_determinations)
     interactions = check_interactions(path_cnvs, snp_list, sv_list, exp_list)
-    make_json(args.f, args.p, panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions)
+    # Separating the low QC and passing variants to create separate files
+    passing_snp_list = []
+    low_qc_snp_list = []
+    passing_sv_list = []
+    low_qc_sv_list = []
+    passing_cnv_list = []
+    low_qc_cnv_list = []
+    passing_exp_list = []
+    low_qc_exp_list = []
+    for snp in snp_list:
+        if snp[18] == 'PASS': passing_snp_list.append(snp)
+        else: low_qc_snp_list.append(snp)
+    for sv in sv_list:
+        if sv[17] == 'PASS': passing_sv_list.append(sv)
+        else: low_qc_sv_list.append(sv)
+    for cnv in path_cnvs:
+        if cnv[7] == 'PASS': passing_cnv_list.append(cnv)
+        else: low_qc_cnv_list.append(cnv)
+    for exp in exp_list:
+        if exp[10] == 'PASS': passing_exp_list.append(exp)
+        else: low_qc_exp_list.append(exp)
+    make_json(args.p, panel, passing_snp_list, passing_sv_list, passing_exp_list, passing_cnv_list, sample_id, interactions)
+    make_json(args.p, panel, low_qc_snp_list, low_qc_sv_list, low_qc_exp_list, low_qc_cnv_list, sample_id, interactions, low_qc = True)
     remove_tmp_vcf(vcf)
 
 
