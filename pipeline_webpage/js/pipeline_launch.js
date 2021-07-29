@@ -20,7 +20,7 @@ function launch_pipeline() {
 
     var params = {
         jobDefinition: "nextflow-ufl-germline:10", 
-        jobName: "ufl-germline", 
+        jobName: "ufl-germline_"+run_id, 
         jobQueue: "hakmonkey-nextflow",
         containerOverrides: {
             'command': [
