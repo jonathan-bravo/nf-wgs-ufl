@@ -858,12 +858,11 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         data['metadata']['supporting_literature'] = get_literature(panel, genes)
         with open(f'{sample_id}_{panel}_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
-    else:
+    elif panel == None and not low_qc:
         data['metadata']['supporting_literature'] = None
         with open(f'{sample_id}_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
-
-    if panel != None and low_qc:
+    elif panel != None and low_qc:
         data['metadata']['supporting_literature'] = get_literature(panel, genes)
         with open(f'{sample_id}_{panel}_low-qc_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
