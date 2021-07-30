@@ -478,7 +478,7 @@ def process_exps(variant_list, panel):
         if panel != None:
             exp = (
                 'VARID' in variant.info.keys()
-                and variant.info['VARID'] in panel
+                and variant.info['VARID'].split('_')[0] in panel
             )
         else:
             exp = ('VARID' in variant.info.keys())
@@ -510,11 +510,11 @@ def process_exps(variant_list, panel):
                 variant.stop,
                 reference,
                 alleles,
-                variant.info['VARID'],
+                variant.info['VARID'].split('_')[0],
                 genotype,
                 loc_coverage,
-                ranges[variant.info['VARID']]['normal'],
-                ranges[variant.info['VARID']]['affected'],
+                ranges[variant.info['VARID'].split('_')[0]]['normal'],
+                ranges[variant.info['VARID'].split('_')[0]]['affected'],
                 filter
             ))
     return exp_list
