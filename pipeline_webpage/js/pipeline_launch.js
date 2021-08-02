@@ -20,13 +20,13 @@ function launch_pipeline() {
 
     var params = {
         jobDefinition: "nextflow-ufl-germline:10", 
-        jobName: "ufl-germline_"+run_id, 
+        jobName: "UFL-"+pipeline+"_"+run_id, 
         jobQueue: "hakmonkey-nextflow",
         containerOverrides: {
             'command': [
                 'bash',
                 '-c',
-                nextflow_command+'; aws s3 rm s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/'
+                nextflow_command+'; aws s3 cp /data/trace.txt s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/; aws s3 cp /data/timeline.html s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/; aws s3 cp /data/'+run_id+'_report.html s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/'
             ]
         }
     };
@@ -43,7 +43,7 @@ function launch_pipeline() {
 
 function check_germline() {
 
-    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --lanes \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
+    nextflow_command = 'nextflow run /data/main.nf -with-report '+run_id+'_report.html -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --lanes \"'+lane+'\" --match \"'+match+'\" --exome \"'+exome+'\" --pipeline \"'+pipeline+'\"';
 
     $("#command_box").show();
     $("#germline_command").show();
@@ -79,7 +79,7 @@ function check_multiqc() {
         }
     }
 
-    nextflow_command = 'nextflow run /data/main.nf -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --pipeline \"'+pipeline+'\"';
+    nextflow_command = 'nextflow run /data/main.nf -with-report '+run_id+'_report.html -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --run_id \"'+run_id+'\" --pipeline \"'+pipeline+'\"';
     
     document.getElementById('qc_workflow_cell').innerHTML = pipeline;
     document.getElementById('qc_run_id_cell').innerHTML = run_id;
