@@ -540,7 +540,8 @@ def filter_cnv(cnvs, cnv_determinations):
                     cnv[4],
                     cnv[5],
                     determination[3],
-                    cnv[6]
+                    cnv[6],
+                    cnv[7]
                 ))
     return path_cnvs
 
@@ -1102,7 +1103,7 @@ def main():
         if sv[17] == 'PASS': passing_sv_list.append(sv)
         else: low_qc_sv_list.append(sv)
     for cnv in path_cnvs:
-        if cnv[7] == 'PASS': passing_cnv_list.append(cnv)
+        if cnv[8] == 'PASS': passing_cnv_list.append(cnv)
         else: low_qc_cnv_list.append(cnv)
     for exp in exp_list:
         if exp[10] == 'PASS': passing_exp_list.append(exp)
