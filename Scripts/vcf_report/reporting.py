@@ -1086,7 +1086,6 @@ def main():
     call_classify_cnv(cpus, sample_id)
     cnv_determinations = get_cnv_determination(sample_id)
     path_cnvs = filter_cnv(cnv_list, cnv_determinations)
-    interactions = check_interactions(path_cnvs, snp_list, sv_list, exp_list)
     # Separating the low QC and passing variants to create separate files
     passing_snp_list = []
     low_qc_snp_list = []
@@ -1108,8 +1107,10 @@ def main():
     for exp in exp_list:
         if exp[10] == 'PASS': passing_exp_list.append(exp)
         else: low_qc_exp_list.append(exp)
-    make_json(args.p, panel, passing_snp_list, passing_sv_list, passing_exp_list, passing_cnv_list, sample_id, interactions)
-    make_json(args.p, panel, low_qc_snp_list, low_qc_sv_list, low_qc_exp_list, low_qc_cnv_list, sample_id, interactions, low_qc = True)
+    passing_interactions = check_interactions(passing_cnv_list, passing_snp_list, passing_sv_list, passing_exp_list)
+    low_qc_interactions = check_interactions(low_qc_cnv_list, low_qc_snp_list, low_qc_sv_list, low_qc_exp_list)
+    make_json(args.p, panel, passing_snp_list, passing_sv_list, passing_exp_list, passing_cnv_list, sample_id, passing_interactions)
+    make_json(args.p, panel, low_qc_snp_list, low_qc_sv_list, low_qc_exp_list, low_qc_cnv_list, sample_id, low_qc_interactions, low_qc = True)
     remove_tmp_vcf(vcf)
 
 
