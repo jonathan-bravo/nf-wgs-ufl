@@ -26,7 +26,7 @@ function launch_pipeline() {
             'command': [
                 'bash',
                 '-c',
-                nextflow_command+'; aws s3 cp /data/trace.txt s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/; aws s3 cp /data/timeline.html s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/; aws s3 cp /data/'+run_id+'_report.html s3://hakmonkey-genetics-lab/Pipieline_Output/_work/'+run_id+'/'
+                nextflow_command+'; aws s3 cp trace.txt s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/; aws s3 cp timeline.html s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/; aws s3 cp '+run_id+'_report.html s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/'
             ]
         }
     };
