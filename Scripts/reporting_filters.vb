@@ -90,3 +90,11 @@ Sub FilterSVs()
         Criteria1:="KEEP"
     Range("S:S").EntireColumn.Hidden = TRUE
 End Sub
+
+' Filter EXPs
+'
+' This macro applies a filter to the expansions based on normal and affected ranges
+'
+Sub FilterEXPs()
+    
+End Sub
