@@ -775,8 +775,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         else: link = '.'
         snp_dict = {
             'Chrom': snp[0],
-            'Start': snp[1],
-            'Stop': snp[2],
+            'Start': snp[1]+1,
+            'Stop': snp[2]+1,
             'Ref Allele': snp[3],
             'Alt Allele': snp[4],
             'Gene': snp[5],
@@ -806,8 +806,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         else: link = "."
         sv_dict = {
             'Chrom': sv[0],
-            'Start': sv[1],
-            'Stop': sv[2],
+            'Start': sv[1]+1,
+            'Stop': sv[2]+1,
             'Ref Allele': sv[3],
             'Alt Allele': sv[4],
             'Gene': sv[5],
@@ -830,8 +830,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         genes.append(cnv[5])
         cnv_dict = {
             'Chrom': cnv[0],
-            'Start': cnv[1],
-            'Stop': cnv[2],
+            'Start': cnv[1]+1,
+            'Stop': cnv[2]+1,
             'Alt Allele': cnv[3],
             'Length': cnv[4],
             'Median Depth Change': cnv[7],
@@ -844,8 +844,8 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
         genes.append(exp[4])
         exp_dict = {
             'Chrom': exp[0],
-            'Start': exp[1],
-            'Stop' : exp[2],
+            'Start': exp[1]+1,
+            'Stop' : exp[2]+1,
             'Ref Allele': exp[3],
             'Alt Allele' : exp[4],
             'Gene': exp[5],
