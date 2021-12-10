@@ -11,8 +11,7 @@ ENV NXF_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
 # copy docker client
 RUN mkdir /data/
 COPY main.nf /data/
-COPY ufl-germline.nf /data/
-COPY ufl-multiqc.nf /data/
+COPY workflows/ /data/workflows/
 COPY nextflow.config /data/
 COPY bin/ /data/bin/
 COPY modules/ /data/modules/
@@ -24,8 +23,7 @@ COPY nextflow /usr/local/bin/nextflow
 RUN mkdir /.nextflow \
 && touch /.nextflow/dockerized \
 && chmod 755 /usr/local/bin/entry.sh \
-&& chmod 755 /usr/local/bin/nextflow \
-&& nextflow info
+&& chmod 755 /usr/local/bin/nextflow
 
 # define the entry point
 ENTRYPOINT ["/usr/local/bin/entry.sh"]

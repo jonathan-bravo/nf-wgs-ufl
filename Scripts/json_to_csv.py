@@ -38,7 +38,8 @@ def parse_cnv_interactions(json):
                 interaction['CNV']['Chrom'],
                 interaction['CNV']['Start'],
                 interaction['CNV']['Stop'],
-                interaction['CNV']['Alt']
+                interaction['CNV']['Alt'],
+                interaction['CNV']['Determination']
             ))
             snps = interaction['SNPs']
             for snp in snps:
@@ -46,7 +47,9 @@ def parse_cnv_interactions(json):
                     snp['Chrom'],
                     snp['Start'],
                     snp['Stop'],
-                    snp['Gene']
+                    snp['Gene'],
+                    snp['REVEL'],
+                    snp['CADD']
                 ))
                 interactions.append(pd.DataFrame({'CNV': cnv, 'SNP': current_snp}, index = [index]))
                 index += 1
@@ -56,7 +59,8 @@ def parse_cnv_interactions(json):
                     sv['Chrom'],
                     sv['Start'],
                     sv['Stop'],
-                    sv['Gene']
+                    sv['Gene'],
+                    sv['CADD']
                 ))
                 interactions.append(pd.DataFrame({'CNV': cnv, 'SV': current_sv}, index = [index]))
                 index += 1
@@ -77,8 +81,8 @@ def parse_cnv_interactions(json):
 def read_json(json_file):
     """
     """
-    with open(json_file, 'r') as jason_file:
-        data = json.load(jason_file)
+    with open(json_file, 'r') as j_file:
+        data = json.load(j_file)
         snp = pd.DataFrame(data['snp']['all_snps'])
         sv = pd.DataFrame(data['sv']['all_svs'])
         cnv = pd.DataFrame(data['cnv']['all_cnvs'])
@@ -95,7 +99,7 @@ def write_xlsx(data, file_name):
     """
     if data[6].empty:
         with pd.ExcelWriter(f'{file_name}.xlsx') as writer:
-            data[0].to_excel(writer, sheet_name = 'SNPs', index = False)
+            data[0].to_excel(writer, sheet_name = 'SNVs', index = False)
             data[1].to_excel(writer, sheet_name = 'SVs', index = False)
             data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
             data[3].to_excel(writer, sheet_name = 'Expansions', index = False)

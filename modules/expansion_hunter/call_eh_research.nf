@@ -13,6 +13,7 @@ process CALL_EH_RESEARCH {
     path research_variant_catalog
     path reference
     path ref_fai
+    path ref_gzi
     tuple val(sample_id), file("${sample_id}_md.bam")
     tuple val(sample_id), file("${sample_id}_md.bam.bai")
 
@@ -33,7 +34,7 @@ process CALL_EH_RESEARCH {
     sed -i s/!{sample_id}_md/SAMPLE1/g !{sample_id}_eh_research.vcf
 
     grep '^#' !{sample_id}_eh_research.vcf > !{sample_id}_filtered_eh_research.vcf
-    grep '^chr' !{sample_id}_eh_research.vcf | \
+    grep -v '^#' !{sample_id}_eh_research.vcf | \
     awk '{if ($5 !=".")print}' - >> !{sample_id}_filtered_eh_research.vcf
     '''
 }

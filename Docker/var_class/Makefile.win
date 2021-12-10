@@ -1,0 +1,16 @@
+version ?= 1.0.0
+platform ?= linux/amd64
+
+make:
+	Powershell -Command "Copy-Item ..\..\Scripts\vcf_report\ClassifyCNV\Resources\ ."
+	Powershell -Command "Copy-Item ..\..\Scripts\vcf_report\ClassifyCNV\ClassifyCNV.py ."
+	Powershell -Command "Copy-Item ..\..\Scripts\vcf_report\ClassifyCNV\parse_clingen_tsv.py ."
+	Powershell -Command "Copy-Item ..\..\Scripts\vcf_report\ClassifyCNV\resources.py ."
+	Powershell -Command "Copy-Item ..\..\Scripts\vcf_report\reporting.py ."
+	Powershell -Command "Copy-Item ..\..\Scripts\json_to_csv.py ."
+	Powershell -Command "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 178175818611.dkr.ecr.us-east-1.amazonaws.com"
+	Powershell -Command "docker buildx --platform ${platform} -t var_class-ufl-germline:${version} ."
+	Powershell -Command "docker tag var_class-ufl-germline:${version} 178175818611.dkr.ecr.us-east-1.amazonaws.com/var_class-ufl-germline:${version}"
+	Powershell -Command "docker push 178175818611.dkr.ecr.us-east-1.amazonaws.com/var_class-ufl-germline:${version}"
+	Powershell -Command "rm Resources"
+	Powershell -Command "rm *.py"

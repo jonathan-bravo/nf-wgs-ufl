@@ -13,7 +13,9 @@ libxml2-dev \
 libxmlsec1-dev \
 bedtools \
 bcftools \
-tabix
+tabix \
+libbz2-dev \
+liblzma-dev
 
 RUN pip3 install \
 awscli \

@@ -101,7 +101,7 @@ def get_cnv_determination(sample_id):
     with open(infile) as f:
         for line in f:
             entry = line.split('\t')
-            if entry[5] == 'Pathogenic' or entry[5] == 'Likely pathogenic':
+            if entry[5] != 'Benign':
                 cnvs.append((entry[1], entry[2], entry[3], entry[5]))
     clean = f'rm -rf {sample_id}_ClassifyCNV_out'
     system(clean)
@@ -576,7 +576,8 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
             'Stop': cnv[2],
             'Alt': cnv[3],
             'Length': cnv[4],
-            'Genes': cnv[5]
+            'Genes': cnv[5],
+            'Determination': cnv[6]
         }
         overlap = {
             'CNV': cnv_dict,
@@ -592,7 +593,9 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'Chrom': snp[0],
                     'Start': snp[1],
                     'Stop': snp[2],
-                    'Gene': snp[5]
+                    'Gene': snp[5],
+                    'REVEL': snp[13],
+                    'CADD': snp[14]
                 }
                 overlap['SNPs'].append(snp_dict)
         for sv in sv_list:
@@ -603,6 +606,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
                     'Start': sv[1],
                     'Stop': sv[2],
                     'Gene': sv[5],
+                    'CADD': sv[13]
                 }
                 overlap['SVs'].append(sv_dict)
         for exp in exp_list:
@@ -722,9 +726,9 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             },
             {
                 'name': 'Genome Build',
-                'version': 'hg19',
+                'version': 'hs37d5',
                 'purpose': 'reference genome',
-                'citation': 'http://genome.ucsc.edu/cite.html'
+                'citation': 'ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence'
             },
             {
                 'name': 'CADD',
@@ -780,7 +784,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'Ref Allele': snp[3],
             'Alt Allele': snp[4],
             'Gene': snp[5],
-            'NCBI Reference Sequence': snp[6],
+            'ENSEMBL Transcript ID': snp[6],
             'Nucleotide': snp[7],
             'Protein': snp[8],
             'Loss of Function': lof,
@@ -811,7 +815,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'Ref Allele': sv[3],
             'Alt Allele': sv[4],
             'Gene': sv[5],
-            'NCBI Reference Sequence': sv[6],
+            'ENSEMBL Transcript ID': sv[6],
             'Nucleotide': sv[7],
             'Protein': sv[8],
             'Loss of Function': lof,
@@ -1043,8 +1047,10 @@ def prep_vcf(variant_file, cpus):
                 variant.info['gnomAD_AF'] = 1.0
                 variant.info['CLNSIG'] = '.'
                 variant.info['ALLELEID'] = '.'
+                out.write('chr')
                 out.write(str(variant))
             else:
+                out.write('chr')
                 out.write(str(variant))
     out.close()
     command = f'bgzip -@ {cpus} {outfile}_tmp.vcf; bcftools index --threads {cpus} --tbi {outfile}_tmp.vcf.gz'

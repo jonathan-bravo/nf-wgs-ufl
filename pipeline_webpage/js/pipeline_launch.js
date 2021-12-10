@@ -288,6 +288,7 @@ function get_type() {
 function get_workflow() {
     var germline = document.getElementById("germline");
     var multiqc = document.getElementById("multiqc");
+    var cnv_controls = document.getElementById("cnv_controls");
 
     $("#workflow_question_box").hide();
 
@@ -302,5 +303,13 @@ function get_workflow() {
         pipeline = 'MULTIQC';
         workflow = 'multiqc';
         get_runs();
+
+    } else if(cnv_controls.checked==true) {
+
+        pipeline = 'CNV_CONTROLS';
+        workflow = 'cnv_controls';
+        run_id = 'cnv_controls'
+        nextflow_command = 'nextflow run /data/main.nf -with-report '+run_id+'_report.html -work-dir \"s3://hakmonkey-genetics-lab/Pipeline_Output/_work/'+run_id+'/\" --bucket \"s3://hakmonkey-genetics-lab\" --pipeline \"'+pipeline+'\"';
+        launch_pipeline();
     }
 }

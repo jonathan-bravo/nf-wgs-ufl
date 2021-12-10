@@ -12,6 +12,7 @@ process CALL_SNV_WES {
     input:
     path reference
     path ref_fai
+    path ref_gzi
     tuple val(sample_id), file("${sample_id}_md.bam")
     tuple val(sample_id), file("${sample_id}_md.bam.bai")
 

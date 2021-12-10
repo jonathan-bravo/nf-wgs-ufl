@@ -1,0 +1,24 @@
+version ?= 1.0.0
+platform ?= linux/amd64
+
+build: dist\docker
+	Powershell -Command "Copy-Item ..\..\modules\ . -Recurse"
+	Powershell -Command "Copy-Item ..\..\bin\ . -Recurse"
+	Powershell -Command "Copy-Item ..\..\workflows\ . -Recurse"
+	Powershell -Command "Copy-Item ..\..\main.nf ."
+	Powershell -Command "Copy-Item ..\..\nextflow.config ."
+	Powershell -Command "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 178175818611.dkr.ecr.us-east-1.amazonaws.com"
+	Powershell -Command "docker buildx build --platform ${platform} -t nextflow-ufl-germline:${version} ."
+	Powershell -Command "docker tag nextflow-ufl-germline:${version} 178175818611.dkr.ecr.us-east-1.amazonaws.com/nextflow-ufl-germline:${version}"
+	Powershell -Command "docker push 178175818611.dkr.ecr.us-east-1.amazonaws.com/nextflow-ufl-germline:${version}"
+	Powershell -Command "rm modules -r -fo"
+	Powershell -Command "rm bin -r -fo"
+	Powershell -Command "rm dist -r -fo"
+	Powershell -Command "rm workflows -r -fo"
+	Powershell -Command "rm *.nf"
+	Powershell -Command "rm nextflow.config"
+dist\docker:
+	Powershell -Command "Invoke-WebRequest -Uri https://get.docker.com/builds/Linux/x86_64/docker-17.03.1-ce.tgz -Outfile '.\docker-17.03.1-ce.tgz'"
+	Powershell -Command "mkdir dist"
+	Powershell -Command "tar --strip-components=1 -xvzf docker-17.03.1-ce.tgz -C dist"
+	Powershell -Command "rm docker-17.03.1-ce.tgz"

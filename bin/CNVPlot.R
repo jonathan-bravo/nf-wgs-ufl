@@ -23,6 +23,7 @@ for(i in 1:length(cnclass)){
     else if(cnclass[i] > 2){
         cnclass[i] <- 4
     }
+    calls[i] <- paste("chr", calls[i], sep="")
 }
 
 cn.data <- toGRanges(calls)

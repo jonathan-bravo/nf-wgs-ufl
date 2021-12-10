@@ -10,7 +10,7 @@ process ANNOTATE_CNV {
     label 'high_mem'
 
     input:
-    path hg19_genes
+    path hs37d5_genes
     tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf.gz"), file("${sample_id}_filtered_cnv.vcf.gz.tbi")
 
     output:
@@ -18,6 +18,6 @@ process ANNOTATE_CNV {
 
     script:
     """
-    annotate_cnv.py -v ${sample_id}_filtered_cnv.vcf.gz -b ${hg19_genes}
+    annotate_cnv.py -v ${sample_id}_filtered_cnv.vcf.gz -b ${hs37d5_genes}
     """
 }

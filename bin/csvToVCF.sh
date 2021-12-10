@@ -13,7 +13,6 @@ done < ${header}
 TODAY=$(date '+%D')
 
 sed -i "s|##fileDate=|##fileDate=$TODAY|" ${sample_id}.head
-#sed -i "s|SAMPLE1|${sample_id}-sort|g" ${sample_id}.head
 sed -i '$ s/\s/\t/g' ${sample_id}.head
 
 cut -d "," -f 2,3,4,5,8,9,10 ${sample_id}_cnvs.csv | \
@@ -35,5 +34,5 @@ rm ${sample_id}.tmp
 
 # Generate a version of the VCF file that only containes DEL/DUP
 grep '^#' ${sample_id}_cnv.vcf > ${sample_id}_filtered_cnv.vcf
-grep '^chr' ${sample_id}_cnv.vcf | \
+grep -v '^#' ${sample_id}_cnv.vcf | \
 awk '{if ($5 !=".")print}' - >> ${sample_id}_filtered_cnv.vcf

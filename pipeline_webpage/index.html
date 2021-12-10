@@ -14,6 +14,7 @@
     <script src="js/log_in.js"></script>
     <script src="js/pipeline_launch.js"></script>
     <script src="js/var_class_launch.js"></script>
+    <script src="js/transfer_run.js"></script>
     <script src="js/file_request.js"></script>
     <script src="js/context.js"></script>
 </head>
@@ -22,6 +23,8 @@
 
     <div class="body-div">
         
+        <!--HEADER-->
+        <!--This contains some links-->
         <div class="banner" id="banner">
 
             <div class="banner-img"></div>
@@ -43,6 +46,8 @@
 
             <div class="content-bg"></div>
 
+            <!--LOG-IN PAGE-->
+            <!--Log-in page with access request and short descriptiton-->
             <div id="intro" class="intro">
                 <div class="intro-title">
                     <h1><span class="gator">Gator</span><span class="genome">Genome</span></h1>
@@ -81,7 +86,9 @@
                     </div>
                 </div>
             </div>
-
+            
+            <!--CARD MENU-->
+            <!--This is the card menu that is on the start page-->
             <div id="menu" class="menu" style="display:none">
 
                 <div id="pipeline" class="menu-child">
@@ -100,6 +107,16 @@
                         <span>
                             <br/>
                             Click here to request a research report for any/ none of the provided panels.
+                        </span>
+                    </button>
+                </div>
+
+                <div id="transfer" class="menu-child">
+                    <button id="transfer_card" class="card">
+                        BaseSpace to AWS
+                        <span>
+                            <br/>
+                            Click here to select and transfer a run's fastq files from BaseSpace to AWS.
                         </span>
                     </button>
                 </div>
@@ -136,6 +153,8 @@
 
             </div>
 
+            <!--LOADER ANIMATION-->
+            <!--This is the loader that shows up during queries to AWS-->
             <div id="loader" class="loader" style="display:none">
                 <div class="dot"></div>
                 <div class="dot"></div>
@@ -144,6 +163,8 @@
                 <div class="dot"></div>
             </div>
 
+            <!--PIPELINE-->
+            <!--Question 1: Workflow Type-->
             <div id="workflow_question_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToLoggedInView()"></button>
                 <div class="text-box" id="workflow_text">
@@ -165,12 +186,22 @@
                         <span class="radio__label">MULTIQC for run</span>
                     </label>
 
+                    <label class="radio">
+                        <span class="radio__input">
+                            <input type="radio" class="choices" name="workflow" id="cnv_controls">
+                            <span class="radio__control"></span>
+                        </span>
+                        <span class="radio__label">CNV Controls</span>
+                    </label>
+
                 </div>
                 <div class="question-button">
                     <button class="padded-button" onclick="get_workflow()" id="workflow_button">Get Runs</button>
                 </div>
             </div>
 
+            <!--PIPELINE-->
+            <!--Question 2: WGS or WES-->
             <div id="exome_question_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToPipelineView()"></button>
                 <div class="text-box" id="exome_text">
@@ -197,6 +228,8 @@
                 </div>
             </div>
 
+            <!--PIPELINE-->
+            <!--Question 3: Run Selection-->
             <div id="runs_box" class="centered question-container" style="display:none">
                 <button class="back" id="run_box_back"></button>
                 <div class="text-box" id="runs_text">
@@ -205,6 +238,8 @@
                 </div>
             </div>
 
+            <!--PIPELINE-->
+            <!--Question 4: Number of Lanes-->
             <div id="lane_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToRunIdView()"></button>
                 <div class="text-box" id="lane_text">
@@ -236,6 +271,8 @@
                 </div>
             </div>
 
+            <!--PIPELINE-->
+            <!--Question 5: If 2 Lanes; Match Pattern-->
             <div id="match_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToLaneView()"></button>
                 <div class="text-box" id="match_text">
@@ -264,6 +301,8 @@
                 </div>                
             </div>
 
+            <!--PIPELINE-->
+            <!--Question 6: Choice Confirmation-->
             <div id="command_box" class="centered question-container" style="display:none">
                 <button class="back" id="command_back"></button>
                 <div class="text-box" id="command_text">
@@ -339,6 +378,8 @@
                 <input type="submit" onclick="launch_pipeline()" id="launch_command_button" value="Launch Pipeline"/>
             </div>
 
+            <!--REPORTING-->
+            <!--Question 1: Run Selection-->
             <div id="report_runs_box" class="centered question-container" style="display:none">
                 <button class="back" onclick="switchToLoggedInView()"></button>
                 <div class="text-box" id="report_runs_text">
@@ -350,6 +391,8 @@
                 </div>
             </div>
 
+            <!--REPORTING-->
+            <!--Question 2.a: Report Selection-->
             <button id="report_selection_back" class="back" onclick="switchToReportView()" style="display:none"></button>
             <div id="report_selection" class="centered question-container" style="display:none">
                 <div id="report_sample_box" class="text-box" style="display:none">
@@ -364,6 +407,8 @@
                 </div>
             </div>
 
+            <!--REPORTING-->
+            <!--Question 2.b: Email Box-->
             <div id="report_email_box" class="centered">
                 <form id="email" onsubmit="return false;" style="display:none">
                     <div class="centered">
@@ -375,6 +420,24 @@
                 </form>
             </div>
 
+            <!--TRANSFER-->
+            <!---->
+            <div id="transfer_run_box" class="centered question-container" style="display:none">
+                <button class="back" onclick="switchToLoggedInView()"></button>
+                <div class="text-box" id="transfer_text">
+                    <p class="statement" id="transfer_statement">Type the run ID </p>
+                    <label class="custom-match" id="transfer_run_id_label" for="transfer_run_id">
+                        RUN-ID: 
+                        <input type="text" name="transfer_run_id" id="transfer_run_id" placeholder="NQ-YY-NN"/>
+                    </label>
+                </div>
+                <div class="question-button">
+                   <button onclick="request_run_transfer()" id="transfer_button">Submit</button>
+                </div>                
+            </div>
+            
+            <!--REQUEST-->
+            <!--Question 1: Run Selection-->
             <div id="request_runs_box" class="centered question-container" style="display:none;">
                 <button class="back" onclick="switchToLoggedInView()"></button>
                 <div class="text-box" id="request_runs_text">
@@ -386,6 +449,8 @@
                 </div>
             </div>
 
+            <!--REQUEST-->
+            <!--Question 2: Request Type-->
             <div id="request_run_or_sample_box" class="centered question-container" style="display:none;">
                 <button class="back" onclick="switchToRequestView()"></button>
                 <div class="text-box" id="request_run_or_sample_text">
@@ -410,6 +475,8 @@
                 </div>
             </div>
 
+            <!--REQUEST-->
+            <!--Question 3: Sample Selection-->
             <div id="request_samples_box" class="centered question-container" style="display:none;">
                 <button class="back" onclick="switchToRunOrSampleView()"></button>
                 <div class="text-box" id="request_samples_text">
@@ -421,6 +488,8 @@
                 </div>
             </div>
 
+            <!--REQUEST-->
+            <!--Question 4.a: Report Selection-->
             <div id="request_reports_box" class="centered question-container" style="display:none;">
                 <button class="back" onclick="switchToRequestSamplesView()"></button>
                 <div class="text-box" id="request_reports_text">
@@ -432,6 +501,8 @@
                 </div>
             </div>
 
+            <!--REQUEST-->
+            <!--Question 4.b: Email Box-->
             <div id="request_email_box" class="centered question-container" style="display:none;">
                 <button class="back" onclick="switchToRequestReportsView()"></button>
                 <div class="text-box" id="request_email_text">
@@ -447,6 +518,8 @@
                 </div>
             </div>
 
+            <!--SPACESHIP-->
+            <!--Div for spaceship animation-->
             <div class="centered" id="launch_img" style="display: none;">
                 <div class="scene">
                     <div class="rocket">
@@ -455,6 +528,8 @@
                 </div>
             </div>
 
+            <!--TEST-->
+            <!--Div for test environment-->
             <div class="centered" id="test-env" style="display:none">
                 <div class="normal">
                     <input id="normal" type="checkbox"/>
@@ -462,6 +537,8 @@
                 </div>
             </div>
 
+            <!--FOOTER-->
+            <!--This contains the images at the bottom of the center content box-->
             <div class="flex-img-container">
                 <div class="uf-ctsi">
                     <img src="img/ClinicalTransScienceInst.png" id="uf_logo">
@@ -478,6 +555,7 @@
 
     <script type="text/javascript">getCurrentLoggedInSession();</script>
 
+    <!--This is the script for blurring the background when hovering over menu cards-->
     <script id="blur_unfocused_elements" type="text/javascript">
         var timesClicked = 0;
         function addBlur(event) {
@@ -523,6 +601,7 @@
         });
     </script>
 
+    <!--This is the script for making the menu cards work on mobile and desktop-->
     <script id="mobile_card_hover" type="text/javascript">
         function removeBlur() {
             $('.body-img').removeClass('blur');
@@ -547,6 +626,7 @@
 
         var pipelineTimesClicked = 0;
         var reportTimesClicked = 0;
+        var transferTimesClicker = 0;
         var requestTimesClicked = 0;
         var documentationTimesClicked = 0;
         var testTimesClicked = 0;
@@ -555,10 +635,13 @@
             setTimeout(function() {pipelineTimesClicked = 0;}, 4000);
             pipelineTimesClicked = dynamicListener(pipelineTimesClicked, switchToPipelineView)
         });
-
         $("#report_card").click(function() {
             setTimeout(function() {reportTimesClicked = 0;}, 4000);
             reportTimesClicked = dynamicListener(reportTimesClicked, switchToReportView);
+        });
+        $("#transfer_card").click(function() {
+            setTimeout(function() {transferTimesClicker = 0;}, 4000);
+            transferTimesClicker = dynamicListener(transferTimesClicker, switchToTransferView);
         });
         $("#request_card").click(function() {
             setTimeout(function() {requestTimesClicked = 0;}, 4000);
@@ -574,6 +657,7 @@
         });
     </script>
 
+    <!--This is the script for doing a spaceship animation when a job is submitted-->
     <script type="text/javascript">
         function stars() {
             let count = 50;

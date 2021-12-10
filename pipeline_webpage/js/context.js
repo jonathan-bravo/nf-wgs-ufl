@@ -96,6 +96,7 @@ function switchToLogInView(){
     $("#report_selection").hide();
     $("#request_runs_box").hide();
     $("#email").hide();
+    $("#transfer_run_box").hide();
 }
 
 function switchToLoggedInView(){
@@ -326,6 +327,29 @@ function switchToRequestReportsView() {
     $("#request_run_or_sample_box").hide();
     $("#request_samples_box").hide();
     $("#request_reports_box").show();
+}
+
+function switchToTransferView() {
+    $("#intro").hide();
+    $("#log_out_button").show();
+    $("#menu").hide();
+    $("#workflow_question_box").hide();
+    $("#exome_question_box").hide();
+    $("#runs_box").hide();
+    $("#lane_box").hide();
+    $("#match_box").hide();
+    $("#command_box").hide();
+    $("#launch_img").hide();
+    $("#germline_command").hide();
+    $("#multiqc_command").hide();
+    $("#report_selection_back").hide();
+    $("#report_selection").hide();
+    $("#email").hide();
+    $("#request_runs_box").hide();
+    $("#request_run_or_sample_box").hide();
+    $("#request_samples_box").hide();
+    $("#request_reports_box").hide();
+    $("#transfer_run_box").show();
 }
 
 function switchToDocumentationView(){

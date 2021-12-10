@@ -2,6 +2,9 @@
 .nextflow*
 timeline*
 trace*
+.DS_Store
+*/.DS_Store
 **/.DS_Store
 *.gz
 *.gz.tbi
+.DS_Store

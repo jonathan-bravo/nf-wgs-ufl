@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-TYPE="WGS";
-SPACED="";
+PROJECT="WGS";
 
 usage () {
     cat << EOF
@@ -11,18 +10,16 @@ usage () {
     -h -- to call this help function
     -r -- [REQUIRED] is the run id 'NQ-##-##'
     -b -- [REQUIRED] the destination s3 bucket
-    -n -- [REQUIRED] the number of the file
-    -s -- indicates that there are spaces in the desired file names
     -e -- indicates that the desired files are exome sequences
 
     EXAMPLE: ./bs-to-aws.sh -r NQ-20-10 -b awsbucket
-    EXAMPLE: ./bs-to-aws.sh -r NQ-21-10 -b awsbucket -se
+    EXAMPLE: ./bs-to-aws.sh -r NQ-21-10 -b awsbucket -e
 
 EOF
     exit 1;
 }
 
-while getopts "hser:b:n:" opt; do
+while getopts "her:b:" opt; do
     case $opt in
         h)
             usage
@@ -33,14 +30,8 @@ while getopts "hser:b:n:" opt; do
         b)
             BUCKET="s3://"$OPTARG
             ;;
-        n)
-            NUM=$OPTARG
-            ;;
-        s)
-            SPACED="SPACED"
-            ;;
         e)
-            TYPE="WES"
+            PROJECT="WES"
             ;;
         \?)
             usage
@@ -53,36 +44,69 @@ then
     printf "    Missing required argument\n";
     usage;
     exit 1;
-elif [[ ${SPACED} == "SPACED" && ${NUM} == '' ]];
-then
-    printf "    Missing required argument\n";
-    usage;
-    exit 1;
 fi
 
-case ${TYPE}" "${SPACED} in
-    "WGS SPACED")
-        for f in ~/BaseSpace/Projects/WGS/Samples/${RUN}*\ \(${NUM}\)/Files/;
+PROJECTID=$(./bs list projects | \
+grep ${PROJECT} | \
+awk -F'|' '{print $3}');
+
+mkdir ${RUN};
+
+./bs -v download project \
+-i ${PROJECTID} \
+-o ${RUN} \
+--exclude '*' \
+--include ${RUN}'*fastq.gz';
+
+case ${PROJECT} in
+    "WGS")
+        MINSIZE=4200000000
+        for f in ${RUN}/*;
         do
-            aws s3 sync "${f}" ${BUCKET}/Fastqs/;
+            if [[ ${f} == *.json ]];
+            then
+                mv ${f} ${RUN}/WGS_${RUN}.json
+                aws s3 cp ${RUN}/WGS_${RUN}.json ${BUCKET}/Fastqs/_json_logs/
+            else
+                BIG_ENOUGH=true
+                for FASTQ in ${f}/*;
+                do
+                    FILESIZE=$(stat -c%s "${FASTQ}")
+                    if (( FILESIZE < MINSIZE ));
+                    then
+                        BIG_ENOUGH=false
+                    fi
+                done
+                if [ "${BIG_ENOUGH}" = true ];
+                then
+                    aws s3 sync ${f} ${BUCKET}/Fastqs/
+                fi
+            fi
         done
         ;;
-    "WGS ")
-        for f in ~/BaseSpace/Projects/WGS/Samples/${RUN}*/Files/;
+    "WES")
+        MINSIZE=1200000000
+        for f in ${RUN}/*;
         do
-            aws s3 sync "${f}" ${BUCKET}/Fastqs/;
-        done
-        ;;
-    "WES SPACED")
-        for f in ~/BaseSpace/Projects/WES/Samples/${RUN}*\ \(${NUM}\)/Files/;
-        do
-            aws s3 sync "${f}" ${BUCKET}/Exome_Fastqs/;
-        done
-        ;;
-    "WES ")
-        for f in ~/BaseSpace/Projects/WES/Samples/${RUN}*/Files/;
-        do
-            aws s3 sync "${f}" ${BUCKET}/Exome_Fastqs/;
+            if [[ ${f} == *.json ]];
+            then
+                mv ${f} ${RUN}/WES_${RUN}.json
+                aws s3 cp ${RUN}/WES_${RUN}.json ${BUCKET}/Fastqs/_json_logs/
+            else
+                BIG_ENOUGH=true
+                for FASTQ in ${f}/*;
+                do
+                    FILESIZE=$(stat -c%s "${FASTQ}")
+                    if (( FILESIZE < MINSIZE ));
+                    then
+                        BIG_ENOUGH=false
+                    fi
+                done
+                if [ "${BIG_ENOUGH}" = true ];
+                then
+                    aws s3 sync ${f} ${BUCKET}/Exome_Fastqs/
+                fi
+            fi
         done
         ;;
 esac

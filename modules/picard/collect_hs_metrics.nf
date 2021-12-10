@@ -12,6 +12,7 @@ process PICARD_COLLECT_HS_METRICS {
     input:
     path reference
     path ref_fai
+    path ref_gzi
     path target
     path bait
     tuple val(sample_id), file("${sample_id}_md.bam")

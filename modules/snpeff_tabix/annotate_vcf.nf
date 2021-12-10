@@ -22,7 +22,7 @@ process ANNOTATE_VCF {
 
     java -jar /snpEff/snpEff.jar \
     -csvStats ${sample_id}_snpeff_stats.csv \
-    -v -canon hg19 \
+    -v -canon GRCh37.75 \
     ${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz \
     > ${sample_id}_snpeff.vcf
     """
