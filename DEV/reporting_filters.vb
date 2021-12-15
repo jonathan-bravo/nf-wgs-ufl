@@ -8,12 +8,12 @@ Sub FilterSNPs()
     NumRows = Range("A1", Range("A1").End(xldown)).Rows.Count
     Range("A1").Select
     For X = 2 To NumRows
-        If Cells(X,15).Value = 0 And Cells(X,16).Value < 20 And Cells(X,17).Value <> "Pathogenic" And Cells(X,17) <> "Pathogenic/Likely_pathogenic" Then
-            Cells(X,20) = "DON'T KEEP"
-        ElseIf Cells(X,16).Value < 10 And Cells(X,15).Value < 0.5 And Cells(X,17).Value <> "Pathogenic" And Cells(X,17) <> "Pathogenic/Likely_pathogenic" Then
-            Cells(X,20) = "DON'T KEEP"
+        If Cells(X,15).Value = 0 And Cells(X,16).Value < 20 And Cells(X,17).Value <> "Pathogenic" And Cells(X,17) <> "Pathogenic/Likely_pathogenic" And Cells(X,12).Value <> "homozygous" Then
+            Cells(X,21) = "DON'T KEEP"
+        ElseIf Cells(X,16).Value < 10 And Cells(X,15).Value < 0.5 And Cells(X,17).Value <> "Pathogenic" And Cells(X,17) <> "Pathogenic/Likely_pathogenic" And Cells(X,12).Value <> "homozygous" Then
+            Cells(X,21) = "DON'T KEEP"
         Else
-            Cells(X,20) = "KEEP"
+            Cells(X,21) = "KEEP"
         End If
         Dim Y As Long
         Dim ReadsArray(4) As Integer
@@ -42,9 +42,9 @@ Sub FilterSNPs()
         ActiveCell.Offset(1, 0).Select
     Next X
     Range("A2").AutoFilter _
-        Field:=20, _
+        Field:=21, _
         Criteria1:="KEEP"
-    Range("T:T").EntireColumn.Hidden = TRUE
+    Range("U:U").EntireColumn.Hidden = TRUE
 End Sub
 
 ' Filter SVs
@@ -57,10 +57,10 @@ Sub FilterSVs()
     NumRows = Range("A1", Range("A1").End(xldown)).Rows.Count
     Range("A1").Select
     For X = 2 To NumRows
-        If Cells(X,14).Value < 10 And Cells(X,16).Value <> "Pathogenic" And Cells(X,16) <> "Pathogenic/Likely_pathogenic" Then
-            Cells(X,19) = "DON'T KEEP"
+        If Cells(X,14).Value < 10 And Cells(X,16).Value <> "Pathogenic" And Cells(X,16) <> "Pathogenic/Likely_pathogenic" And Cells(X,12).Value <> "homozygous" Then
+            Cells(X,20) = "DON'T KEEP"
         Else
-            Cells(X,19) = "KEEP"
+            Cells(X,20) = "KEEP"
         End If
         Dim Y As Long
         Dim ReadsArray(4) As Integer
@@ -86,9 +86,9 @@ Sub FilterSVs()
         ActiveCell.Offset(1, 0).Select
     Next X
     Range("A2").AutoFilter _
-        Field:=19, _
+        Field:=20, _
         Criteria1:="KEEP"
-    Range("S:S").EntireColumn.Hidden = TRUE
+    Range("T:T").EntireColumn.Hidden = TRUE
 End Sub
 
 ' Filter EXPs
