@@ -13,6 +13,7 @@ include { SAMTOOLS_INDEX_MD                  } from '../modules/samtools/index_m
 include { PICARD_COLLECT_WGS_METRICS         } from '../modules/picard/collect_wgs_metrics'        addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { PICARD_COLLECT_HS_METRICS          } from '../modules/picard/collect_hs_metrics'         addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { PICARD_MARK_DUPLICATES             } from '../modules/picard/mark_duplicates'            addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
+include { MANTA_WGS                          } from '../modules/manta/manta_wgs'                   addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WGS                       } from '../modules/strelka2/call_snv_wgs'             addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_SNV_WES                       } from '../modules/strelka2/call_snv_wes'             addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CALL_CNV                           } from '../modules/cn_mops/call_cnv'                  addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
@@ -225,6 +226,14 @@ workflow GERMLINE {
 
         ANNOTATE_VCF(
             CALL_SNV_WGS.out.snv_vcf
+        )
+
+        MANTA_WGS(
+            params.reference,
+            params.ref_fai,
+            params.ref_gzi,
+            PICARD_MARK_DUPLICATES.out.md_bam,
+            SAMTOOLS_INDEX_MD.out.index_md_bam
         )
     }
 
