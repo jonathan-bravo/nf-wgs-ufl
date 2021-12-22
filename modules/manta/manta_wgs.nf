@@ -24,7 +24,7 @@ process MANTA_WGS {
     mkdir ${sample_id}_manta
 
     /manta-1.6.0.centos6_x86_64/bin/configManta.py \
-    --bam ${bam_bai[0]} \
+    --bam ${sample_id}_md.bam \
     --referenceFasta ${reference} \
     --runDir ${sample_id}_manta
 
