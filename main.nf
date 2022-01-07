@@ -76,17 +76,18 @@ cnv_controls_params = [
     "ref_gzi"       : params.ref_gzi
 ]
 
+include { GERMLINE }     from './workflows/ufl-germline' addParams( germline_params: germline_params )
+include { MULTIQC }      from './workflows/ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
+include { CNV_CONTROLS } from './workflows/cnv-controls' addParams( cnv_controls_params: cnv_controls_params )
+
 workflow {
     if (params.pipeline == "GERMLINE") {
-        include { GERMLINE } from './workflows/ufl-germline' addParams( germline_params: germline_params )
         GERMLINE ()
     }
     if (params.pipeline == "MULTIQC") {
-        include { MULTIQC } from './workflows/ufl-multiqc'  addParams( multiqc_params:  multiqc_params  )
         MULTIQC ()
     }
     if (params.pipeline == "CNV_CONTROLS") {
-        include { CNV_CONTROLS } from './workflows/cnv-controls' addParams( cnv_controls_params: cnv_controls_params )
         CNV_CONTROLS ()
     }
 }
