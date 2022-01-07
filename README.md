@@ -1,4 +1,5 @@
 # nf-wgs-ufl
+## Tools
 
 This pipeline is a compilation of many open source tools:
 
@@ -23,6 +24,8 @@ This pipeline is a compilation of many open source tools:
 - [OMIM](https://www.omim.org/)
 - [gnomAD 2.1.1](https://doi.org/10.1038/s41586-020-2308-7)
 - [ClinVar GRcH37_2021-04-18](https://doi.org/10.1093/nar/gkx1153)
+
+## Workflow
 
 This pipeline is used through the `pipeline_webpage` that is hosted in AWS through CloudFront. All data is in AWS S3 and all computation occurs in AWS. This is an ongoing project that will continue to evolve as the needs of our lab evolves.
 
