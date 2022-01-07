@@ -228,13 +228,13 @@ workflow GERMLINE {
             CALL_SNV_WGS.out.snv_vcf
         )
 
-        // MANTA_WGS(
-        //     params.reference,
-        //     params.ref_fai,
-        //     params.ref_gzi,
-        //     PICARD_MARK_DUPLICATES.out.md_bam,
-        //     SAMTOOLS_INDEX_MD.out.index_md_bam
-        // )
+        MANTA_WGS(
+            params.reference,
+            params.ref_fai,
+            params.ref_gzi,
+            PICARD_MARK_DUPLICATES.out.md_bam,
+            SAMTOOLS_INDEX_MD.out.index_md_bam
+        )
     }
 
     CALL_CNV(
