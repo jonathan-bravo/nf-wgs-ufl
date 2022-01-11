@@ -99,7 +99,9 @@ async function launch_reporting() {
                 });
             }
         } else {
-            gen_report = true
+            if(samples[i].checked){
+                gen_report = true
+            }
         }
 
         if(gen_report){
@@ -226,7 +228,7 @@ function get_panels_parent(){
     select_all_box.appendChild(select_all);
 
     var parent_box = document.getElementById("parent_selector_box");
-    var child_box = document.getElementById("parent_selector_child_box");
+    var child_box = document.getElementById("parent_selector_child_box"); //WHAT?
     var parent_selector = document.getElementById("parent_selector");
 
     var low_coverage = document.createElement("option");
@@ -287,20 +289,29 @@ function get_panels_parent(){
                 this.qs2.cache();
 
                 var selectors = [${ms_filtered_samples}];
+                var samples = document.getElementsByName('sample_id');
 
                 for(var j = 0; j < selectors.length; j++){
-                    var p = document.getElementById(String(selectors[j])).children; //selector
-                    var s = p[0].children[0]; // selectable list
-                    var sl = s.children; // listed elements
-                    var l = p[1].children[0];
-                    var ll = l.children;
-
-                    for(var i = 0; i< sl.length; i++) {
-                        var v = sl[i].children[0].innerHTML; // value
-                        if(v == ms[0]){
-                            sl[i].style = "display: none;";
-                            ll[i].className = "ms-elem-selection ms-selected";
-                            ll[i].style = "";
+                    if(samples[j].checked){
+                        var p = document.getElementById(String(selectors[j])).children; //selector
+                        var s = p[0].children[0]; // selectable list
+                        var sl = s.children; // listed elements
+                        var l = p[1].children[0];
+                        var ll = l.children;
+                        
+                        var z = document.getElementById(samples[j].id+"_select").children;
+                        
+                        for(var i = 0; i< sl.length; i++) {
+                            var v = sl[i].children[0].innerHTML; // value
+                            if(v == ms[0]){
+                                sl[i].style = "display: none;";
+                                ll[i].className = "ms-elem-selection ms-selected";
+                                ll[i].style = "";
+                            }
+                            if(z[i].innerHTML == ms[0]){
+                                console.log(z[i]);
+                                z[i].setAttribute("selected", "selected");
+                            }
                         }
                     }
                 }
@@ -310,22 +321,31 @@ function get_panels_parent(){
                 this.qs2.cache();
 
                 var selectors = [${ms_filtered_samples}];
+                var samples = document.getElementsByName('sample_id');
 
                 for(var j = 0; j < selectors.length; j++){
-                    var p = document.getElementById(String(selectors[j])).children; //selector
-                    var s = p[0].children[0]; // selectable list
-                    var sl = s.children; // listed elements
-                    var l = p[1].children[0];
-                    var ll = l.children;
+                    if(samples[j].checked){
+                        var p = document.getElementById(String(selectors[j])).children; //selector
+                        var s = p[0].children[0]; // selectable list
+                        var sl = s.children; // listed elements
+                        var l = p[1].children[0];
+                        var ll = l.children;
 
-                    for(var i = 0; i< ll.length; i++) {
-                        var v = ll[i].children[0].innerHTML; // value
-                        if(v == ms[0]){
-                            ll[i].style = "display: none;";
-                            ll[i].className = "ms-elem-selection";
-                            sl[i].style = "";
+                        var z = document.getElementById(samples[j].id+"_select").children;
+
+                        for(var i = 0; i< ll.length; i++) {
+                            var v = ll[i].children[0].innerHTML; // value
+                            if(v == ms[0]){
+                                ll[i].style = "display: none;";
+                                ll[i].className = "ms-elem-selection";
+                                sl[i].style = "";
+                            }
+                            if(z[i].innerHTML == ms[0]){
+                                console.log(z[i]);
+                                z[i].removeAttribute("selected");
+                            }
                         }
-                    }
+                    }    
                 }
             }
         })`;
