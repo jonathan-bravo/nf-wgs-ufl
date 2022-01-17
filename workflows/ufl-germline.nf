@@ -83,15 +83,11 @@ else if (params.lanes == "FOUR") {
     reads4_ch = Channel.fromFilePairs(params.reads4)
 
     reads_ch
-        .mix(
-            reads2_ch,
-            reads3_ch,
-            reads4_ch
-        )
-        .groupTuple()
+        .combine(reads2_ch, by: 0)
+        .combine(reads3_ch, by: 0)
+        .combine(reads4_ch, by: 0)
         .set { reads_ch }
 }
-
 
 
 workflow GERMLINE {
