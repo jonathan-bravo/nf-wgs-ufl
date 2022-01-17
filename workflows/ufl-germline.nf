@@ -57,10 +57,7 @@ else if (params.lanes == "TWO") {
     reads2_ch = Channel.fromFilePairs(params.reads2)
 
     reads_ch
-        .mix(
-            reads2_ch
-        )
-        .groupTuple()
+        .combine(reads2_ch, by: 0)
         .set { reads_ch }
 }
 else if (params.lanes == "FOUR") {
