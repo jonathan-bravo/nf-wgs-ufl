@@ -10,8 +10,7 @@ process PICARD_MARK_DUPLICATES {
     label 'high_mem'
 
     input:
-    tuple val(sample_id), file("${sample_id}-sort.bam")
-    tuple val(sample_id), file("${sample_id}-sort.bam.bai")
+    tuple val(sample_id), file("${sample_id}-sort.bam"), file("${sample_id}-sort.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_md.bam"), emit: md_bam

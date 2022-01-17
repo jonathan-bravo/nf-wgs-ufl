@@ -13,8 +13,7 @@ process CALL_SNV_WGS {
     path reference
     path ref_fai
     path ref_gzi
-    tuple val(sample_id), file("${sample_id}_md.bam")
-    tuple val(sample_id), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz"), emit: snv_vcf

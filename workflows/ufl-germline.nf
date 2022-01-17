@@ -53,8 +53,15 @@ else if (params.lanes == "TWO") {
         params.reads2 = "${params.bucket}/Fastqs/${params.run_id}*_L002_{R1,R2}_001.fastq.gz"
     }
 
-    reads1_ch = Channel.fromFilePairs(params.reads1)
+    reads_ch = Channel.fromFilePairs(params.reads1)
     reads2_ch = Channel.fromFilePairs(params.reads2)
+
+    reads_ch
+        .mix(
+            reads2_ch
+        )
+        .groupTuple()
+        .set { reads_ch }
 }
 else if (params.lanes == "FOUR") {
     if (params.exome == "YES"){
@@ -70,10 +77,19 @@ else if (params.lanes == "FOUR") {
         params.reads4 = "${params.bucket}/Fastqs/${params.run_id}*_L004_{R1,R2}_001.fastq.gz"
     }
 
-    reads1_ch = Channel.fromFilePairs(params.reads1)
+    reads_ch = Channel.fromFilePairs(params.reads1)
     reads2_ch = Channel.fromFilePairs(params.reads2)
     reads3_ch = Channel.fromFilePairs(params.reads3)
     reads4_ch = Channel.fromFilePairs(params.reads4)
+
+    reads_ch
+        .mix(
+            reads2_ch,
+            reads3_ch,
+            reads4_ch
+        )
+        .groupTuple()
+        .set { reads_ch }
 }
 
 
@@ -104,8 +120,7 @@ workflow GERMLINE {
     }
     else if (params.lanes == "TWO") {
         CAT_TWO_LANES(
-            reads1_ch,
-            reads2_ch
+            reads_ch,
         )
 
         FASTQC(
@@ -133,10 +148,7 @@ workflow GERMLINE {
     }
     else if (params.lanes == "FOUR") {
         CAT_FOUR_LANES(
-            reads1_ch,
-            reads2_ch,
-            reads3_ch,
-            reads4_ch,
+            reads_ch
         )
 
         FASTQC(
@@ -175,14 +187,31 @@ workflow GERMLINE {
         SAMTOOLS_SORT.out.sort_bam
     )
 
+    bam_ch = SAMTOOLS_SORT.out.sort_bam
+
+    bam_ch
+        .mix(
+            SAMTOOLS_INDEX.out.index_sort_bam
+        )
+        .groupTuple()
+        .set { bam_ch }
+
     PICARD_MARK_DUPLICATES(
-        SAMTOOLS_SORT.out.sort_bam,
-        SAMTOOLS_INDEX.out.index_sort_bam
+        bam_ch
     )
 
     SAMTOOLS_INDEX_MD(
         PICARD_MARK_DUPLICATES.out.md_bam
     )
+
+    bam_md_ch = PICARD_MARK_DUPLICATES.out.md_bam
+
+    bam_md_ch
+        .mix(
+            SAMTOOLS_INDEX_MD.out.index_md_bam
+        )
+        .groupTuple()
+        .set { bam_md_ch }
 
     if (params.exome == "YES"){
         PICARD_COLLECT_HS_METRICS(
@@ -212,16 +241,14 @@ workflow GERMLINE {
             params.reference,
             params.ref_fai,
             params.ref_gzi,
-            PICARD_MARK_DUPLICATES.out.md_bam,
-            SAMTOOLS_INDEX_MD.out.index_md_bam
+            bam_md_ch
         )
 
         CALL_SNV_WGS(
             params.reference,
             params.ref_fai,
             params.ref_gzi,
-            PICARD_MARK_DUPLICATES.out.md_bam,
-            SAMTOOLS_INDEX_MD.out.index_md_bam
+            bam_md_ch
         )
 
         ANNOTATE_VCF(
@@ -232,16 +259,14 @@ workflow GERMLINE {
             params.reference,
             params.ref_fai,
             params.ref_gzi,
-            PICARD_MARK_DUPLICATES.out.md_bam,
-            SAMTOOLS_INDEX_MD.out.index_md_bam
+            bam_md_ch
         )
     }
 
     CALL_CNV(
         params.cnv_control,
         params.cnv_vcf_header,
-        PICARD_MARK_DUPLICATES.out.md_bam,
-        SAMTOOLS_INDEX_MD.out.index_md_bam
+        bam_md_ch
     )
 
     INDEX_CNV(
@@ -258,8 +283,7 @@ workflow GERMLINE {
         params.reference,
         params.ref_fai,
         params.ref_gzi,
-        PICARD_MARK_DUPLICATES.out.md_bam,
-        SAMTOOLS_INDEX_MD.out.index_md_bam
+        bam_md_ch
     )
 
     CALL_EH_RESEARCH(
@@ -267,8 +291,7 @@ workflow GERMLINE {
         params.reference,
         params.ref_fai,
         params.ref_gzi,
-        PICARD_MARK_DUPLICATES.out.md_bam,
-        SAMTOOLS_INDEX_MD.out.index_md_bam
+        bam_md_ch
     )
 
     vcf_concat_ch = ANNOTATE_VCF.out.snpeff_vcf

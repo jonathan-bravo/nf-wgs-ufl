@@ -12,8 +12,7 @@ process CALL_CNV {
     input:
     path cnv_control
     path header
-    tuple val(sample_id), file("${sample_id}_md.bam")
-    tuple val(sample_id), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf"), emit: cnv_vcf

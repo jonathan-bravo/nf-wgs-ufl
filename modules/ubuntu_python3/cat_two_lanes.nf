@@ -9,8 +9,7 @@ process CAT_TWO_LANES {
     label 'small_process'
 
     input:
-    tuple val(sample_id), path(reads1)
-    tuple val(sample_id), path(reads2)
+    tuple val(sample_id), path(reads1), path(reads2) 
 
     output:
     tuple val(sample_id), file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz"), emit: read_pairs

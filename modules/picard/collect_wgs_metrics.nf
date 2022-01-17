@@ -13,8 +13,7 @@ process PICARD_COLLECT_WGS_METRICS {
     path reference
     path ref_fai
     path ref_gzi
-    tuple val(sample_id), file("${sample_id}_md.bam")
-    tuple val(sample_id), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_gatk_collect_wgs_metrics.txt"), emit: wgs_metrics

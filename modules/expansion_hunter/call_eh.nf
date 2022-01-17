@@ -14,8 +14,7 @@ process CALL_EH {
     path reference
     path ref_fai
     path ref_gzi
-    tuple val(sample_id), file("${sample_id}_md.bam")
-    tuple val(sample_id), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
 
     output:
     tuple val(sample_id), file("${sample_id}_filtered_eh.vcf"), emit: eh_vcf

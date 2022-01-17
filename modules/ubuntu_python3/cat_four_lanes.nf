@@ -9,10 +9,7 @@ process CAT_FOUR_LANES {
     label 'small_process'
 
     input:
-    tuple val(sample_id), path(reads1)
-    tuple val(sample_id), path(reads2)
-    tuple val(sample_id), path(reads3)
-    tuple val(sample_id), path(reads4)
+    tuple val(sample_id), path(reads1), path(reads2), path(reads3), path(reads4)
 
     output:
     tuple val(sample_id), file("${sample_id}_R1.fastq.gz"), file("${sample_id}_R2.fastq.gz"), emit: read_pairs
