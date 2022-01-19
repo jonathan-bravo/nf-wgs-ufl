@@ -183,10 +183,7 @@ workflow GERMLINE {
     bam_ch = SAMTOOLS_SORT.out.sort_bam
 
     bam_ch
-        .mix(
-            SAMTOOLS_INDEX.out.index_sort_bam
-        )
-        .groupTuple()
+        .combine(SAMTOOLS_INDEX.out.index_sort_bam, by: 0)
         .set { bam_ch }
 
     PICARD_MARK_DUPLICATES(
@@ -200,10 +197,7 @@ workflow GERMLINE {
     bam_md_ch = PICARD_MARK_DUPLICATES.out.md_bam
 
     bam_md_ch
-        .mix(
-            SAMTOOLS_INDEX_MD.out.index_md_bam
-        )
-        .groupTuple()
+        .combine(SAMTOOLS_INDEX_MD.out.index_md_bam, by: 0)
         .set { bam_md_ch }
 
     if (params.exome == "YES"){
