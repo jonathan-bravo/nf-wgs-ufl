@@ -587,26 +587,26 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
         }
         cnv_range = range(cnv[1], cnv[2]+1)
         for snp in snp_list:
-            snp_overlap = (snp[0] == cnv[0] and snp[1] in cnv_range)
+            snp_overlap = (snp[0] == cnv[0] and snp[1] in cnv_range and snp[14] >= 10)
             if snp_overlap:
                 snp_dict = snp_dict = {
                     'Chrom': snp[0],
                     'Start': snp[1],
                     'Stop': snp[2],
                     'Gene': snp[5],
-                    'REVEL': snp[13],
-                    'CADD': snp[14]
+                    'REVEL': round(snp[13], 2),
+                    'CADD': round(snp[14], 2)
                 }
                 overlap['SNPs'].append(snp_dict)
         for sv in sv_list:
-            sv_overlap = (sv[0] == cnv[0] and sv[1] in cnv_range)
+            sv_overlap = (sv[0] == cnv[0] and sv[1] in cnv_range and sv[13] >= 10)
             if sv_overlap:
                 sv_dict = {
                     'Chrom': sv[0],
                     'Start': sv[1],
                     'Stop': sv[2],
                     'Gene': sv[5],
-                    'CADD': sv[13]
+                    'CADD': round(sv[13], 2)
                 }
                 overlap['SVs'].append(sv_dict)
         for exp in exp_list:
