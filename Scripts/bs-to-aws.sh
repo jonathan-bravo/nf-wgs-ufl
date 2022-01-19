@@ -58,6 +58,8 @@ mkdir ${RUN};
 --exclude '*' \
 --include ${RUN}'*fastq.gz';
 
+touch ${RUN}_transfer_log.txt
+
 case ${PROJECT} in
     "WGS")
         MINSIZE=4200000000
@@ -80,6 +82,8 @@ case ${PROJECT} in
                 if [ "${BIG_ENOUGH}" = true ];
                 then
                     aws s3 sync ${f} ${BUCKET}/Fastqs/
+                else
+                    echo ${f} >> ${RUN}_transfer_log.txt
                 fi
             fi
         done
@@ -105,8 +109,12 @@ case ${PROJECT} in
                 if [ "${BIG_ENOUGH}" = true ];
                 then
                     aws s3 sync ${f} ${BUCKET}/Exome_Fastqs/
+                else
+                    echo ${f} >> ${RUN}_transfer_log.txt
                 fi
             fi
         done
         ;;
 esac
+
+aws s3 cp ${RUN}_transfer_log.txt ${BUCKET}/Fastqs/_json_logs/
