@@ -24,3 +24,4 @@
 - Fix grouping for reads channels in the germline workflow
 - Round CADD and REVEL values in the `compund variants` and don't report it if CADD is below 10
 - Add a log to the `bs-to-aws.sh` script so that if any fastqs are skipped there is a record of it
+- Adjust nextflow.config so that downloads are tried more than 4 times and increase the delay.
