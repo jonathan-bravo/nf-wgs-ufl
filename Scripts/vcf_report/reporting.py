@@ -1044,7 +1044,7 @@ def prep_vcf(variant_file, cpus):
             if 'SNVHPOL' in variant.info.keys() or 'CIGAR' in variant.info.keys():
                 variant.info['REVEL'] = 0.0
                 variant.info['CADD'] = 0.0
-                variant.info['gnomAD_AF'] = 1.0
+                variant.info['gnomAD_AF'] = -1.0
                 variant.info['CLNSIG'] = '.'
                 variant.info['ALLELEID'] = '.'
                 out.write('chr')
