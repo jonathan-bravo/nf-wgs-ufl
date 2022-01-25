@@ -97,24 +97,22 @@ def read_json(json_file):
 def write_xlsx(data, file_name):
     """
     """
-    if data[6].empty:
-        with pd.ExcelWriter(f'{file_name}.xlsx') as writer:
-            data[0].to_excel(writer, sheet_name = 'SNVs', index = False)
-            data[1].to_excel(writer, sheet_name = 'SVs', index = False)
-            data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
-            data[3].to_excel(writer, sheet_name = 'Expansions', index = False)
-            data[4].to_excel(writer, sheet_name = 'Compound Variants', index = False)
-            data[7].to_excel(writer, sheet_name = 'Tools in Pipeline', index = False)
-    else:
-        with pd.ExcelWriter(f'{file_name}.xlsx') as writer:
-            data[0].to_excel(writer, sheet_name = 'SNPs', index = False)
-            data[1].to_excel(writer, sheet_name = 'SVs', index = False)
-            data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
-            data[3].to_excel(writer, sheet_name = 'Expansions', index = False)
-            data[4].to_excel(writer, sheet_name = 'Compound Variants', index = False)
+    no_snps = data[0].empty
+    no_svs = data[1].empty
+    no_cnvs = data[2].empty
+    no_exps = data[3].empty
+    no_compund = data[4].empty
+    no_lit = data[6].empty
+    with pd.ExcelWriter(f'{file_name}.xlsx') as writer:
+        if not no_snps: data[0].to_excel(writer, sheet_name = 'SNPs', index = False)
+        if not no_svs: data[1].to_excel(writer, sheet_name = 'SVs', index = False)
+        if not no_cnvs: data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
+        if not no_exps: data[3].to_excel(writer, sheet_name = 'Expansions', index = False)
+        if not no_compund: data[4].to_excel(writer, sheet_name = 'Compound Variants', index = False)
+        if not no_lit:
             data[5].to_excel(writer, sheet_name = 'Genes in Panel', index = False)
             data[6].to_excel(writer, sheet_name = 'Supporting Literature', index = False)
-            data[7].to_excel(writer, sheet_name = 'Tools in Pipeline', index = False)
+        data[7].to_excel(writer, sheet_name = 'Tools in Pipeline', index = False)
 
 
 def main():
