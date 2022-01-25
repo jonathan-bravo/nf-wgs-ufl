@@ -8,7 +8,7 @@ build: dist/docker
 	cp -r ../../main.nf .
 	cp -r ../../nextflow.config .
 	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 178175818611.dkr.ecr.us-east-1.amazonaws.com
-	docker buildx build --platform ${platform} -t nextflow:${version} .
+	docker build --platform ${platform} -t nextflow:${version} .
 	docker tag nextflow:${version} 178175818611.dkr.ecr.us-east-1.amazonaws.com/nextflow-ufl-germline:${version}
 	docker push 178175818611.dkr.ecr.us-east-1.amazonaws.com/nextflow-ufl-germline:${version}
 	rm -rf modules/
