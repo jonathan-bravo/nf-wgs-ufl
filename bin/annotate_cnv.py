@@ -45,6 +45,7 @@ def main():
                         check = (
                             gene[0] == variant.contig
                             and int(gene[1]) >= variant.start
+                            and int(gene[1]) <= variant.stop
                         )
                         if check:
                             gene_list.append(gene[3].strip())

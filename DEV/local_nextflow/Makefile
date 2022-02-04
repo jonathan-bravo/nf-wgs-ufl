@@ -7,7 +7,7 @@ build: dist/docker
 	cp -r ../../workflows/ ./workflows/
 	cp -r ../../*.nf .
 	cp -r ../../nextflow.config .
-	docker buildx build --platform ${platform} -t local_nextflow:${version} .
+	docker build --platform ${platform} -t local_nextflow:${version} .
 	rm -rf modules/
 	rm -rf bin/
 	rm -rf dist/
