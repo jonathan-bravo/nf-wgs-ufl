@@ -347,68 +347,44 @@ def parse_hits(positions, var_type):
     hits = []
     for position in positions:
         for variant in position['Variants']:
-            if var_type == 'SNV':
-                hits.append({
-                    'Contig': variant['Contig'],
-                    'Start': variant['Start'],
-                    'Stop': variant['Stop'],
-                    'Ref Allele': variant['Ref Allele'],
-                    'Alt Allele': variant['Alt Allele'],
-                    'Variant Type': variant['Variant Type'],
-                    'Transcript': variant['Transcript'],
-                    'Transcript Source': variant['Transcript Source'],
-                    'Transcript Bio Type': variant['Transcript Bio Type'],
-                    'Transcript HGNC': variant['Transcript HGNC'],
-                    'Transcript HGVSC': variant['Transcript HGVSC'],
-                    'Transcript HGVSP': variant['Transcript HGVSP'],
-                    'HGVSG/ VID': variant['HGVSG/ VID'],
-                    'Filter': position['Filter'],
-                    'Mapping Quality': position['Mapping Quality'],
-                    'Variant Frequency': position['Variant Frequency'],
-                    'Total Depth': position['Total Depth'],
-                    'Allele Depths': position['Allele Depths'],
-                    'Somatic Quality': position['Somatic Quality'],
-                    'Clinvar ID': variant['Clinvar ID'],
-                    'Clinvar Review Status': variant['Clinvar Review Status'],
-                    'Clinvar Phenotypes': variant['Clinvar Phenotypes'],
-                    'Clinvar Significance': variant['Clinvar Significance'],
-                    'dbSNP': variant['dbSNP'],
-                    'Global Minor Allele Freq': variant['Global Minor Allele Freq'],
-                    'gnomAD': variant['gnomAD'],
-                    'oneKG': variant['oneKG'],
-                    'REVEL': variant['REVEL'],
-                    'topMED': variant['topMED']
-                })
+            var_dict = {
+                'Contig': variant['Contig'],
+                'Start': variant['Start'],
+                'Stop': variant['Stop'],
+                'Ref Allele': variant['Ref Allele'],
+                'Alt Allele': variant['Alt Allele'],
+                'Variant Type': variant['Variant Type'],
+                'Transcript': variant['Transcript'],
+                'Transcript Source': variant['Transcript Source'],
+                'Transcript Bio Type': variant['Transcript Bio Type'],
+                'Transcript HGNC': variant['Transcript HGNC'],
+                'Transcript HGVSC': variant['Transcript HGVSC'],
+                'Transcript HGVSP': variant['Transcript HGVSP'],
+                'HGVSG/ VID': variant['HGVSG/ VID'],
+                'Filter': position['Filter'],
+                'Clinvar ID': variant['Clinvar ID'],
+                'Clinvar Review Status': variant['Clinvar Review Status'],
+                'Clinvar Phenotypes': variant['Clinvar Phenotypes'],
+                'Clinvar Significance': variant['Clinvar Significance'],
+                'dbSNP': variant['dbSNP'],
+                'Global Minor Allele Freq': variant['Global Minor Allele Freq'],
+                'gnomAD': variant['gnomAD'],
+                'oneKG': variant['oneKG']
+            }
+            if var_type == 'SNV':  
+                var_dict['Mapping Quality'] = position['Mapping Quality']
+                var_dict['Variant Frequency'] = position['Variant Frequency']
+                var_dict['Total Depth'] = position['Total Depth']
+                var_dict['Allele Depths'] = position['Allele Depths']
+                var_dict['Somatic Quality'] = position['Somatic Quality']
+                var_dict['REVEL'] = variant['REVEL']
+                var_dict['topMED'] = variant['topMED']
             elif var_type == 'SV':
-                hits.append({
-                    'Contig': variant['Contig'],
-                    'Start': variant['Start'],
-                    'Stop': variant['Stop'],
-                    'Ref Allele': variant['Ref Allele'],
-                    'Alt Allele': variant['Alt Allele'],
-                    'Variant Type': variant['Variant Type'],
-                    'Transcript': variant['Transcript'],
-                    'Transcript Source': variant['Transcript Source'],
-                    'Transcript Bio Type': variant['Transcript Bio Type'],
-                    'Transcript HGNC': variant['Transcript HGNC'],
-                    'Transcript HGVSC': variant['Transcript HGVSC'],
-                    'Transcript HGVSP': variant['Transcript HGVSP'],
-                    'HGVSG/ VID': variant['HGVSG/ VID'],
-                    'Filter': position['Filter'],
-                    'Split Read Counts': position['Split Read Counts'],
-                    'Paired End Read Counts': position['Paired End Read Counts'],
-                    'Clingen ID': position['Clingen ID'],
-                    'Clingen Interperitation': position['Clingen Interperitation'],
-                    'Clingen Phenotypes': position['Clingen Phenotypes'],
-                    'Clinvar ID': variant['Clinvar ID'],
-                    'Clinvar Review Status': variant['Clinvar Review Status'],
-                    'Clinvar Phenotypes': variant['Clinvar Phenotypes'],
-                    'Clinvar Significance': variant['Clinvar Significance'],
-                    'dbSNP': variant['dbSNP'],
-                    'Global Minor Allele Freq': variant['Global Minor Allele Freq'],
-                    'gnomAD': variant['gnomAD'],
-                    'oneKG': variant['oneKG']
-                })
+                var_dict['Split Read Counts'] = position['Split Read Counts']
+                var_dict['Paired End Read Counts'] = position['Paired End Read Counts']
+                var_dict['Clingen ID'] = position['Clingen ID']
+                var_dict['Clingen Interperitation'] = position['Clingen Interperitation']
+                var_dict['Clingen Phenotypes'] = position['Clingen Phenotypes']
     df = pd.DataFrame(hits)
     return df
 
@@ -508,6 +484,111 @@ def parse_bed(bed_file):
     return df
 
 
+def parse_cnv_seg(cnv_seg):
+    """
+    """
+    cnvs = []
+    with open(cnv_seg, 'r') as seg:
+        for line in seg:
+            entry = line.split('\t').strip()
+            sample = entry[0]
+            chrom = entry[1]
+            start = entry[2]
+            end = entry[3]
+            num_targets = entry[4]
+            seg_mean = entry[5]
+            seg_call = entry[6]
+            qual = entry[7]
+            qual_filter = entry[8]
+            copy_number = entry[9]
+            ploidy = entry[10]
+            imp_pairs = entry[11]
+            cnvs.append({
+                'Sample': sample,
+                'Chromosome': chrom,
+                'Start': start,
+                'End': end,
+                'Num_Targets': num_targets,
+                'Segment_Mean': seg_mean,
+                'Segment_Call': seg_call,
+                'Qual': qual,
+                'Filter': qual_filter,
+                'Copy_Number': copy_number,
+                'Ploidy': ploidy,
+                'Improper_Pairs': imp_pairs
+            })
+    return cnvs
+
+
+def parse_cnv_json(cnv_json):
+    """
+    """
+    cnvs = []
+    with gzip.open(cnv_json, 'r') as j:
+        data = json.load(j)
+        for position in data['positions']:
+            contig = position['chromosome']
+            start = position['position']
+            stop = position['svEnd']
+            sv_len = position['svLength']
+            cytoband = position['cytogeneticBand']
+            variant = position['variants'][0]
+            var_type = variant['variantType']
+            for transcript in variant['transcripts']:
+                if transcript['source'] == 'RefSeq':
+                    source = transcript['source']
+                    try: transcript_name = transcript['transcript']
+                    except KeyError: transcript_name = 'NA'
+                    try: bio_type = transcript['bioType']
+                    except KeyError: bio_type = 'NA'
+                    try: hgnc = transcript['hgnc']
+                    except KeyError: hgnc = "NA"
+                    break
+            if source != 'RefSeq':
+                source = variant['transcripts'][0]['source']
+                try: transcript_name = variant['transcripts'][0]['transcript']
+                except KeyError: transcript_name = 'NA'
+                try: bio_type = variant['transcripts'][0]['bioType']
+                except KeyError: bio_type = 'NA'
+                try: hgnc = variant['transcripts'][0]['hgnc']
+                except KeyError: hgnc = "NA"
+        cnvs.append({
+            'Chromosome': contig,
+            'Start': start,
+            'End': stop,
+            'svLength': sv_len,
+            'cytogeneticBand': cytoband,
+            'variantType': var_type,
+            'transcript': transcript_name,
+            'bioType': bio_type,
+            'hgnc': hgnc
+        })
+    return cnvs
+
+
+def parse_cnvs(seg_cnvs, json_cnvs):
+    """
+    """
+    cnvs = []
+    for cnv in seg_cnvs:
+        for j in json_cnvs:
+            svLength = j['svLength'],
+            cytogeneticBand =  j['cytogeneticBand'],
+            variantType =  j['variantType'],
+            transcript =  j['transcript'],
+            bioType =  j['bioType'],
+            hgnc =  j['hgnc']
+        cnv['svLength'] = svLength
+        cnv['cytogeneticBand'] = cytogeneticBand
+        cnv['variantType'] = variantType
+        cnv['transcript'] = transcript
+        cnv['bioType'] = bioType
+        cnv['hgnc'] = hgnc
+    cnvs.append(cnv)
+    df = pd.DataFrame(cnvs)
+    return df
+
+
 def write_xlsx(data, sample_id):
     """Write the output xlsx file
 
@@ -524,10 +605,11 @@ def write_xlsx(data, sample_id):
     with pd.ExcelWriter(f'{sample_id}.xlsx') as writer:
         data[0].to_excel(writer, sheet_name = 'SNVs', index = False)
         data[1].to_excel(writer, sheet_name = 'SVs', index = False)
-        data[2].to_excel(writer, sheet_name = 'TMB', index = False)
-        data[3].to_excel(writer, sheet_name = 'SUMMARY', index = False)
-        data[4].to_excel(writer, sheet_name = 'COVERAGE', index = False),
-        data[5].to_excel(writer, sheet_name = 'LOW COVERAGE', index = False)
+        data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
+        data[3].to_excel(writer, sheet_name = 'TMB', index = False)
+        data[4].to_excel(writer, sheet_name = 'SUMMARY', index = False)
+        data[5].to_excel(writer, sheet_name = 'COVERAGE', index = False),
+        data[6].to_excel(writer, sheet_name = 'LOW COVERAGE', index = False)
 
 
 def main():
@@ -536,19 +618,22 @@ def main():
     1. Parse the arguments to get the sample id as `args.s`
     2. Parse the SNV json file; var_type = SNV
     3. Parse the SV json file; var_type = SV
-    4. Parse the TMB csv file; qc_type = TMB
-    5. Parse the SUMMARY csv file; qc_type = SUMMARY
-    6. Parse the COVERAGE csv file; qc_type = COVERAGE
-    7. Parse the bed file
-    8. Pass all data into the xlsx writer
-    9. ???
-    10. Profit
+    4. Parse the CNV json file; var_type = CNV
+    5. Parse the TMB csv file; qc_type = TMB
+    6. Parse the SUMMARY csv file; qc_type = SUMMARY
+    7. Parse the COVERAGE csv file; qc_type = COVERAGE
+    8. Parse the bed file
+    9. Pass all data into the xlsx writer
+    10. ???
+    11. Profit
     """
     args = parse_sample_id_args()
     sample_id = args.s
     data_path = args.p
     snv_json = f'{data_path}/{sample_id}.hard-filtered.annotations.json.gz'
     sv_json = f'{data_path}/{sample_id}.sv.annotations.json.gz'
+    cnv_json = f'{data_path}/{sample_id}.cnv.annotations.json.gz'
+    cnv_seg = f'{data_path}/{sample_id}.seg.called.merged'
     tmb_csv = f'{data_path}/{sample_id}.tmb.metrics.csv'
     summary_csv = f'{data_path}/Additional Files/{sample_id}.summary.csv'
     coverage_csv = f'{data_path}/{sample_id}.qc-coverage-region-1_coverage_metrics.csv'
@@ -560,6 +645,16 @@ def main():
     sv_hits = parse_json(
         json_file = sv_json,
         var_type = 'SV'
+    )
+    seg_cnvs = parse_cnv_seg(
+        cnv_seg = cnv_seg
+    )
+    json_cnvs = parse_cnv_json(
+        cnv_json = cnv_json
+    )
+    cnv_hits = parse_cnvs(
+        seg_cnvs = seg_cnvs,
+        json_cnvs = json_cnvs
     )
     tmb = parse_qc_csv(
         csv_file = tmb_csv,
@@ -580,6 +675,7 @@ def main():
         data = (
             snv_hits,
             sv_hits,
+            cnv_hits,
             tmb,
             summary,
             coverage,
