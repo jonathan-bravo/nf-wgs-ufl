@@ -101,8 +101,7 @@ def get_cnv_determination(sample_id):
     with open(infile) as f:
         for line in f:
             entry = line.split('\t')
-            if entry[5] != 'Benign':
-                cnvs.append((entry[1], entry[2], entry[3], entry[5]))
+            cnvs.append((entry[1], entry[2], entry[3], entry[5]))
     clean = f'rm -rf {sample_id}_ClassifyCNV_out'
     system(clean)
     return cnvs
@@ -523,7 +522,7 @@ def process_exps(variant_list, panel):
 def filter_cnv(cnvs, cnv_determinations):
     """
     """
-    path_cnvs = []
+    final_cnvs = []
     for cnv in cnvs:
         for determination in cnv_determinations:
             match = (
@@ -532,7 +531,7 @@ def filter_cnv(cnvs, cnv_determinations):
                 and cnv[2] == int(determination[2])
             )
             if match:
-                path_cnvs.append((
+                final_cnvs.append((
                     cnv[0],
                     cnv[1],
                     cnv[2],
@@ -543,7 +542,7 @@ def filter_cnv(cnvs, cnv_determinations):
                     cnv[6],
                     cnv[7]
                 ))
-    return path_cnvs
+    return final_cnvs
 
 
 def get_literature(panel, genes):
@@ -565,11 +564,11 @@ def get_literature(panel, genes):
     return lit_list
 
 
-def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
+def check_interactions(final_cnvs, snp_list, sv_list, exp_list):
     """
     """
     overlaps = []
-    for cnv in path_cnvs:
+    for cnv in final_cnvs:
         cnv_dict = {
             'Chrom': cnv[0],
             'Start': cnv[1],
@@ -628,7 +627,7 @@ def check_interactions(path_cnvs, snp_list, sv_list, exp_list):
     return overlaps
 
 
-def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_id, interactions, low_qc = False):
+def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample_id, interactions, low_qc = False):
     """
     """
     genes = []
@@ -822,15 +821,15 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, path_cnvs, sample_
             'Nonsense Mediated Decay Effect': nmd,
             'Genotype': sv[11],
             'F:R_ref_F:R_alt': sv[12],
-            'CADD': sv[13],
             'gnomAD_AF': sv[14],
+            'CADD': sv[13],
             'ClinVar Significance': sv[15],
             'ClinVar Link': link,
             'OMIM Link': apply_omim(sv[5])
         }
         data['sv']['all_svs'].append(sv_dict)
     print('CNVs to json...')
-    for cnv in tqdm(path_cnvs):
+    for cnv in tqdm(final_cnvs):
         genes.append(cnv[5])
         cnv_dict = {
             'Chrom': cnv[0],
@@ -922,7 +921,7 @@ def apply_gnomad(chr, variant_list):
         snv = ('SNVHPOL' in variant.info.keys() or 'CIGAR' in variant.info.keys())
         if variant.contig == chr and snv:
             try:
-                variant.info['gnomAD_AF'] = gnomad[variant.contig][variant.start][variant.ref][variant.alts[0]]
+                variant.info['gnomAD_AF'] = gnomad[variant.contig][variant.start+1][variant.ref][variant.alts[0]]
             except KeyError:
                 continue
     del(gnomad)
@@ -980,9 +979,9 @@ def apply_annotations(variant_file, chr, panel, coverage):
     variant_list = apply_clinvar(chr, variant_list)
     if chr != 'chrM':
         variant_list = apply_revel(chr, variant_list)
+        variant_list = apply_gnomad(chr, variant_list)
         if chr != 'chrY':
             variant_list = apply_cadd(chr, variant_list)
-            variant_list = apply_gnomad(chr, variant_list)
     processed_variants = process_variants(variant_list, panel, coverage)
     return processed_variants
 
@@ -1091,7 +1090,7 @@ def main():
     cnv_bed(cnv_list, sample_id)
     call_classify_cnv(cpus, sample_id)
     cnv_determinations = get_cnv_determination(sample_id)
-    path_cnvs = filter_cnv(cnv_list, cnv_determinations)
+    final_cnvs = filter_cnv(cnv_list, cnv_determinations)
     # Separating the low QC and passing variants to create separate files
     passing_snp_list = []
     low_qc_snp_list = []
@@ -1107,7 +1106,7 @@ def main():
     for sv in sv_list:
         if sv[17] == 'PASS': passing_sv_list.append(sv)
         else: low_qc_sv_list.append(sv)
-    for cnv in path_cnvs:
+    for cnv in final_cnvs:
         if cnv[8] == 'PASS': passing_cnv_list.append(cnv)
         else: low_qc_cnv_list.append(cnv)
     for exp in exp_list:

@@ -27,6 +27,7 @@ include { ANNOTATE_VCF                       } from '../modules/snpeff_tabix/ann
 include { MULTIQC_SAMPLE                     } from '../modules/multiqc/multiqc_sample'            addParams([*:params, "outdir" : params.outdir, "run_id" : params.run_id])
 include { CAT_TWO_LANES                      } from '../modules/ubuntu_python3/cat_two_lanes'
 include { CAT_FOUR_LANES                     } from '../modules/ubuntu_python3/cat_four_lanes'
+include { VCF_TO_PARQUET                     } from '../modules/ubuntu_python3/vcf_to_parquet'
 include { ALIGN_TRIMMED_READS                } from '../modules/bwa/align_trimmed_reads'
 include { SAMTOOLS_VIEW                      } from '../modules/samtools/view'
 include { SAMTOOLS_SORT                      } from '../modules/samtools/sort'
@@ -337,5 +338,9 @@ workflow GERMLINE {
 
     MULTIQC_SAMPLE(
         qc_out_ch
+    )
+
+    VCF_TO_PARQUET(
+        MERGE_VCF.out.vcf
     )
 }   
