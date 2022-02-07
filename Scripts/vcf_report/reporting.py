@@ -116,12 +116,20 @@ def process_snps(variant_list, panel, coverage):
             snp = (
                 'SNVHPOL' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.5
+                and ( variant.info['gnomAD_AF'] >= 0.0 
+                    or (variant.info['gnomAD_AF'] == -1.0
+                    and variant.info['CADD'] >= 10.0
+                ))
                 and str(variant.info['ANN']).split('|')[3] in panel
             )
         else:
             snp = (
                 'SNVHPOL' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.001
+                and ( variant.info['gnomAD_AF'] >= 0.0 
+                    or (variant.info['gnomAD_AF'] == -1.0
+                    and variant.info['CADD'] >= 10.0
+                ))
             )
         if snp and '30x' in coverage:
             ann = str(variant.info['ANN']).split('|')[2]
@@ -184,12 +192,20 @@ def process_svs(variant_list, panel, coverage):
             sv = (
                 'CIGAR' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.5
+                and ( variant.info['gnomAD_AF'] >= 0.0 
+                    or (variant.info['gnomAD_AF'] == -1.0
+                    and variant.info['CADD'] >= 10.0
+                ))
                 and str(variant.info['ANN']).split('|')[3] in panel
             )
         else:
             sv = (
                 'CIGAR' in variant.info.keys()
                 and variant.info['gnomAD_AF'] <= 0.001
+                and ( variant.info['gnomAD_AF'] >= 0.0 
+                    or (variant.info['gnomAD_AF'] == -1.0
+                    and variant.info['CADD'] >= 10.0
+                ))
             )
         if sv and '30x' in coverage:
             ann = str(variant.info['ANN']).split('|')[2]
@@ -632,6 +648,9 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
     """
     genes = []
     data = {}
+    data['small_var'] = {
+        'small_variants':[]
+    }
     data['snp'] = {
         'all_snps':[],
     }
@@ -798,6 +817,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
             'OMIM Link': apply_omim(snp[5])
         }
         data['snp']['all_snps'].append(snp_dict)
+        data['small_var']['small_variants'].append(snp_dict)
     print('SVs to json...')      
     for sv in tqdm(sv_list):
         genes.append(sv[5])
@@ -822,12 +842,14 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
             'Genotype': sv[11],
             'F:R_ref_F:R_alt': sv[12],
             'gnomAD_AF': sv[14],
+            'REVEL': -1.0,
             'CADD': sv[13],
             'ClinVar Significance': sv[15],
             'ClinVar Link': link,
             'OMIM Link': apply_omim(sv[5])
         }
         data['sv']['all_svs'].append(sv_dict)
+        data['small_var']['small_variants'].append(sv_dict)
     print('CNVs to json...')
     for cnv in tqdm(final_cnvs):
         genes.append(cnv[5])

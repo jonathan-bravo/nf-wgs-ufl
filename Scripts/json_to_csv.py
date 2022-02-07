@@ -83,6 +83,7 @@ def read_json(json_file):
     """
     with open(json_file, 'r') as j_file:
         data = json.load(j_file)
+        small_var = pd.DataFrame(data['small_var']['small_variants'])
         snp = pd.DataFrame(data['snp']['all_snps'])
         sv = pd.DataFrame(data['sv']['all_svs'])
         cnv = pd.DataFrame(data['cnv']['all_cnvs'])
@@ -91,28 +92,29 @@ def read_json(json_file):
         genes = pd.DataFrame(data['metadata']['genes_in_panel'], columns = ['genes'])
         lit = pd.DataFrame(data['metadata']['supporting_literature'], columns = ['literature'])
         tools = pd.DataFrame(data['metadata']['pipeline'])
-    return (snp, sv, cnv, exp, interactions, genes, lit, tools)
+    return (small_var, snp, sv, cnv, exp, interactions, genes, lit, tools)
 
 
 def write_xlsx(data, file_name):
     """
     """
-    no_snps = data[0].empty
-    no_svs = data[1].empty
-    no_cnvs = data[2].empty
-    no_exps = data[3].empty
-    no_compund = data[4].empty
-    no_lit = data[6].empty
+    no_snps = data[1].empty
+    no_svs = data[2].empty
+    no_cnvs = data[3].empty
+    no_exps = data[4].empty
+    no_compund = data[5].empty
+    no_lit = data[7].empty
     with pd.ExcelWriter(f'{file_name}.xlsx') as writer:
-        if not no_snps: data[0].to_excel(writer, sheet_name = 'SNVs', index = False)
-        if not no_svs: data[1].to_excel(writer, sheet_name = 'SVs', index = False)
-        if not no_cnvs: data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
-        if not no_exps: data[3].to_excel(writer, sheet_name = 'Expansions', index = False)
-        if not no_compund: data[4].to_excel(writer, sheet_name = 'Compound Variants', index = False)
+        data[0].to_excel(writer, sheet_name = 'Small Variants', index = False)
+        if not no_snps: data[1].to_excel(writer, sheet_name = 'SNVs', index = False)
+        if not no_svs: data[2].to_excel(writer, sheet_name = 'SVs', index = False)
+        if not no_cnvs: data[3].to_excel(writer, sheet_name = 'CNVs', index = False)
+        if not no_exps: data[4].to_excel(writer, sheet_name = 'Expansions', index = False)
+        if not no_compund: data[5].to_excel(writer, sheet_name = 'Compound Variants', index = False)
         if not no_lit:
-            data[5].to_excel(writer, sheet_name = 'Genes in Panel', index = False)
-            data[6].to_excel(writer, sheet_name = 'Supporting Literature', index = False)
-        data[7].to_excel(writer, sheet_name = 'Tools in Pipeline', index = False)
+            data[6].to_excel(writer, sheet_name = 'Genes in Panel', index = False)
+            data[7].to_excel(writer, sheet_name = 'Supporting Literature', index = False)
+        data[8].to_excel(writer, sheet_name = 'Tools in Pipeline', index = False)
 
 
 def main():
