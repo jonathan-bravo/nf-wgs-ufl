@@ -385,6 +385,7 @@ def parse_hits(positions, var_type):
                 var_dict['Clingen ID'] = position['Clingen ID']
                 var_dict['Clingen Interperitation'] = position['Clingen Interperitation']
                 var_dict['Clingen Phenotypes'] = position['Clingen Phenotypes']
+            hits.append(var_dict)
     df = pd.DataFrame(hits)
     return df
 
@@ -485,16 +486,28 @@ def parse_bed(bed_file):
 
 
 def parse_cnv_seg(cnv_seg):
-    """
+    """Pasing the seg file containing CNVs
+
+    This function breaks doen the seg file into individual dictionaries so
+    that it can be merged with the data from the CNV json file.
+
+    Keyword arguments:
+
+    cnv_seg -- the input cnv seg file
+
+    Return:
+
+    cnvs -- a list of dictionaries from the seg file
     """
     cnvs = []
     with open(cnv_seg, 'r') as seg:
+        next(seg)
         for line in seg:
-            entry = line.split('\t').strip()
+            entry = line.split('\t')
             sample = entry[0]
             chrom = entry[1]
-            start = entry[2]
-            end = entry[3]
+            start = int(entry[2])
+            end = int(entry[3])
             num_targets = entry[4]
             seg_mean = entry[5]
             seg_call = entry[6]
@@ -502,7 +515,7 @@ def parse_cnv_seg(cnv_seg):
             qual_filter = entry[8]
             copy_number = entry[9]
             ploidy = entry[10]
-            imp_pairs = entry[11]
+            imp_pairs = entry[11].strip()
             cnvs.append({
                 'Sample': sample,
                 'Chromosome': chrom,
@@ -521,72 +534,87 @@ def parse_cnv_seg(cnv_seg):
 
 
 def parse_cnv_json(cnv_json):
-    """
+    """Pasing the json file containing CNVs
+
+    This function breaks doen the json file into individual dictionaries so
+    that it can be merged with the data from the CNV seg file.
+
+    Keyword arguments:
+
+    cnv_json -- the input cnv json file
+
+    Return:
+
+    cnvs -- a list of dictionaries from the json file
     """
     cnvs = []
     with gzip.open(cnv_json, 'r') as j:
         data = json.load(j)
         for position in data['positions']:
-            contig = position['chromosome']
-            start = position['position']
-            stop = position['svEnd']
             sv_len = position['svLength']
             cytoband = position['cytogeneticBand']
-            variant = position['variants'][0]
-            var_type = variant['variantType']
-            for transcript in variant['transcripts']:
-                if transcript['source'] == 'RefSeq':
-                    source = transcript['source']
-                    try: transcript_name = transcript['transcript']
-                    except KeyError: transcript_name = 'NA'
-                    try: bio_type = transcript['bioType']
-                    except KeyError: bio_type = 'NA'
-                    try: hgnc = transcript['hgnc']
-                    except KeyError: hgnc = "NA"
-                    break
-            if source != 'RefSeq':
-                source = variant['transcripts'][0]['source']
-                try: transcript_name = variant['transcripts'][0]['transcript']
-                except KeyError: transcript_name = 'NA'
-                try: bio_type = variant['transcripts'][0]['bioType']
-                except KeyError: bio_type = 'NA'
-                try: hgnc = variant['transcripts'][0]['hgnc']
-                except KeyError: hgnc = "NA"
-        cnvs.append({
-            'Chromosome': contig,
-            'Start': start,
-            'End': stop,
-            'svLength': sv_len,
-            'cytogeneticBand': cytoband,
-            'variantType': var_type,
-            'transcript': transcript_name,
-            'bioType': bio_type,
-            'hgnc': hgnc
-        })
+            for variant in position['variants']:
+                contig = variant['chromosome']
+                start = variant['begin']
+                stop = variant['end']
+                var_type = variant['variantType']
+                try:
+                    for transcript in variant['transcripts']:
+                        if transcript['source'] == 'RefSeq':
+                            source = transcript['source']
+                            try: transcript_name = transcript['transcript']
+                            except KeyError: transcript_name = 'NA'
+                            try: bio_type = transcript['bioType']
+                            except KeyError: bio_type = 'NA'
+                            try: hgnc = transcript['hgnc']
+                            except KeyError: hgnc = "NA"
+                            break
+                    if source != 'RefSeq':
+                        source = variant['transcripts'][0]['source']
+                        try: transcript_name = variant['transcripts'][0]['transcript']
+                        except KeyError: transcript_name = 'NA'
+                        try: bio_type = variant['transcripts'][0]['bioType']
+                        except KeyError: bio_type = 'NA'
+                        try: hgnc = variant['transcripts'][0]['hgnc']
+                        except KeyError: hgnc = "NA"
+                except KeyError:
+                    transcript_name = 'NA'
+                    bio_type = 'NA'
+                    hgnc = 'NA'
+            cnvs.append({
+                'Chromosome': contig,
+                'Start': int(start),
+                'End': int(stop),
+                'svLength': sv_len,
+                'cytogeneticBand': cytoband,
+                'variantType': var_type,
+                'transcript': transcript_name,
+                'bioType': bio_type,
+                'hgnc': hgnc
+            })
     return cnvs
 
 
 def parse_cnvs(seg_cnvs, json_cnvs):
+    """Merging the seg and json CNV files
+
+    This function creates DataFrames from the seg and json lists of dictionaries
+    and then merges them on their contigs, starts, and stops.
+
+    Keyword arguments:
+
+    seg_cnvs  -- the list of dictionaries returned from `parse_cnv_seg()`
+    json_cnvs -- the list of dictionaries returned from `parse_cnv_json()`
+
+    Return:
+
+    cnvs_df -- the merged DataFrame of the seg and json CNVs
     """
-    """
-    cnvs = []
-    for cnv in seg_cnvs:
-        for j in json_cnvs:
-            svLength = j['svLength'],
-            cytogeneticBand =  j['cytogeneticBand'],
-            variantType =  j['variantType'],
-            transcript =  j['transcript'],
-            bioType =  j['bioType'],
-            hgnc =  j['hgnc']
-        cnv['svLength'] = svLength
-        cnv['cytogeneticBand'] = cytogeneticBand
-        cnv['variantType'] = variantType
-        cnv['transcript'] = transcript
-        cnv['bioType'] = bioType
-        cnv['hgnc'] = hgnc
-    cnvs.append(cnv)
-    df = pd.DataFrame(cnvs)
-    return df
+    seg_df = pd.DataFrame(seg_cnvs)
+    seg_df['Start'] = seg_df['Start'] + 1
+    json_df = pd.DataFrame(json_cnvs)
+    cnvs_df = pd.merge(seg_df, json_df, how = 'outer', on = ['Chromosome', 'Start', 'End'])
+    return cnvs_df
 
 
 def write_xlsx(data, sample_id):
@@ -608,7 +636,7 @@ def write_xlsx(data, sample_id):
         data[2].to_excel(writer, sheet_name = 'CNVs', index = False)
         data[3].to_excel(writer, sheet_name = 'TMB', index = False)
         data[4].to_excel(writer, sheet_name = 'SUMMARY', index = False)
-        data[5].to_excel(writer, sheet_name = 'COVERAGE', index = False),
+        data[5].to_excel(writer, sheet_name = 'COVERAGE', index = False)
         data[6].to_excel(writer, sheet_name = 'LOW COVERAGE', index = False)
 
 
