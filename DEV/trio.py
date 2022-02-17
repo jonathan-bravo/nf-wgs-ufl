@@ -92,7 +92,7 @@ def convert_trio(trio):
     if trio == ['proband']: inheritance = 'de novo'
     elif trio == ['proband', 'maternal']: inheritance = 'maternal'
     elif trio == ['proband', 'paternal']: inheritance = 'paternal'
-    elif trio == ['proband', 'maternal', 'paternal']:inheritance = 'both'
+    elif trio == ['proband', 'maternal', 'paternal']: inheritance = 'both'
     return inheritance
 
 
@@ -125,6 +125,11 @@ def make_new_proband_json(proband_json, proband_variants):
     data['sv']['all_svs'] = svs
     data['cnv']['all_cnvs'] = cnvs
     data['exp']['all_expansions'] = exps
+    data['small_var']['small_variants'] = []
+    for snv in snvs:
+        data['small_var']['small_variants'].append(snv)
+    for sv in snvs:
+        data['small_var']['small_variants'].append(sv)
     with open(f'new_proband_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
 
