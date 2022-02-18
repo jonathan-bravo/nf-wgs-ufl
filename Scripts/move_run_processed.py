@@ -38,7 +38,15 @@ def move_fastqs(run_id, s3):
         }
         fastq = objects.key[7:]
         print(f'Moving: {fastq}')
-        s3.meta.client.copy(copy_source, my_bucket.name, f'Fastqs/_Processed/{run_id}/{fastq}')
+        s3.meta.client.copy(
+            copy_source,
+            my_bucket.name,
+            f'Fastqs/_Processed/{run_id}/{fastq}',
+            ExtraArgs = {
+                'StorageClass': 'GLACIER_IR',
+                'MetadataDirective': 'COPY'
+            }
+        )
         objects.delete()
         print(f'Finished moving: {fastq}')
 
