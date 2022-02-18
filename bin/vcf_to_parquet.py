@@ -72,8 +72,8 @@ def read_vcf(vcf, header_count, sample_id):
 def write_parquet(sample_id, vcf_stream):
     """
     """
-    run_id = f"{sample_id.split('-')[0]}-{sample_id.split('-')[1]}-{sample_id.split('-')[2]}"
-    actual_sample_id = f"{sample_id.split('-')[6]}-{sample_id.split('-')[7].split('_')[0]}"
+    run_id = '-'.join(sample_id.split('-')[:3])
+    actual_sample_id = '-'.join(sample_id.split('-')[3:])
     fields = [
         pa.field('Run ID', pa.string()),
         pa.field('Sample ID', pa.string()),
