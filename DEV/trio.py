@@ -128,7 +128,7 @@ def make_new_proband_json(proband_json, proband_variants):
     data['small_var']['small_variants'] = []
     for snv in snvs:
         data['small_var']['small_variants'].append(snv)
-    for sv in snvs:
+    for sv in svs:
         data['small_var']['small_variants'].append(sv)
     with open(f'new_proband_report.json', 'w') as outfile:
             dump(data, outfile, indent = 4)
