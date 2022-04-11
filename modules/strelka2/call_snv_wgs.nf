@@ -16,7 +16,7 @@ process CALL_SNV_WGS {
     tuple val(sample_id), path(bam), path(bai)
 
     output:
-    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf"), emit: snv_vcf
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz"), emit: snv_vcf
     tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf"), emit: snv_gvcf
     
     script:
