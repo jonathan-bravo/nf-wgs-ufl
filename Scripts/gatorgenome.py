@@ -6,7 +6,7 @@ from tkinter import ttk
 import aws_modules as aws
 
 
-def restart():
+def restart(root):
     root.destroy()
     root = Tk()
     GatorGenome(root)
@@ -33,37 +33,14 @@ class GatorGenome:
         self.canvas.create_window((0,0), window=self.scroll_frame, anchor='nw', width=640)
         self.exec_menu()
 
-
-    # def refresh(self):
-    #     try: self.bucket_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.pipeline_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.exome_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.run_id_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.reporting_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.lanes_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.match_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.launch_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.multiqc_run_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.move_fastqs_frame.destroy()
-    #     except AttributeError: pass
-    #     try: self.bs_to_aws_frame.destroy()
-    #     except AttributeError: pass
-
     
     def run_multiqc_for_run(self):
         s3 = aws.get_s3_resource()
         aws.get_qc_files(self.bucket_name.get(), self.run_id_options.get(), s3)
         aws.run_multiqc(self.run_id_options.get())
         aws.upload_multiqc(self.run_id_options.get(), s3)
+
+        restart(root)
 
 
     def run_move_fastqs_to_processed(self):
@@ -133,7 +110,7 @@ class GatorGenome:
 
         print(nf_command)
 
-        restart()
+        restart(root)
 
 
     def submit_reporting_batch_job(self):
@@ -162,7 +139,7 @@ class GatorGenome:
             self.bucket_name.get()
         )
 
-        restart()
+        restart(root)
         
 
 
@@ -172,6 +149,7 @@ class GatorGenome:
             self.pipeline_options.get() == 'Variant Calling'
             or self.pipeline_options.get() == 'MultiQC'
             or self.pipeline_options.get() == 'Reporting'
+            or self.pipeline_options.get() == 'MultiQC Run'
         )
         if output_check:
             run_ids = aws.get_run_id(self.bucket_name.get(), s3)
@@ -258,11 +236,11 @@ class GatorGenome:
             or self.pipeline_options.get() == 'Alignment'
             or self.pipeline_options.get() == 'Variant Calling'
             or self.pipeline_options.get() == 'MultiQC'
+            or self.pipeline_options.get() == 'MultiQC Run'
+            or self.pipeline_options.get() == 'Archive Fastqs'
         )
         run_id_check = (
             self.pipeline_options.get() == 'Reporting'
-            or self.pipeline_options.get() == 'MultiQC RUN'
-            or self.pipeline_options.get() == 'Archive Fastqs'
         )
         if exome_check:
             self.exome_menu()
@@ -309,7 +287,7 @@ class GatorGenome:
             self.reporting_menu()
         elif self.pipeline_options.get() == 'Variant Calling' or self.pipeline_options.get() == 'MultiQC':
             self.launch_menu()
-        elif self.pipeline_options.get() == 'MultiQC RUN':
+        elif self.pipeline_options.get() == 'MultiQC Run':
             self.multiqc_run_menu()
         elif self.pipeline_options.get == 'Archive Fastqs':
             self.move_fastqs_menu()
@@ -388,7 +366,7 @@ class GatorGenome:
             'Reporting',
             'CNV Control Generation',
             'MultiQC Run',
-            'Archive Fastqs'
+            'Archive Fastqs',
             'BS-to-AWS'
         ]
         self.pipeline_options = ttk.Combobox(self.pipeline_frame, value= pipelines)
@@ -523,7 +501,7 @@ class GatorGenome:
 
     def multiqc_run_menu(self):
         self.multiqc_run_frame = Frame(self.scroll_frame)
-        self.reporting_frame.pack(fill=BOTH, expand=1)
+        self.multiqc_run_frame.pack(fill=BOTH, expand=1)
         Label(
             self.multiqc_run_frame,
             text='Launch MultiQC for whole run:',
