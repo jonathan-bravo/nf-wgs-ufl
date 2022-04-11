@@ -9,9 +9,11 @@ RUN pip3 install awscli
 ENV NXF_OPTS='-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap' NXF_HOME=/.nextflow AWS_DEFAULT_REGION=us-east-1
 
 # copy docker client
-RUN mkdir /data/
+# RUN mkdir /data/
 COPY main.nf /data/
 COPY workflows/ /data/workflows/
+COPY conf/ /data/conf/
+COPY subworkflows/ /data/subworkflows/
 COPY nextflow.config /data/
 COPY bin/ /data/bin/
 COPY modules/ /data/modules/

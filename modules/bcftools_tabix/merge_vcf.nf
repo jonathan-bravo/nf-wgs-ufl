@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 process MERGE_VCF {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/variants", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/variants", mode: 'copy'
     label 'bcftools_tabix'
     label 'small_process'
 

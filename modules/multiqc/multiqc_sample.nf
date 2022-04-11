@@ -5,7 +5,7 @@ nextflow.enable.dsl   = 2
 process MULTIQC_SAMPLE {
     
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/MultiQC", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/MultiQC", mode: 'copy'
     label 'multiqc'
     label 'small_process'
 

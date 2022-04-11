@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 process CALL_SNV_WGS {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Strelka2", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/Strelka2", mode: 'copy'
     label 'strelka2'
     label 'medium_process'
 
@@ -13,10 +13,10 @@ process CALL_SNV_WGS {
     path reference
     path ref_fai
     path ref_gzi
-    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), path(bam), path(bai)
 
     output:
-    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf.gz"), emit: snv_vcf
+    tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_variants.vcf"), emit: snv_vcf
     tuple val(sample_id), path("${sample_id}_strelka2/results/variants/${sample_id}_genome.S1.vcf"), emit: snv_gvcf
     
     script:
@@ -24,7 +24,7 @@ process CALL_SNV_WGS {
     mkdir ${sample_id}_strelka2
 
     /strelka-2.9.10.centos6_x86_64/bin/configureStrelkaGermlineWorkflow.py \
-    --bam ${sample_id}_md.bam \
+    --bam ${bam} \
     --referenceFasta ${reference} \
     --runDir ${sample_id}_strelka2
 

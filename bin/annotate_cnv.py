@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
+import pandas as pd
 from pysam import VariantFile
+from pysam import bcftools
+from pysam import tabix_compress
 
 
 def parse_args():
@@ -28,39 +31,58 @@ def parse_args():
     return args
 
 
+def index_input_vcf(vcf):
+    """
+    """
+    tabix_compress(vcf, f'{vcf}.gz')
+    bcftools.index('--tbi', f'{vcf}.gz')
+
+
+def load_bed(bed):
+    """
+    """
+    headers = ['Contig', 'Start', 'Stop', 'Gene']
+    df = pd.read_csv(bed, sep='\t', names=headers)
+    return df
+
+
+def get_genes(variant, bed):
+    """
+    """
+    genes = bed.loc[
+        (bed.Contig == variant.contig) & (
+            (
+                (bed.Start >= variant.start) & 
+                (bed.Start <= variant.stop)
+            ) | (
+                (bed.Stop >= variant.start) & 
+                (bed.Stop <= variant.stop)
+            )
+        )
+    ].Gene.tolist()
+    return ",".join(genes)
+
+
+def write_updated_vcf(sample_id, vcf, bed):
+    """
+    """
+    with open(f'{sample_id}_ann.vcf', 'w') as out_vcf:
+        out_vcf.write(str(vcf.header))
+        for variant in vcf.fetch():
+            genes = get_genes(variant, bed)
+            variant.info.update({'GENES': genes})
+            out_vcf.write(str(variant))            
+
+
 def main():
     """
     """
     args = parse_args()
-    vcf = VariantFile(args.v)
-    outfile = args.v.split('.')[0]
-    with open(outfile + "_ann.vcf", "w") as out:
-        out.write(str(vcf.header))
-        for variant in vcf.fetch():
-            if 'CNCLASS' in variant.info.keys():
-                gene_list = []
-                with open(args.b) as f:
-                    for line in f:
-                        gene = line.split('\t')
-                        check = (
-                            gene[0] == variant.contig
-                            and (
-                                (
-                                    int(gene[1]) >= variant.start
-                                    and int(gene[1]) <= variant.stop
-                                ) or
-                                (
-                                    int(gene[2]) >= variant.start
-                                    and int(gene[2]) <= variant.stop
-                                )
-                            )
-                        )
-                        if check:
-                            gene_list.append(gene[3].strip())
-                genes = ","
-                variant.info['GENES'] = genes.join(gene_list)
-            out.write(str(variant))
-    out.close()
+    sample_id = args.v.split('.')[0]
+    index_input_vcf(args.v)
+    vcf = VariantFile(f'{args.v}.gz')
+    bed = load_bed(args.b)
+    write_updated_vcf(sample_id, vcf, bed)    
 
 
 if __name__ == '__main__':
