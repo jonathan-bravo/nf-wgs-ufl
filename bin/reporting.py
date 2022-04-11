@@ -515,10 +515,34 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
                 'citation': 'https://doi.org/10.1093/nar/gks003'
             },
             {
+                'name': 'Manta',
+                'version': '1.6.0',
+                'purpose': 'detection of CNVs and stuctural variants for WGS data',
+                'citation': 'https://doi.org/10.1093/bioinformatics/btv710'
+            },
+            {
                 'name': 'ExpansionHunter',
                 'version': '4.0.2',
                 'purpose': 'detection of repeat expansions',
+                'citation': 'https://doi.org/10.1093/bioinformatics/btz431'
+            },
+            {
+                'name': 'ExpansionHunterDenovo',
+                'version': '0.9.0',
+                'purpose': 'detection of denovo repeat expansions',
                 'citation': 'https://doi.org/10.1186/s13059-020-02017-z'
+            },
+            {
+                'name': 'Gauchian',
+                'version': '1.0.2',
+                'purpose': 'wgs based GBA genotyper',
+                'citation': 'https://doi.org/10.1101/2021.11.12.21266253v1'
+            },
+            {
+                'name': 'Cyrius',
+                'version': '1.1.1',
+                'purpose': 'wgs based CYP2D6 genotyper',
+                'citation': 'https://doi.org/10.1038/s41397-020-00205-5'
             },
             {
                 'name': 'snpEff',
