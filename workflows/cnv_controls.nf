@@ -2,9 +2,8 @@
 
 nextflow.enable.dsl = 2
 
-params.cnv_controls_params = [:]
-params.outdir              = "${params.bucket}/CNV_Controls/RData/"
-params.reads_path          = "${params.bucket}/CNV_Controls/Fastqs/*_{1,2}.fastq.gz"
+params.outdir = "${params.bucket}/CNV_Controls/RData/"
+params.reads_path = "${params.bucket}/CNV_Controls/Fastqs/*_{1,2}.fastq.gz"
 
 reads_ch = Channel.fromFilePairs(params.reads_path)
 
