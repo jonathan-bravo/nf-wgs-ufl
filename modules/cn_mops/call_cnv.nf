@@ -5,14 +5,14 @@ nextflow.enable.dsl = 2
 process CALL_CNV {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/cn_MOPS", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/cn_MOPS", mode: 'copy'
     label 'cn_mops'
     label 'medium_process'
 
     input:
     path cnv_control
     path header
-    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), path(bam), path(bai)
 
     output:
     tuple val(sample_id), file("${sample_id}_filtered_cnv.vcf"), emit: cnv_vcf

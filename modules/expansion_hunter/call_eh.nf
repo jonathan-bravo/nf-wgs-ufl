@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 process CALL_EH {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/ExpansionHunter", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/ExpansionHunter", mode: 'copy'
     label 'expansion_hunter'
     label 'small_process'
 
@@ -14,7 +14,7 @@ process CALL_EH {
     path reference
     path ref_fai
     path ref_gzi
-    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), path(bam), path(bai)
 
     output:
     tuple val(sample_id), file("${sample_id}_filtered_eh.vcf"), emit: eh_vcf
@@ -25,7 +25,7 @@ process CALL_EH {
     shell:
     '''
     /ExpansionHunter-v4.0.2-linux_x86_64/bin/ExpansionHunter \
-    --reads !{sample_id}_md.bam \
+    --reads !{bam} \
     --reference !{reference} \
     --variant-catalog !{variant_catalog} \
     --output-prefix !{sample_id}_eh

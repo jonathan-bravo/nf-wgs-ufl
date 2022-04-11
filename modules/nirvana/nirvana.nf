@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 process NIRVANA {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Nirvana", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/Nirvana", mode: 'copy'
     label 'nirvana'
     label 'medium_process'
 

@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 process MANTA_WGS {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/Manta", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/Manta", mode: 'copy'
     label 'manta'
     label 'medium_process'
 
@@ -13,7 +13,7 @@ process MANTA_WGS {
     path reference
     path ref_fai
     path ref_gzi
-    tuple val(sample_id), file("${sample_id}_md.bam"), file("${sample_id}_md.bam.bai")
+    tuple val(sample_id), path(bam), path(bai)
 
     output:
     tuple val(sample_id), path("${sample_id}_manta/results/variants/${sample_id}_diploidSV.vcf.gz"), path("${sample_id}_manta/results/variants/${sample_id}_diploidSV.vcf.gz.tbi"), emit: manta_vcf
@@ -23,7 +23,7 @@ process MANTA_WGS {
     mkdir ${sample_id}_manta
 
     /manta-1.6.0.centos6_x86_64/bin/configManta.py \
-    --bam ${sample_id}_md.bam \
+    --bam ${bam} \
     --referenceFasta ${reference} \
     --runDir ${sample_id}_manta
 
