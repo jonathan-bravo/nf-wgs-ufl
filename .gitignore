@@ -1,4 +1,3 @@
-**/__pycache__
 **/aws.config
 *.pyc
 .nextflow*
@@ -7,3 +6,4 @@ trace*
 **/.DS_Store
 *.gz
 *.gz.tbi
+**/__pycache__

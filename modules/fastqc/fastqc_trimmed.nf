@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 process FASTQC_TRIMMED {
 
     tag "${sample_id}"
-    publishDir "${params.outdir}/${params.run_id}/${sample_id}/", mode: 'copy'
+    publishDir "${params.run_dir}/${sample_id}/", mode: 'copy'
     label 'fastqc'
     label 'small_process'
 

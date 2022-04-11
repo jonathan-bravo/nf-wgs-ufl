@@ -1,4 +1,129 @@
 # nf-wgs-ufl
+
+Additional configuration is included in the sub_config directory. Files in this
+directory are not included in the repo as they would/do contain more sensative
+account information for running the pipelines. The only file present here
+currently is `aws_id.config`. If this pipeline is to be run by someone else
+then they should create this file and set up something that looks like this.
+
+We have different labels for each docker container as well as different labels
+for each compute environment/queue. This allowed us to optomise cost without
+using SPOT instancing. You could create fewer queues, up the `errorStrategy`
+number and potentially use SPOT instancing if desired.
+
+```
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    HaKmonkey/nf-wgs-ufl additional Nextflow config file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Sensative AWS config options for all compute environments
+----------------------------------------------------------------------------------------
+*/
+
+plugins {
+    id 'nf-amazon'
+}
+
+process {
+    executor = 'awsbatch'
+    errorStrategy = { task.attempt <= 2 ? 'retry' : 'finish' }
+    maxRetries = 2
+
+    withLabel: small_process {
+        cpus = 2
+        memory = 2.GB
+        queue = ''
+    }
+
+    withLabel: medium_process {
+        cpus = 8
+        memory = 14.GB
+        queue = ''
+    }
+
+    withLabel: high_mem {
+        cpus = 8
+        memory = 62.GB
+        queue = ''
+    }
+
+    withLabel: alignment {
+        cpus = 32
+        memory = 62.GB
+        queue = ''
+    }
+
+    withLabel: ubuntu_python3 {
+        container = ""
+    }
+
+    withLabel: bcftools_tabix {
+        container = ''
+    }
+
+    withLabel: bwa {
+        container = ''
+    }
+
+    withLabel: expansion_hunter {
+        container = ''
+    }
+
+    withLabel: fastqc {
+        container = ''
+    }
+
+    withLabel: cn_mops {
+        container = ''
+    }
+
+    withLabel: picard {
+        container = ''
+    }
+
+    withLabel: samtools {
+        container = ''
+    }
+
+    withLabel: snpeff_tabix {
+        container = ''
+    }
+
+    withLabel: strelka2 {
+        container = ''
+    }
+
+    withLabel: trimmomatic {
+        container = ''
+    }
+
+    withLabel: multiqc {
+        container = ''
+    }
+
+    withLabel: manta {
+        container = ''
+    }
+}
+
+aws {
+    region = ''
+
+    client {
+        maxErrorRetry = 4
+    }
+
+    batch {
+        maxTransferAttempts = 8
+        delayBetweenAttempts = 300
+        maxParallelTransfers = 5
+    }
+}
+```
+
+You can also set the AWS access key, secret key, and default region here, but
+we currently have these values set up in AWS secrets manager.
+
 ## Tools
 
 This pipeline is a compilation of many open source tools:
@@ -27,7 +152,10 @@ This pipeline is a compilation of many open source tools:
 
 ## Workflow
 
-This pipeline is used through the `pipeline_webpage` that is hosted in AWS through CloudFront. All data is in AWS S3 and all computation occurs in AWS. This is an ongoing project that will continue to evolve as the needs of our lab evolves.
+This pipeline is used through the `pipeline_webpage` that is hosted in AWS
+through CloudFront. All data is in AWS S3 and all computation occurs in AWS.
+This is an ongoing project that will continue to evolve as the needs of our
+lab evolves.
 
 Version 1.0.0 of the pipeline runs as follows:
 
