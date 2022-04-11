@@ -25,4 +25,10 @@ unzip awscli-exe-linux-x86_64.zip; \
 rm awscli-exe-linux-x86_64.zip; \
 /aws/install
 
+WORKDIR /Gauchian-1.0.2
+
+RUN python3 setup.py install
+
+WORKDIR /
+
 ENV AWS_DEFAULT_REGION=us-east-1
