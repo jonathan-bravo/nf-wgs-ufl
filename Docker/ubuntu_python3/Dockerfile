@@ -9,11 +9,17 @@ curl \
 wget \
 unzip \
 libbz2-dev \
-liblzma-dev
+liblzma-dev \
+bedtools
 
 RUN pip3 install awscli \
 pysam \
 pyarrow \
-pandas
+pandas \
+boto3 \
+argparse \
+openpyxl \
+tqdm
+
 
 ENV AWS_DEFAULT_REGION=us-east-1
