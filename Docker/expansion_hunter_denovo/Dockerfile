@@ -19,6 +19,5 @@ RUN /aws/install
 
 ENV AWS_DEFAULT_REGION=us-east-1
 
-RUN wget https://github.com/Illumina/ExpansionHunterDenovo/releases/download/v0.9.0/ExpansionHunterDenovo-v0.9.0-linux_x86_64.tar.gz
-RUN tar -xvzf ExpansionHunterDenovo-v0.9.0-linux_x86_64.tar.gz
-RUN rm ExpansionHunterDenovo-v0.9.0-linux_x86_64.tar.gz
+RUN wget https://github.com/HaKmonkey/ExpansionHunterDenovo/releases/download/v0.9.1/ExpansionHunterDenovo.zip
+RUN unzip ExpansionHunterDenovo.zip && rm ExpansionHunterDenovo.zip
