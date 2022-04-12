@@ -30,10 +30,16 @@ workflow MULTIQC {
                 .map{ path -> tuple(path.baseName[0..-26], path) }
         }
 
-        trim_log_ch = Channel.fromPath("${params.run_dir}/*/Trimmomatic/*.log")
-            .map{ path -> tuple(path.baseName[0..-10], path) }
+        if ( params.match == '_{1,2}.fq.gz' ) {
+            pre_fastqc_ch = Channel.fromPath("${params.run_dir}/*/fastqc_*[0-9]_logs/*")
+                .map{ path -> tuple(path.baseName[0..-10], path) }
+        }
+        else {
+            pre_fastqc_ch = Channel.fromPath("${params.run_dir}/*/fastqc_*[0-9]_logs/*")
+                .map{ path -> tuple(path.baseName[0..-11], path) }
+        }
 
-        pre_fastqc_ch = Channel.fromPath("${params.run_dir}/*/fastqc_*[0-9]_logs/*")
+        trim_log_ch = Channel.fromPath("${params.run_dir}/*/Trimmomatic/*.log")
             .map{ path -> tuple(path.baseName[0..-10], path) }
 
         fastqc_ch = Channel.fromPath("${params.run_dir}/*/fastqc_*_trimmed_logs/*")
