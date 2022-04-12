@@ -500,7 +500,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
                 'name': 'Samtools',
                 'version': '1.10',
                 'purpose': 'SAM to BAM, sorting BAM, and indexing BAM',
-                'citation': 'https://doi.org/10.1093/gigascience/giab008'
+                'citation': 'https://pubmed.ncbi.nlm.nih.gov/19505943/'
             },
             {
                 'name': 'Strelka2',
@@ -536,7 +536,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
                 'name': 'Gauchian',
                 'version': '1.0.2',
                 'purpose': 'wgs based GBA genotyper',
-                'citation': 'https://doi.org/10.1101/2021.11.12.21266253v1'
+                'citation': 'https://doi.org/10.1101/2021.11.12.21266253'
             },
             {
                 'name': 'Cyrius',
@@ -554,7 +554,7 @@ def make_json(panel, gene_panel, snp_list, sv_list, exp_list, final_cnvs, sample
                 'name': 'Bcftools',
                 'version': '1.10.2',
                 'purpose': 'merging and indexing vcf files',
-                'citation': 'https://doi.org/10.1093/gigascience/giab008'
+                'citation': 'https://doi.org/10.1093/bioinformatics/btr509'
             },
             {
                 'name': 'Picard',
