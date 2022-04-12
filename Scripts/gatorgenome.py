@@ -6,13 +6,6 @@ from tkinter import ttk
 import aws_modules as aws
 
 
-def restart(root):
-    root.destroy()
-    root = Tk()
-    GatorGenome(root)
-    root.mainloop()
-
-
 class GatorGenome:
     def __init__(self, root):
         self.root = root
@@ -34,23 +27,52 @@ class GatorGenome:
         self.exec_menu()
 
     
+    def restart(self):
+        try: self.exec_frame.destroy()
+        except AttributeError: pass
+        try: self.bucket_frame.destroy()
+        except AttributeError: pass
+        try: self.pipeline_frame.destroy()
+        except AttributeError: pass
+        try: self.exome_frame.destroy()
+        except AttributeError: pass
+        try: self.run_id_frame.destroy()
+        except AttributeError: pass
+        try: self.reporting_frame.destroy()
+        except AttributeError: pass
+        try: self.lanes_frame.destroy()
+        except AttributeError: pass
+        try: self.match_frame.destroy()
+        except AttributeError: pass
+        try: self.launch_frame.destroy()
+        except AttributeError: pass
+        try: self.multiqc_run_frame.destroy()
+        except AttributeError: pass
+        try: self.move_fastqs_frame.destroy()
+        except AttributeError: pass
+        try: self.bs_to_aws_frame.destroy()
+        except AttributeError: pass
+        self.exec_menu()
+
+
     def run_multiqc_for_run(self):
         s3 = aws.get_s3_resource()
         aws.get_qc_files(self.bucket_name.get(), self.run_id_options.get(), s3)
         aws.run_multiqc(self.run_id_options.get())
         aws.upload_multiqc(self.run_id_options.get(), s3)
-
-        restart(root)
+        self.restart()
 
 
     def run_move_fastqs_to_processed(self):
         s3 = aws.get_s3_resource()
         aws.move_fastqs(self.bucket_name.get(), self.run_id_options.get(), s3)
+        self.restart()
 
 
     def submit_bs_to_aws_bach_job(self):
         client = aws.get_batch_resource(client, self.bs_run_id.get(), self.bucket_name.get())
         aws.submit_bs_to_aws_job()
+        self.restart()
 
     
     def submit_germline_batch_job(self):
@@ -110,7 +132,7 @@ class GatorGenome:
 
         print(nf_command)
 
-        restart(root)
+        self.restart()
 
 
     def submit_reporting_batch_job(self):
@@ -139,7 +161,7 @@ class GatorGenome:
             self.bucket_name.get()
         )
 
-        restart(root)
+        self.restart()
         
 
 
@@ -549,10 +571,6 @@ class GatorGenome:
         ).pack(anchor="s", fill=BOTH, expand=1, pady=10)
 
 
-
 root = Tk()
 GatorGenome(root)
 root.mainloop()
-
-
-# ## Might also add the bs-to-aws workflow
