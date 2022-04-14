@@ -7,11 +7,10 @@ process CALL_EHD {
     tag "${sample_id}"
     publishDir "${params.run_dir}/${sample_id}/ExpansionHunterDenovo", mode: 'copy'
     label 'expansion_hunter_denovo'
-    label 'small_process'
+    label 'medium_process'
 
     input:
     path ehd_controls
-    // path ehd_manifest
     path reference
     path ref_fai
     path ref_gzi
