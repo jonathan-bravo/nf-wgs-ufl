@@ -23,6 +23,7 @@ class GatorGenome:
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.scroll_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion = self.canvas.bbox('all')))
         self.root.bind("<MouseWheel>", lambda e: self.canvas.yview_scroll(-e.delta, 'units'))
+        self.root.unbind_class("TCombobox", "<MouseWheel>")
         self.canvas.create_window((0,0), window=self.scroll_frame, anchor='nw', width=640)
         self.exec_menu()
 
