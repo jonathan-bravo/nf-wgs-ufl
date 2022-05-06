@@ -39,7 +39,7 @@ workflow CAT_READS {
             CAT_TWO_LANES.out.read_pairs
         )
 
-        cat_reads_ch = CAT_FOUR_LANES.out.read_pairs
+        cat_reads_ch = CAT_TWO_LANES.out.read_pairs
         pre_fastqc_ch = FASTQC.out.qc
     }
     else if ( params.four ) {
