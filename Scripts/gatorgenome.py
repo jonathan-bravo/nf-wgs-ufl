@@ -61,19 +61,19 @@ class GatorGenome:
         aws.get_qc_files(self.bucket_name.get(), self.run_id_options.get(), s3)
         aws.run_multiqc(self.run_id_options.get())
         aws.upload_multiqc(self.run_id_options.get(), s3)
-        self.restart()
+        #self.restart()
 
 
     def run_move_fastqs_to_processed(self):
         s3 = aws.get_s3_resource()
         aws.move_fastqs(self.bucket_name.get(), self.run_id_options.get(), s3)
-        self.restart()
+        #self.restart()
 
 
     def submit_bs_to_aws_bach_job(self):
         client = aws.get_batch_resource(client, self.bs_run_id.get(), self.bucket_name.get())
         aws.submit_bs_to_aws_job()
-        self.restart()
+        #self.restart()
 
     
     def submit_germline_batch_job(self):
@@ -133,7 +133,7 @@ class GatorGenome:
 
         print(nf_command)
 
-        self.restart()
+        #self.restart()
 
 
     def submit_reporting_batch_job(self):
@@ -162,7 +162,7 @@ class GatorGenome:
             self.bucket_name.get()
         )
 
-        self.restart()
+        #self.restart()
         
 
 
@@ -306,13 +306,17 @@ class GatorGenome:
         except AttributeError: pass
         try: self.move_fastqs_frame.destroy()
         except AttributeError: pass
+        to_launch = (
+            self.pipeline_options.get() == 'Variant Calling'
+            or self.pipeline_options.get() == 'MultiQC'
+        )
         if self.pipeline_options.get() == 'Reporting':
             self.reporting_menu()
-        elif self.pipeline_options.get() == 'Variant Calling' or self.pipeline_options.get() == 'MultiQC':
+        elif to_launch:
             self.launch_menu()
         elif self.pipeline_options.get() == 'MultiQC Run':
             self.multiqc_run_menu()
-        elif self.pipeline_options.get == 'Archive Fastqs':
+        elif self.pipeline_options.get() == 'Archive Fastqs':
             self.move_fastqs_menu()
         else:
             self.lanes_menu()
