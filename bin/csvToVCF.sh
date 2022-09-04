@@ -27,12 +27,7 @@ awk -F',' 'NR>1 {
 sed -i 's/",//g' ${sample_id}.tmp
 sed -i 's/"//g' ${sample_id}.tmp
 
-cat ${sample_id}.head ${sample_id}.tmp > ${sample_id}_cnv.vcf
+cat ${sample_id}.head ${sample_id}.tmp > ${sample_id}.cnv.vcf
 
 rm ${sample_id}.head
 rm ${sample_id}.tmp
-
-# Generate a version of the VCF file that only containes DEL/DUP
-grep '^#' ${sample_id}_cnv.vcf > ${sample_id}_filtered_cnv.vcf
-grep -v '^#' ${sample_id}_cnv.vcf | \
-awk '{if ($5 !=".")print}' - >> ${sample_id}_filtered_cnv.vcf

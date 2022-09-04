@@ -66,7 +66,7 @@ def get_genes(variant, bed):
 def write_updated_vcf(sample_id, vcf, bed):
     """
     """
-    with open(f'{sample_id}_ann.vcf', 'w') as out_vcf:
+    with open(f'{sample_id}.ann.vcf', 'w') as out_vcf:
         out_vcf.write(str(vcf.header))
         for variant in vcf.fetch():
             genes = get_genes(variant, bed)

@@ -1,0 +1,73 @@
+{
+    "WORKFLOW":
+    {
+        "READS_SOURCE": "data/raw/",
+        "OUTPUT": "test_results/",
+        "ENV": "envs/default.yaml"
+    },
+
+    "BUILD":
+    {
+        "ENV": "envs/git.yaml"
+    },
+
+    "TRIMMOMATIC":
+    {
+        "THREADS": 10,
+        "ENV": "envs/trimmomatic.yaml",
+        "ADAPTERS": "data/adapters/nextera.fa",
+        "LEADING": "3",
+        "TRAILING": "3",
+        "SLIDING_WINDOW": "4:20",
+        "MINLEN": "36"
+    },
+
+    "BWA":
+    {
+        "REF_GENOME": "data/host/chr21.fasta.gz",
+        "ENV": "envs/bwa.yaml",
+        "THREADS": 16
+    },
+
+    "PICARD":
+    {
+        "ENV": "envs/picard.yaml",
+        "TAGGING": "All"
+    },
+
+    "SAMTOOLS":
+    {
+        "ENV": "envs/samtools.yaml",
+        "THREADS": 10
+    },
+
+    "BEDTOOLS":
+    {
+        "ENV": "envs/bedtools.yaml"
+    },
+
+    "RESISTOME":
+    {
+        "SCRIPT": "bin/resistome",
+        "ANNOTATION": "data/amr/megares_modified_annotations_v2.00.csv",
+        "THRESHOLD": "80"
+    },
+
+    "RAREFACTION":
+    {
+        "SCRIPT": "bin/rarefaction",
+        "MIN": "5",
+        "MAX": "100",
+        "SKIP": "5",
+        "SAMPLES": "1",
+        "THRESHOLD": "80"
+    },
+
+    "KRAKEN":
+    {
+        "INCLUDE": "true",
+        "ENV": "envs/kraken.yaml",
+        "THREADS": 10,
+        "DB": "minikraken_8GB_20200312"
+    }
+}

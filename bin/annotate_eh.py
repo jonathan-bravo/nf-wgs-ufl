@@ -158,7 +158,7 @@ def update_vcf_header(vcf):
 def write_updated_vcf(sample_id, vcf, catalog):
     """
     """
-    with open(f'{sample_id}_ann.vcf', 'w') as out_vcf:
+    with open(f'{sample_id}.ann.vcf', 'w') as out_vcf:
         out_vcf.write(str(vcf.header))
         for variant in vcf.fetch():
             var_id = variant.info['VARID']

@@ -14,4 +14,3 @@ workflow {
     else {
         GERMLINE()
     }
-}
