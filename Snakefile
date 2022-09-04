@@ -1,7 +1,6 @@
 configfile: "config.json"
 
 OUTDIR = config["WORKFLOW"]["OUTPUT"]
-ADAPTERS_FILE = config["TRIMMOMATIC"]["ADAPTERS"]
 REF_GENOME = config["BWA"]["REF"]
 SAMPLES, = glob_wildcards(config["WORKFLOW"]["READS_SOURCE"] + "/{sample}_R1.fastq.gz")
 
@@ -23,7 +22,7 @@ rule trim_reads: #trimmomatic
         u2 = OUTDIR + "{sample}Trimmomatic/Unpaired/{sample}.2U.fastq.gz",
         trim_log = OUTDIR + "{sample}Trimmomatic/{sample}.trimmomatic.stats.log"
     params:
-        illumina_clip = "ILLUMINACLIP:" + ADAPTERS_FILE + ":2:30:10:2:keepBothReads",
+        illumina_clip = "ILLUMINACLIP:" + config["TRIMMOMATIC"]["ADAPTERS"] + ":2:30:10:2:keepBothReads",
         sliding_window = "SLIDINGWINDOW:" + config["TRIMMOMATIC"]["SLIDING_WINDOW"],
         crop = "CROP:" + config["TRIMMOMATIC"]["CROP"],
         minlen = "MINLEN:" + config["TRIMMOMATIC"]["MINLEN"]
@@ -195,8 +194,8 @@ rule call_cnvs: #cn.mops
     input:
         OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
         OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.bam.bai",
-        "CNV CONTROL",
-        header = ""
+        config["CNMOPS"]["CONTROL"],
+        header = config["CNMOPS"]["HEADER"]
     output:
         temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf")
     params:
@@ -212,7 +211,7 @@ rule call_cnvs: #cn.mops
 
 rule annotate_cnvs:
     input:
-        bed = "genes.bed",
+        bed = config["CNMOPS"]["BED"],
         vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf"
     output:
         OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf"
@@ -230,7 +229,7 @@ rule call_expansions: #expansion_hunter
         reference = REF_GENOME,
         bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
         bai = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.bam.bai",
-        variant_catalog = ""
+        variant_catalog = config["EXPANSIONHUNTER"]["CATALOG"]
     output:
         temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf")
     params:
@@ -249,7 +248,7 @@ rule call_expansions: #expansion_hunter
 rule annotate_expansions:
     input:
         vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf",
-        variant_catalog = ""
+        variant_catalog = config["EXPANSIONHUNTER"]["CATALOG"]
     output:
         OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
     conda:

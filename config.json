@@ -6,25 +6,25 @@
         "ENV": "envs/default.yaml"
     },
 
-    "BUILD":
-    {
-        "ENV": "envs/git.yaml"
-    },
-
     "TRIMMOMATIC":
     {
-        "THREADS": 10,
+        "THREADS": 8,
         "ENV": "envs/trimmomatic.yaml",
         "ADAPTERS": "data/adapters/nextera.fa",
-        "LEADING": "3",
-        "TRAILING": "3",
         "SLIDING_WINDOW": "4:20",
-        "MINLEN": "36"
+        "MINLEN": "36",
+        "CROP": "149"
+    },
+
+    "FASTQC":
+    {
+        "ENV": "envs/fastqc.yaml",
+        "THREADS": 2
     },
 
     "BWA":
     {
-        "REF_GENOME": "data/host/chr21.fasta.gz",
+        "REF_GENOME": "data/reference/hs37d5.fa.gz",
         "ENV": "envs/bwa.yaml",
         "THREADS": 16
     },
@@ -38,36 +38,32 @@
     "SAMTOOLS":
     {
         "ENV": "envs/samtools.yaml",
-        "THREADS": 10
+        "THREADS": 16
     },
 
-    "BEDTOOLS":
+    "STRELKA":
     {
-        "ENV": "envs/bedtools.yaml"
+        "ENV": "envs/strelka.yaml",
+        "THREADS": 8
     },
 
-    "RESISTOME":
+    "MANTA":
     {
-        "SCRIPT": "bin/resistome",
-        "ANNOTATION": "data/amr/megares_modified_annotations_v2.00.csv",
-        "THRESHOLD": "80"
+        "ENV": "envs/manta.yaml",
+        "THREADS": 8
     },
 
-    "RAREFACTION":
+    "CNMOPS":
     {
-        "SCRIPT": "bin/rarefaction",
-        "MIN": "5",
-        "MAX": "100",
-        "SKIP": "5",
-        "SAMPLES": "1",
-        "THRESHOLD": "80"
+        "ENV": "envs/cnmops.yaml",
+        "HEADER": "data/cnvs/cnv_vcf_header.tsv",
+        "CONTROL": "data/cnvs/wgs_cnv_controls.RData",
+        "BED": "data/cnvs/hs37d5_genes.bed"
     },
 
-    "KRAKEN":
+    "EXPANSIONHUNTER":
     {
-        "INCLUDE": "true",
-        "ENV": "envs/kraken.yaml",
-        "THREADS": 10,
-        "DB": "minikraken_8GB_20200312"
+        "ENV": "envs/expansionhunter.yaml",
+        "CATALOG": "data/expansions/variant_catalog.json"
     }
 }
