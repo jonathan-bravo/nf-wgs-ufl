@@ -3,7 +3,8 @@
     {
         "READS_SOURCE": "data/raw/",
         "OUTPUT": "test_results/",
-        "ENV": "envs/default.yaml"
+        "ENV": "envs/default.yaml",
+        "QC": "True"
     },
 
     "TRIMMOMATIC":
@@ -65,5 +66,10 @@
     {
         "ENV": "envs/expansionhunter.yaml",
         "CATALOG": "data/expansions/variant_catalog.json"
+    },
+
+    "MULTIQC":
+    {
+        "ENV": "envs/multiqc.yaml"
     }
 }

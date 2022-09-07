@@ -26,6 +26,13 @@ def parse_args():
         help = '',
         required = False
     )
+    parser.add_argument(
+        '-o',
+        metavar = '--OUT_FILE',
+        type = str,
+        help = 'annotated vcf output',
+        required = True
+    )
     args = parser.parse_args()
     return args
 
@@ -155,10 +162,10 @@ def update_vcf_header(vcf):
     )
 
 
-def write_updated_vcf(sample_id, vcf, catalog):
+def write_updated_vcf(out_file, vcf, catalog):
     """
     """
-    with open(f'{sample_id}.ann.vcf', 'w') as out_vcf:
+    with open(out_file, 'w') as out_vcf:
         out_vcf.write(str(vcf.header))
         for variant in vcf.fetch():
             var_id = variant.info['VARID']
@@ -177,12 +184,12 @@ def main():
     """
     """
     args = parse_args()
-    sample_id = args.v.split('.')[0]
+    #sample_id = args.v.split('.')[0]
     index_input_vcf(args.v)
     vcf = VariantFile(f'{args.v}.gz')
     update_vcf_header(vcf)
     catalog = load_catalog(args.c)
-    write_updated_vcf(sample_id, vcf, catalog)
+    write_updated_vcf(args.o, vcf, catalog)
 
 
 if __name__ == '__main__':

@@ -7,3 +7,6 @@ trace*
 *.gz
 *.gz.tbi
 **/__pycache__
+.snakemake
+data/*
+test_results/*

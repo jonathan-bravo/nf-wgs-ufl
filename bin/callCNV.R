@@ -1,12 +1,15 @@
 #!/usr/bin/env Rscript
 
 library(cn.mops)
-load(file = "wgs_cnv_controls.RData")
 
 args = commandArgs(trailingOnly = TRUE)
-sample_id = args[1]
+cnv_control = args[1]
+bam_file = args[2]
+out_file = args[3]
 
-bam <- paste(sample_id, "_md.bam", sep = '')
+load(file = cnv_control)
+
+bam <- paste(bam_file, sep = '')
 
 bamDataRanges <- getReadCountsFromBAM(bam, WL = 3500)
 
@@ -23,5 +26,5 @@ result <- calcIntegerCopyNumbers(cn.mops(XandCB))
 segm <- as.data.frame(segmentation(result))
 sampleSEGM <- subset(segm, sampleName == bam)
 
-outFile <- paste(sample_id, "_cnvs.csv", sep = '')
+outFile <- paste(out_file, sep = '')
 write.csv(sampleSEGM, file = outFile)

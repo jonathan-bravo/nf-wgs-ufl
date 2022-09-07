@@ -26,6 +26,13 @@ def parse_args():
         type = str,
         help = 'hg19 genes bed file',
         required = True
+    ),
+    parser.add_argument(
+        '-o',
+        metavar = '--OUT_FILE',
+        type = str,
+        help = 'annotated vcf output',
+        required = True
     )
     args = parser.parse_args()
     return args
@@ -63,10 +70,10 @@ def get_genes(variant, bed):
     return ",".join(genes)
 
 
-def write_updated_vcf(sample_id, vcf, bed):
+def write_updated_vcf(out_file, vcf, bed):
     """
     """
-    with open(f'{sample_id}.ann.vcf', 'w') as out_vcf:
+    with open(out_file, 'w') as out_vcf:
         out_vcf.write(str(vcf.header))
         for variant in vcf.fetch():
             genes = get_genes(variant, bed)
@@ -78,11 +85,11 @@ def main():
     """
     """
     args = parse_args()
-    sample_id = args.v.split('.')[0]
+    #sample_id = args.v.split('.')[0]
     index_input_vcf(args.v)
     vcf = VariantFile(f'{args.v}.gz')
     bed = load_bed(args.b)
-    write_updated_vcf(sample_id, vcf, bed)    
+    write_updated_vcf(args.o, vcf, bed)    
 
 
 if __name__ == '__main__':
