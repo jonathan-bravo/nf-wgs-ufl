@@ -71,8 +71,8 @@ class GatorGenome:
 
 
     def submit_bs_to_aws_bach_job(self):
-        client = aws.get_batch_resource(client, self.bs_run_id.get(), self.bucket_name.get())
-        aws.submit_bs_to_aws_job()
+        client = aws.get_batch_resource()
+        aws.submit_bs_to_aws_job(client, self.bs_run_id.get(), self.bucket_name.get())
         #self.restart()
 
     
