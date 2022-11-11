@@ -26,7 +26,6 @@ rule all:
         all_input
 
 
-
 rule trim_reads: #trimmomatic
     input:
         f_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_R1.fastq.gz",
@@ -250,8 +249,8 @@ rule annotate_expansions:
         "-o {output.ann_vcf}"
 
 
-# if config["WORKFLOW"]["QC"].upper() == "TRUE":
-#     include: "qc.snakefile"
+if config["WORKFLOW"]["QC"].upper() == "TRUE":
+    include: "qc.snakefile"
 
 #rule merge_vcf: #bcftools
 
