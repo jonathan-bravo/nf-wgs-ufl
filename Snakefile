@@ -5,11 +5,10 @@ REF_GENOME = config["BWA"]["REF_GENOME"]
 SAMPLES, = glob_wildcards(config["WORKFLOW"]["READS_SOURCE"] + "/{sample}_R1.fastq.gz")
 
 all_input = [
-    expand(OUTDIR + "{sample}/CallSNVs/variants.vcf.gz", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz.tbi", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf", sample = SAMPLES)
+    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.SNV.parquet", sample = SAMPLES),
+    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.CNV.parquet", sample = SAMPLES),
+    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.EXP.parquet", sample = SAMPLES),
+    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.INDEL.parquet", sample = SAMPLES)
 ]
 
 if config["WORKFLOW"]["QC"].upper() == "TRUE":
@@ -252,7 +251,62 @@ rule annotate_expansions:
 if config["WORKFLOW"]["QC"].upper() == "TRUE":
     include: "qc.snakefile"
 
-#rule merge_vcf: #bcftools
+
+rule zip_vcf:
+    input:
+        cnv_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        exp_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
+    output:
+        OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
+    conda:
+        "envs/tabix.yaml"
+    shell:
+        "tabix {input.cnv_vcf} "
+        "tabix {input.exp_vcf}"
 
 
-#rule vcf_to_parquet:
+rule index_vcf:
+    input:
+        snv_vcf = OUTDIR + "{sample}/CallSNVs/variants.vcf.gz",
+        cnv_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz",
+        exp_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz"
+    output:
+        OUTDIR + "{sample}/CallSNVs/variants.vcf.gz.tbi",
+        OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
+        OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
+    conda:
+        "envs/bcftools.yaml"
+    shell:
+        "bcftools index --tbi {input.snv_vcf} "
+        "bcftools index --tbi {input.cnv_vcf} "
+        "bcftools index --tbi {input.exp_vcf}"
+
+
+rule vcf_to_parquet:
+    input:
+        snv_vcf = OUTDIR + "{sample}/CallSNVs/variants.vcf.gz",
+        snv_tbi = OUTDIR + "{sample}/CallSNVs/variants.vcf.gz.tbi",
+        indel_vcf = OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz",
+        indel_tbi = OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz.tbi",
+        cnv_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        cnv_tbi = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
+        exp_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf",
+        exp_tbi = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
+    output:
+        OUTDIR + "{sample}/ParquetVCF/{sample}.SNV.parquet",
+        OUTDIR + "{sample}/ParquetVCF/{sample}.CNV.parquet",
+        OUTDIR + "{sample}/ParquetVCF/{sample}.EXP.parquet",
+        OUTDIR + "{sample}/ParquetVCF/{sample}.INDEL.parquet"
+    params:
+        parquet_out = OUTDIR + "{sample}/ParquetVCF"
+    conda:
+        config["WORKFLOW"]["ENV"]
+    shell:
+        "bin/vcf_to_parquet.py "
+        "-s {wildcards.sample} "
+        "-v {input.snv_vcf} {input.indel_vcf} {input.cnv_vcf} {input.exp_vcf} "
+        "mv {sample}.SNV.parquet {params.parquet_out}/{sample}.SNV.parquet "
+        "mv {sample}.CNV.parquet {params.parquet_out}/{sample}.CNV.parquet "
+        "mv {sample}.EXP.parquet {params.parquet_out}/{sample}.EXP.parquet "
+        "mv {sample}.INDEL.parquet {params.parquet_out}/{sample}.INDEL.parquet"
