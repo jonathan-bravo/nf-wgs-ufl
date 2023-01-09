@@ -1,3 +1,8 @@
+# from snakemake.remote.S3 import RemoteProvider as S3RemoteProvider
+# S3 = S3RemoteProvider()
+# f_read = S3.remote("nf-wgs-ufl/snakemake/test-143-10x_L001_R1.fastq.gz"),
+# for running on a single ec2 instance
+# look at step functions
 configfile: "config.json"
 
 OUTDIR = config["WORKFLOW"]["OUTPUT"]
