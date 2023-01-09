@@ -13,7 +13,7 @@ include { MERGE_VCF      } from '../modules/bcftools_tabix/merge_vcf'         ad
 include { MERGE_GVCF     } from '../modules/bcftools_tabix/merge_gvcf'        addParams([*:params, "run_dir" : params.run_dir])
 include { ANNOTATE_VCF   } from '../modules/snpeff_tabix/annotate_vcf'        addParams([*:params, "run_dir" : params.run_dir])
 include { GAUCHIAN       } from '../modules/gauchian/gauchian'                addParams([*:params, "run_dir" : params.run_dir])
-include { CYRIUS         } from '../modules/cyrius/cyrius'                    addParams([*:params, "run_dir" : params.run_dir])
+// include { CYRIUS         } from '../modules/cyrius/cyrius'                    addParams([*:params, "run_dir" : params.run_dir])
 include { CALL_EHD       } from '../modules/expansion_hunter_denovo/call_ehd' addParams([*:params, "run_dir" : params.run_dir])
 include { VCF_TO_PARQUET } from '../modules/ubuntu_python3/vcf_to_parquet'
 
@@ -116,12 +116,12 @@ workflow VCF {
         bam_ch
     )
 
-    CYRIUS(
-        params.reference,
-        params.ref_fai,
-        params.ref_gzi,
-        bam_ch
-    )
+    // CYRIUS(
+    //     params.reference,
+    //     params.ref_fai,
+    //     params.ref_gzi,
+    //     bam_ch
+    // )
 
     ANNOTATE_VCF.out.snpeff_vcf
         .mix(ANNOTATE_CNV.out.cnv_ann, ANNOTATE_EH.out.eh_ann)
