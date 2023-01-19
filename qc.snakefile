@@ -1,18 +1,20 @@
 rule run_fastqc: #fastqc
     input:
-        OUTDIR + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
-        OUTDIR + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz"
+        outdir + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
+        outdir + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz"
     output:
-        OUTDIR + "{sample}/Fastqc/{sample}.1P_fastqc.html",
-        OUTDIR + "{sample}/Fastqc/{sample}.2P_fastqc.html",
-        OUTDIR + "{sample}/Fastqc/{sample}.1P_fastqc.zip",
-        OUTDIR + "{sample}/Fastqc/{sample}.2P_fastqc.zip"
+        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.html",
+        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.html",
+        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.zip",
+        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.zip"
     params:
-        fastqc_out = OUTDIR + "{sample}/Fastqc/"
+        fastqc_out = outdir + "{sample}/Fastqc/"
     conda:
         "envs/qc.yaml"
     threads:
-        config["FASTQC"]["THREADS"]
+        2
+    resources:
+        mem_mb = 2048
     shell:
         "mkdir -p {params.fastqc_out}; "
         "fastqc -t {threads} -o {params.fastqc_out} -f fastq {input}"
@@ -20,32 +22,40 @@ rule run_fastqc: #fastqc
 
 rule collect_wgs_metrics: #picard
     input:
-        REF_GENOME + ".fai",
-        REF_GENOME + ".gzi",
-        reference = REF_GENOME,
-        bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        bai = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
+        ref_genome + ".fai",
+        ref_genome + ".gzi",
+        reference = ref_genome,
+        bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
+        bai = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
     output:
-        OUTDIR + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
+        outdir + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
     conda:
         "envs/qc.yaml"
+    threads:
+        4
+    resources:
+        mem_mb = 63488
     shell:
         "picard CollectWgsMetrics -I {input.bam} -O {output} -R {reference}"
 
 
 rule run_multiqc:
     input:
-        OUTDIR + "{sample}/Trimmomatic/{sample}.trimmomatic.stats.log",
-        OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.md_metrics.txt",
-        OUTDIR + "{sample}/Fastqc/{sample}.1P_fastqc.html",
-        OUTDIR + "{sample}/Fastqc/{sample}.2P_fastqc.html",
-        OUTDIR + "{sample}/Fastqc/{sample}.1P_fastqc.zip",
-        OUTDIR + "{sample}/Fastqc/{sample}.2P_fastqc.zip",
-        OUTDIR + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
+        outdir + "{sample}/Trimmomatic/{sample}.trimmomatic.stats.log",
+        outdir + "{sample}/MarkDuplcatesAlign/{sample}.md_metrics.txt",
+        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.html",
+        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.html",
+        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.zip",
+        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.zip",
+        outdir + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
     output:
-        OUTDIR + "{sample}/MultiQC/{sample}.html",
-        OUTDIR + "{sample}/MultiQC/{sample}_data",
+        outdir + "{sample}/MultiQC/{sample}.html",
+        outdir + "{sample}/MultiQC/{sample}_data",
     conda:
         "envs/qc.yaml"
+    threads:
+        2
+    resources:
+        mem_mb = 2048
     shell:
         "multiqc -n {wildcards.sample} ."
