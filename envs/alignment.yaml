@@ -1,0 +1,8 @@
+name: alignment
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - libzlib = 1.2.13
+  - bwa = 0.7.17
+  - samtools = 1.16.1
