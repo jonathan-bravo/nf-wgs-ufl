@@ -3,24 +3,25 @@
 # f_read = S3.remote("nf-wgs-ufl/snakemake/test-143-10x_L001_R1.fastq.gz"),
 # for running on a single ec2 instance
 # look at step functions
-configfile: "config.json"
+configfile: "config.yaml"
 
-OUTDIR = config["WORKFLOW"]["OUTPUT"]
-REF_GENOME = config["BWA"]["REF_GENOME"]
-SAMPLES, = glob_wildcards(config["WORKFLOW"]["READS_SOURCE"] + "/{sample}_R1.fastq.gz")
+reads = config["reads"]
+outdir = config["output"]
+ref_genome = config["ref_genome"]
+samples, = glob_wildcards(config["reads"] + "/{sample}_R1.fastq.gz")
 
 all_input = [
-    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.SNV.parquet", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.CNV.parquet", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.EXP.parquet", sample = SAMPLES),
-    expand(OUTDIR + "{sample}/ParquetVCF/{sample}.INDEL.parquet", sample = SAMPLES)
+    expand(outdir + "{sample}/ParquetVCF/{sample}.SNV.parquet", sample = samples),
+    expand(outdir + "{sample}/ParquetVCF/{sample}.CNV.parquet", sample = samples),
+    expand(outdir + "{sample}/ParquetVCF/{sample}.EXP.parquet", sample = samples),
+    expand(outdir + "{sample}/ParquetVCF/{sample}.INDEL.parquet", sample = samples)
 ]
 
 if config["WORKFLOW"]["QC"].upper() == "TRUE":
     include: "qc.snakefile"
     qc_results = [
-        expand(OUTDIR + "{sample}/MultiQC/{sample}.html", sample = SAMPLES),
-        expand(OUTDIR + "{sample}/MultiQC/{sample}_data", sample = SAMPLES)
+        expand(outdir + "{sample}/MultiQC/{sample}.html", sample = samples),
+        expand(outdir + "{sample}/MultiQC/{sample}_data", sample = samples)
     ]
     all_input.append(qc_results)
 
@@ -32,23 +33,25 @@ rule all:
 
 rule trim_reads: #trimmomatic
     input:
-        f_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_R1.fastq.gz",
-        r_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_R2.fastq.gz"
+        f_read = reads + "{sample}_R1.fastq.gz",
+        r_read = reads + "{sample}_R2.fastq.gz"
     output:
-        p1 = OUTDIR + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
-        p2 = OUTDIR + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz",
-        u1 = OUTDIR + "{sample}/Trimmomatic/Unpaired/{sample}.1U.fastq.gz",
-        u2 = OUTDIR + "{sample}/Trimmomatic/Unpaired/{sample}.2U.fastq.gz",
-        trim_log = OUTDIR + "{sample}/Trimmomatic/{sample}.trimmomatic.stats.log"
+        p1 = outdir + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
+        p2 = outdir + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz",
+        u1 = outdir + "{sample}/Trimmomatic/Unpaired/{sample}.1U.fastq.gz",
+        u2 = outdir + "{sample}/Trimmomatic/Unpaired/{sample}.2U.fastq.gz",
+        trim_log = outdir + "{sample}/Trimmomatic/{sample}.trimmomatic.stats.log"
     params:
-        illumina_clip = "ILLUMINACLIP:" + config["TRIMMOMATIC"]["ADAPTERS"] + ":2:30:10:2:keepBothReads",
-        sliding_window = "SLIDINGWINDOW:" + config["TRIMMOMATIC"]["SLIDING_WINDOW"],
-        crop = "CROP:" + config["TRIMMOMATIC"]["CROP"],
-        minlen = "MINLEN:" + config["TRIMMOMATIC"]["MINLEN"]
+        illumina_clip = "ILLUMINACLIP:" + config["adapters"] + ":2:30:10:2:keepBothReads",
+        sliding_window = "SLIDINGWINDOW:" + config["sliding_window"],
+        crop = "CROP:" + config["crop"],
+        minlen = "MINLEN:" + config["MINLEN"]
     conda:
         "envs/read_trimming.yaml"
     threads:
-        config["TRIMMOMATIC"]["THREADS"]
+        8
+    resources:
+        mem_mb = 14336
     shell:
         "trimmomatic PE -threads {threads} "
         "{input.f_read} {input.r_read} "
@@ -59,20 +62,22 @@ rule trim_reads: #trimmomatic
 
 rule align_reads: #bwa
     input:
-        REF_GENOME + ".amb",
-        REF_GENOME + ".ann",
-        REF_GENOME + ".bwt",
-        REF_GENOME + ".pac",
-        REF_GENOME + ".sa",
-        reference = REF_GENOME,
-        p1 = OUTDIR + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
-        p2 = OUTDIR + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz",
+        ref_genome + ".amb",
+        ref_genome + ".ann",
+        ref_genome + ".bwt",
+        ref_genome + ".pac",
+        ref_genome + ".sa",
+        reference = ref_genome,
+        p1 = outdir + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
+        p2 = outdir + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz",
     output:
-        temp(OUTDIR + "{sample}.sam")
+        temp(outdir + "{sample}.sam")
     conda:
         "envs/alignment.yaml"
     threads:
-        config["BWA"]["THREADS"]
+        32
+    resources:
+        mem_mb = 63488
     shell:
         "bwa mem -t {threads} {input.reference} "
         "{input.p1} {input.p2} > {output}"
@@ -80,14 +85,16 @@ rule align_reads: #bwa
 
 rule sam_to_bam: #samtools
     input:
-        OUTDIR + "{sample}.sam"
+        outdir + "{sample}.sam"
     output:
-        bam = temp(OUTDIR + "{sample}/AlignReadsToHost/{sample}.sorted.bam"),
-        bai = temp(OUTDIR + "{sample}/AlignReadsToHost/{sample}.sorted.bam.bai")
+        bam = temp(outdir + "{sample}/AlignReadsToHost/{sample}.sorted.bam"),
+        bai = temp(outdir + "{sample}/AlignReadsToHost/{sample}.sorted.bam.bai")
     conda:
         "envs/alignment.yaml"
     threads:
-        config["SAMTOOLS"]["THREADS"]
+        8
+    resources:
+        mem_mb = 63488
     shell:
         "samtools view -Sb {input} | "
         "samtools sort -@ {threads} -o {output.bam}; "
@@ -96,15 +103,19 @@ rule sam_to_bam: #samtools
 
 rule mark_duplicates: #picard
     input:
-        bam = OUTDIR + "{sample}/AlignReadsToHost/{sample}.sorted.bam",
-        bai = OUTDIR + "{sample}/AlignReadsToHost/{sample}.sorted.bam.bai"
+        bam = outdir + "{sample}/AlignReadsToHost/{sample}.sorted.bam",
+        bai = outdir + "{sample}/AlignReadsToHost/{sample}.sorted.bam.bai"
     output:
-        md_bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        md_metrics = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.md_metrics.txt"
+        md_bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
+        md_metrics = outdir + "{sample}/MarkDuplcatesAlign/{sample}.md_metrics.txt"
     params:
-        tagging = "--TAGGING_POLICY " + config["PICARD"]["TAGGING"],
+        tagging = "--TAGGING_POLICY " + config["tagging"],
     conda:
         "envs/qc.yaml"
+    threads:
+        4
+    resources:
+        mem_mb = 63488
     shell:
         "picard MarkDuplicates {params.tagging} "
         "-I {input.bam} -O {output.md_bam} -M {output.md_metrics}"
@@ -112,33 +123,37 @@ rule mark_duplicates: #picard
 
 rule index_dupaware_bam: #samtools
     input:
-        OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam"
+        outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam"
     output:
-        OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
+        outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
     conda:
         "envs/alignment.yaml"
     threads:
-        config["SAMTOOLS"]["THREADS"]
+        8
+    resources:
+        mem_mb = 63488
     shell:
         "samtools index -@ {threads} {input} {output}"
 
 
 rule call_snvs: #strelka2
     input:
-        REF_GENOME + ".fai",
-        REF_GENOME + ".gzi",
-        reference = REF_GENOME,
-        bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        bai = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
+        ref_genome + ".fai",
+        ref_genome + ".gzi",
+        reference = ref_genome,
+        bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
+        bai = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
     output:
-        OUTDIR + "{sample}/CallSNVs/variants.vcf.gz"
+        outdir + "{sample}/CallSNVs/variants.vcf.gz"
     params:
-        strelka_out = OUTDIR + "{sample}/CallSNVs/",
+        strelka_out = outdir + "{sample}/CallSNVs/",
         temp_out = "{sample}_strelka2"
     conda:
         "envs/variant_calling.yaml"
     threads:
-        config["STRELKA"]["THREADS"]
+        8
+    resources:
+        mem_mb = 14336
     shell:
         "mkdir -p {params.strelka_out}; "
         "configureStrelkaGermlineWorkflow.py --bam {input.bam} "
@@ -151,21 +166,23 @@ rule call_snvs: #strelka2
 
 rule call_indels: #manta
     input:
-        REF_GENOME + ".fai",
-        REF_GENOME + ".gzi",
-        reference = REF_GENOME,
-        bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        bai = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
+        ref_genome + ".fai",
+        ref_genome + ".gzi",
+        reference = ref_genome,
+        bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
+        bai = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
     output:
-        vcf = OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz",
-        tbi = OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz.tbi"
+        vcf = outdir + "{sample}/CallInDels/diploidSV.vcf.gz",
+        tbi = outdir + "{sample}/CallInDels/diploidSV.vcf.gz.tbi"
     params:
-        manta_out = OUTDIR + "{sample}/CallInDels/",
+        manta_out = outdir + "{sample}/CallInDels/",
         temp_out = "{sample}_manta"
     conda:
         "envs/variant_calling.yaml"
     threads:
-        config["MANTA"]["THREADS"]
+        8
+    resources:
+        mem_mb = 14336
     shell:
         "mkdir -p {params.manta_out}; "
         "configManta.py --bam {input.bam} "
@@ -176,35 +193,43 @@ rule call_indels: #manta
         "rm -rf {params.temp_out}"
 
 
-rule call_cnvs: #cn.mops
+rule call_cnvs: #cn.mops MODIFY THIS RULE AFTER MODDING SCRIPT
     input:
-        bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        bai = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai",
-        r_control = config["CNMOPS"]["CONTROL"],
-        header = config["CNMOPS"]["HEADER"]
+        bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
+        bai = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai",
+        r_control = config["controls"],
+        # header = config["CNMOPS"]["HEADER"]
     output:
-        csv = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.csv"),
-        head = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.head"),
-        tmp = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.tmp"),
-        vcf = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf")
+        csv = temp(outdir + "{sample}/CallCNVs/{sample}.cnv.csv"),
+        head = temp(outdir + "{sample}/CallCNVs/{sample}.cnv.head"),
+        tmp = temp(outdir + "{sample}/CallCNVs/{sample}.cnv.tmp"),
+        vcf = temp(outdir + "{sample}/CallCNVs/{sample}.cnv.vcf")
     conda:
         "envs/variant_calling.yaml"
+    threads:
+        8
+    resources:
+        mem_mb = 14336
     shell:
         "bin/callCNV.R {input.r_control} {input.bam} {output.csv}; "
         "bin/csvToVCF.sh {input.header} {output.head} {output.tmp} "
         "{output.csv} {output.vcf}; "
 
 
-rule annotate_cnvs:
+rule annotate_cnvs: # MODIFY THIS RULE AFTER MODDING SCRIPT
     input:
-        bed = config["CNMOPS"]["BED"],
-        vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf"
+        bed = config["bed"],
+        vcf = outdir + "{sample}/CallCNVs/{sample}.cnv.vcf"
     output:
-        ann_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
-        gz_vcf = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf.gz"),
-        tbi = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf.gz.tbi")
+        ann_vcf = outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        gz_vcf = temp(outdir + "{sample}/CallCNVs/{sample}.cnv.vcf.gz"),
+        tbi = temp(outdir + "{sample}/CallCNVs/{sample}.cnv.vcf.gz.tbi")
     conda:
         "envs/default.yaml"
+    threads:
+        4
+    resources:
+        mem_mb = 8192
     shell:
         "bin/annotate_cnv.py "
         "-v {input.vcf} "
@@ -214,20 +239,24 @@ rule annotate_cnvs:
 
 rule call_expansions: #expansion_hunter
     input:
-        REF_GENOME + ".fai",
-        REF_GENOME + ".gzi",
-        reference = REF_GENOME,
-        bam = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        bai = OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai",
-        variant_catalog = config["EXPANSIONHUNTER"]["CATALOG"]
+        ref_genome + ".fai",
+        ref_genome + ".gzi",
+        reference = ref_genome,
+        bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
+        bai = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai",
+        variant_catalog = config["catalog"]
     output:
-        vcf = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf"),
-        json = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.json"),
-        bam = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh_realigned.bam")
+        vcf = temp(outdir + "{sample}/CallExpansions/{sample}.eh.vcf"),
+        json = temp(outdir + "{sample}/CallExpansions/{sample}.eh.json"),
+        bam = temp(outdir + "{sample}/CallExpansions/{sample}.eh_realigned.bam")
     params:
-        eh_out = OUTDIR + "{sample}/CallExpansions/{sample}.eh"
+        eh_out = outdir + "{sample}/CallExpansions/{sample}.eh"
     conda:
         "envs/variant_calling.yaml"
+    threads:
+        4
+    resources:
+        mem_mb = 8192
     shell:
         "ExpansionHunter "
         "--reads {input.bam} "
@@ -238,14 +267,18 @@ rule call_expansions: #expansion_hunter
 
 rule annotate_expansions:
     input:
-        vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf",
-        variant_catalog = config["EXPANSIONHUNTER"]["CATALOG"]
+        vcf = outdir + "{sample}/CallExpansions/{sample}.eh.vcf",
+        variant_catalog = config["catalog"]
     output:
-        ann_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf",
-        gz_vcf = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf.gz"),
-        tbi = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf.gz.tbi")
+        ann_vcf = outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf",
+        gz_vcf = temp(outdir + "{sample}/CallExpansions/{sample}.eh.vcf.gz"),
+        tbi = temp(outdir + "{sample}/CallExpansions/{sample}.eh.vcf.gz.tbi")
     conda:
         "envs/default.yaml"
+    threads:
+        4
+    resources:
+        mem_mb = 8192
     shell:
         "bin/annotate_eh.py "
         "-v {input.vcf} "
@@ -253,19 +286,23 @@ rule annotate_expansions:
         "-o {output.ann_vcf}"
 
 
-if config["WORKFLOW"]["QC"].upper() == "TRUE":
+if config["qc"].upper() == "TRUE":
     include: "qc.snakefile"
 
 
 rule zip_vcf:
     input:
-        cnv_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
-        exp_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
+        cnv_vcf = outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        exp_vcf = outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
     output:
-        OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
-        OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
+        outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
     conda:
         "envs/variant_calling.yaml"
+    threads:
+        2
+    resources:
+        mem_mb = 2048
     shell:
         "tabix {input.cnv_vcf} "
         "tabix {input.exp_vcf}"
@@ -273,15 +310,19 @@ rule zip_vcf:
 
 rule index_vcf:
     input:
-        snv_vcf = OUTDIR + "{sample}/CallSNVs/variants.vcf.gz",
-        cnv_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz",
-        exp_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz"
+        snv_vcf = outdir + "{sample}/CallSNVs/variants.vcf.gz",
+        cnv_vcf = outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz",
+        exp_vcf = outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz"
     output:
-        OUTDIR + "{sample}/CallSNVs/variants.vcf.gz.tbi",
-        OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
-        OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
+        outdir + "{sample}/CallSNVs/variants.vcf.gz.tbi",
+        outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
+        outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
     conda:
         "envs/variant_calling.yaml"
+    threads:
+        2
+    resources:
+        mem_mb = 2048
     shell:
         "bcftools index --tbi {input.snv_vcf} "
         "bcftools index --tbi {input.cnv_vcf} "
@@ -290,23 +331,27 @@ rule index_vcf:
 
 rule vcf_to_parquet:
     input:
-        snv_vcf = OUTDIR + "{sample}/CallSNVs/variants.vcf.gz",
-        snv_tbi = OUTDIR + "{sample}/CallSNVs/variants.vcf.gz.tbi",
-        indel_vcf = OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz",
-        indel_tbi = OUTDIR + "{sample}/CallInDels/diploidSV.vcf.gz.tbi",
-        cnv_vcf = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
-        cnv_tbi = OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
-        exp_vcf = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf",
-        exp_tbi = OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
+        snv_vcf = outdir + "{sample}/CallSNVs/variants.vcf.gz",
+        snv_tbi = outdir + "{sample}/CallSNVs/variants.vcf.gz.tbi",
+        indel_vcf = outdir + "{sample}/CallInDels/diploidSV.vcf.gz",
+        indel_tbi = outdir + "{sample}/CallInDels/diploidSV.vcf.gz.tbi",
+        cnv_vcf = outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
+        cnv_tbi = outdir + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
+        exp_vcf = outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf",
+        exp_tbi = outdir + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
     output:
-        OUTDIR + "{sample}/ParquetVCF/{sample}.SNV.parquet",
-        OUTDIR + "{sample}/ParquetVCF/{sample}.CNV.parquet",
-        OUTDIR + "{sample}/ParquetVCF/{sample}.EXP.parquet",
-        OUTDIR + "{sample}/ParquetVCF/{sample}.INDEL.parquet"
+        outdir + "{sample}/ParquetVCF/{sample}.SNV.parquet",
+        outdir + "{sample}/ParquetVCF/{sample}.CNV.parquet",
+        outdir + "{sample}/ParquetVCF/{sample}.EXP.parquet",
+        outdir + "{sample}/ParquetVCF/{sample}.INDEL.parquet"
     params:
-        parquet_out = OUTDIR + "{sample}/ParquetVCF"
+        parquet_out = outdir + "{sample}/ParquetVCF"
     conda:
         "envs/default.yaml"
+    threads:
+        4
+    resources:
+        mem_mb = 8192
     shell:
         "bin/vcf_to_parquet.py "
         "-s {wildcards.sample} "
