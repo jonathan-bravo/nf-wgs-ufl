@@ -1,0 +1,22 @@
+output: "test_results/"
+qc: "true"
+
+# source data
+reads: "data/raw/"
+ref_genome: "data/reference/hs37d5.fa.gz"
+
+# trimmomatic read trimming
+adapters: "data/adapters/nextera.fa"
+sliding_window: "4:20"
+minlen: "36"
+crop: "149"
+
+# picard marking duplicates
+tagging: "All"
+
+# cnvs
+controls: "data/cnvs/wgs_cnv_controls.RData"
+bed: "data/cnvs/hs37d5_genes.bed"
+
+# expanstions
+catalog: "data/expansions/variant_catalog.json"
