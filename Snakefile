@@ -46,7 +46,7 @@ rule trim_reads: #trimmomatic
         crop = "CROP:" + config["TRIMMOMATIC"]["CROP"],
         minlen = "MINLEN:" + config["TRIMMOMATIC"]["MINLEN"]
     conda:
-        config["TRIMMOMATIC"]["ENV"]
+        "envs/read_trimming.yaml"
     threads:
         config["TRIMMOMATIC"]["THREADS"]
     shell:
@@ -70,7 +70,7 @@ rule align_reads: #bwa
     output:
         temp(OUTDIR + "{sample}.sam")
     conda:
-        config["BWA"]["ENV"]
+        "envs/alignment.yaml"
     threads:
         config["BWA"]["THREADS"]
     shell:
@@ -85,7 +85,7 @@ rule sam_to_bam: #samtools
         bam = temp(OUTDIR + "{sample}/AlignReadsToHost/{sample}.sorted.bam"),
         bai = temp(OUTDIR + "{sample}/AlignReadsToHost/{sample}.sorted.bam.bai")
     conda:
-        config["SAMTOOLS"]["ENV"]
+        "envs/alignment.yaml"
     threads:
         config["SAMTOOLS"]["THREADS"]
     shell:
@@ -104,7 +104,7 @@ rule mark_duplicates: #picard
     params:
         tagging = "--TAGGING_POLICY " + config["PICARD"]["TAGGING"],
     conda:
-        config["PICARD"]["ENV"]
+        "envs/qc.yaml"
     shell:
         "picard MarkDuplicates {params.tagging} "
         "-I {input.bam} -O {output.md_bam} -M {output.md_metrics}"
@@ -116,7 +116,7 @@ rule index_dupaware_bam: #samtools
     output:
         OUTDIR + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
     conda:
-        config["SAMTOOLS"]["ENV"]
+        "envs/alignment.yaml"
     threads:
         config["SAMTOOLS"]["THREADS"]
     shell:
@@ -136,7 +136,7 @@ rule call_snvs: #strelka2
         strelka_out = OUTDIR + "{sample}/CallSNVs/",
         temp_out = "{sample}_strelka2"
     conda:
-        config["STRELKA"]["ENV"]
+        "envs/variant_calling.yaml"
     threads:
         config["STRELKA"]["THREADS"]
     shell:
@@ -163,7 +163,7 @@ rule call_indels: #manta
         manta_out = OUTDIR + "{sample}/CallInDels/",
         temp_out = "{sample}_manta"
     conda:
-        config["MANTA"]["ENV"]
+        "envs/variant_calling.yaml"
     threads:
         config["MANTA"]["THREADS"]
     shell:
@@ -188,7 +188,7 @@ rule call_cnvs: #cn.mops
         tmp = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.tmp"),
         vcf = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf")
     conda:
-        config["CNMOPS"]["ENV"]
+        "envs/variant_calling.yaml"
     shell:
         "bin/callCNV.R {input.r_control} {input.bam} {output.csv}; "
         "bin/csvToVCF.sh {input.header} {output.head} {output.tmp} "
@@ -204,7 +204,7 @@ rule annotate_cnvs:
         gz_vcf = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf.gz"),
         tbi = temp(OUTDIR + "{sample}/CallCNVs/{sample}.cnv.vcf.gz.tbi")
     conda:
-        config["WORKFLOW"]["ENV"]
+        "envs/default.yaml"
     shell:
         "bin/annotate_cnv.py "
         "-v {input.vcf} "
@@ -227,7 +227,7 @@ rule call_expansions: #expansion_hunter
     params:
         eh_out = OUTDIR + "{sample}/CallExpansions/{sample}.eh"
     conda:
-        config["EXPANSIONHUNTER"]["ENV"]
+        "envs/variant_calling.yaml"
     shell:
         "ExpansionHunter "
         "--reads {input.bam} "
@@ -245,7 +245,7 @@ rule annotate_expansions:
         gz_vcf = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf.gz"),
         tbi = temp(OUTDIR + "{sample}/CallExpansions/{sample}.eh.vcf.gz.tbi")
     conda:
-        config["WORKFLOW"]["ENV"]
+        "envs/default.yaml"
     shell:
         "bin/annotate_eh.py "
         "-v {input.vcf} "
@@ -265,7 +265,7 @@ rule zip_vcf:
         OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf",
         OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf"
     conda:
-        "envs/tabix.yaml"
+        "envs/variant_calling.yaml"
     shell:
         "tabix {input.cnv_vcf} "
         "tabix {input.exp_vcf}"
@@ -281,7 +281,7 @@ rule index_vcf:
         OUTDIR + "{sample}/CallCNVs/{sample}.cnv.ann.vcf.gz.tbi",
         OUTDIR + "{sample}/CallExpansions/{sample}.eh.ann.vcf.gz.tbi"
     conda:
-        "envs/bcftools.yaml"
+        "envs/variant_calling.yaml"
     shell:
         "bcftools index --tbi {input.snv_vcf} "
         "bcftools index --tbi {input.cnv_vcf} "
@@ -306,7 +306,7 @@ rule vcf_to_parquet:
     params:
         parquet_out = OUTDIR + "{sample}/ParquetVCF"
     conda:
-        config["WORKFLOW"]["ENV"]
+        "envs/default.yaml"
     shell:
         "bin/vcf_to_parquet.py "
         "-s {wildcards.sample} "

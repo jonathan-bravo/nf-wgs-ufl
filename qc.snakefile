@@ -10,7 +10,7 @@ rule run_fastqc: #fastqc
     params:
         fastqc_out = OUTDIR + "{sample}/Fastqc/"
     conda:
-        config["FASTQC"]["ENV"]
+        "envs/qc.yaml"
     threads:
         config["FASTQC"]["THREADS"]
     shell:
@@ -28,7 +28,7 @@ rule collect_wgs_metrics: #picard
     output:
         OUTDIR + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
     conda:
-        config["PICARD"]["ENV"]
+        "envs/qc.yaml"
     shell:
         "picard CollectWgsMetrics -I {input.bam} -O {output} -R {reference}"
 
@@ -46,6 +46,6 @@ rule run_multiqc:
         OUTDIR + "{sample}/MultiQC/{sample}.html",
         OUTDIR + "{sample}/MultiQC/{sample}_data",
     conda:
-        config["MULTIQC"]["ENV"]
+        "envs/qc.yaml"
     shell:
         "multiqc -n {wildcards.sample} ."
