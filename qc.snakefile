@@ -1,12 +1,13 @@
+fastqc_suffixes = ('1P_fastqc.html', '2P_fastqc.html', '1P_fastqc.zip', '2P_fastqc.zip')
+qc_suffixes = ['trimmomatic.stats.log', 'md_metrics.txt', 'wgs_metrics.txt']
+qc_suffixes.extend(fastqc_suffixes)
+
+
 rule run_fastqc: #fastqc
     input:
-        outdir + "{sample}/Trimmomatic/Paired/{sample}.1P.fastq.gz",
-        outdir + "{sample}/Trimmomatic/Paired/{sample}.2P.fastq.gz"
+        expand(outdir + "{sample}/{sample}.{suffix}.fastq.gz", suffix = ('1P', '2P'))
     output:
-        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.html",
-        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.html",
-        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.zip",
-        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.zip"
+        expand(outdir + "{sample}/QC/{sample}.{suffix}", suffix = fastqc_suffixes)
     params:
         fastqc_out = outdir + "{sample}/Fastqc/"
     conda:
@@ -22,13 +23,12 @@ rule run_fastqc: #fastqc
 
 rule collect_wgs_metrics: #picard
     input:
-        ref_genome + ".fai",
-        ref_genome + ".gzi",
+        expand(ref_genome + suffix, suffix = ref_suffixes),
+        outdir + "{sample}/Alignment/{sample}.sorted.md.bam.bai",
+        bam = outdir + "{sample}/Alignment/{sample}.sorted.md.bam",
         reference = ref_genome,
-        bam = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam",
-        bai = outdir + "{sample}/MarkDuplcatesAlign/{sample}.sorted.md.bam.bai"
     output:
-        outdir + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
+        outdir + "{sample}/QC/{sample}.wgs_metrics.txt"
     conda:
         "envs/qc.yaml"
     threads:
@@ -41,16 +41,9 @@ rule collect_wgs_metrics: #picard
 
 rule run_multiqc:
     input:
-        outdir + "{sample}/Trimmomatic/{sample}.trimmomatic.stats.log",
-        outdir + "{sample}/MarkDuplcatesAlign/{sample}.md_metrics.txt",
-        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.html",
-        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.html",
-        outdir + "{sample}/Fastqc/{sample}.1P_fastqc.zip",
-        outdir + "{sample}/Fastqc/{sample}.2P_fastqc.zip",
-        outdir + "{sample}/WgsMetrics/{sample}.wgs_metrics.txt"
+        expand(outdir + "{sample}/QC/{sample}.{suffix}", suffix = qc_suffixes)
     output:
-        outdir + "{sample}/MultiQC/{sample}.html",
-        outdir + "{sample}/MultiQC/{sample}_data",
+        expand(outdir + "{sample}/MultiQC/{sample}{suffix}", suffix = multiqc_suffixes)
     conda:
         "envs/qc.yaml"
     threads:
