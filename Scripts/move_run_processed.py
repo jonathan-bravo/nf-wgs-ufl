@@ -43,7 +43,7 @@ def move_fastqs(run_id, s3):
             my_bucket.name,
             f'Fastqs/_Processed/{run_id}/{fastq}',
             ExtraArgs = {
-                'StorageClass': 'GLACIER_IR',
+                'StorageClass': 'DEEP_ARCHIVE',
                 'MetadataDirective': 'COPY'
             }
         )
