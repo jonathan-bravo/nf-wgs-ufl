@@ -57,7 +57,7 @@ def get_reports(bucket, s3, run_id):
                 'MetadataDirective': 'COPY'
             }
         )
-        #objects.delete()
+        objects.delete()
 
 def main():
     args = parse_args()
