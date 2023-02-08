@@ -24,8 +24,8 @@ def get_s3_resource():
     return s3
 
 def get_reports(bucket, s3, run_id):
-    makedirs(f'{run_id}/Reports/')
-    makedirs(f'{run_id}/MultiQC/multiqc_report_data/')
+    makedirs(f'{run_id}/Reports/', exist_ok = True)
+    makedirs(f'{run_id}/MultiQC/multiqc_report_data/', exist_ok = True)
 
     my_bucket = s3.Bucket(bucket)
 
