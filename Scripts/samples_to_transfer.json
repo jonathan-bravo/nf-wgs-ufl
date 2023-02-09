@@ -1,0 +1,12 @@
+{
+    "RUN_ID_01": [
+        "SAMPLE_ID_01",
+        "SAMPLE_ID_02",
+        "SAMPLE_ID_03"
+    ],
+    "RUN_ID_02": [
+        "SAMPLE_ID_01",
+        "SAMPLE_ID_02",
+        "SAMPLE_ID_03"
+    ]
+}
