@@ -86,7 +86,6 @@ def main():
     file_pairs = [(files[i], files[i+1]) for i in range(0, len(files), 2)]
 
     rows = pd.DataFrame(list(map(gen_row, samples, file_pairs)))
-    rows = rows[1:]
     rows.columns = [
         'Analysis ID*',
         'Unique Analysis ID*',
@@ -105,8 +104,8 @@ def main():
 
     gen_xlsx(rows, outfile)
 
-    source_list = [args.source]*len(samples)
-    dest_list = [args.dest]*len(samples)
+    source_list = [args.source]*len(files)
+    dest_list = [args.dest]*len(files)
 
     with ppe(args.threads) as p:
         p.map(copy_file, files, source_list, dest_list)
