@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse
+from argparse import ArgumentParser
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -8,9 +8,7 @@ from pysam import VariantFile
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description = ''
-    )
+    parser = ArgumentParser()
     parser.add_argument(
         '-v',
         metavar = '--VCF',
@@ -25,8 +23,7 @@ def parse_args():
         help = 'sample id to for the output parquet file',
         required = True
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def get_header_length(vcf):
@@ -36,7 +33,7 @@ def get_header_length(vcf):
     return header_count
 
 
-def read_vcf(vcf, header_count, sample_id):
+def read_vcf(vcf, header_count):
     col_names = [
         'Contig',
         'Position',
@@ -75,8 +72,6 @@ def read_vcf(vcf, header_count, sample_id):
 
 
 def write_parquet(sample_id, vcf_type, vcf_stream):
-    """
-    """
     fields = [
         pa.field('Sample ID', pa.string()),
         pa.field('Contig', pa.string()),
@@ -107,7 +102,6 @@ def write_parquet(sample_id, vcf_type, vcf_stream):
 
 def main():
     args = parse_args()
-    sample_id = args.s
 
     for vcf in args.v:
         if 'variants.' in vcf:
@@ -119,8 +113,8 @@ def main():
         elif 'diploidSV.' in vcf:
             vcf_type = 'INDEL'
         header_count = get_header_length(vcf)
-        vcf_stream = read_vcf(vcf, header_count, sample_id)
-        write_parquet(sample_id, vcf_type, vcf_stream)
+        vcf_stream = read_vcf(vcf, header_count)
+        write_parquet(args.s, vcf_type, vcf_stream)
 
 
 if __name__ == '__main__':
